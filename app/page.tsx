@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 import { supabase } from '../lib/supabase'
 
 export default async function Home() {
@@ -278,8 +280,15 @@ console.log('JOBS:', jobs)
 
           <tbody>
             {jobs?.map((job) => (
-              <tr key={job.job_id} className="border-b">
-                <td className="p-2">{job.job_number}</td>
+              <tr
+  key={job.job_id}
+  className="border-b hover:bg-gray-100 cursor-pointer"
+>
+                <td className="p-2">
+  <Link href={`/jobs/${job.job_id}`}>
+    {job.job_number || 'Open Job'}
+  </Link>
+</td>
                 <td className="p-2">{job.po_number}</td>
                 <td className="p-2">{job.address_line_1}</td>
                 <td className="p-2">{job.town}</td>
