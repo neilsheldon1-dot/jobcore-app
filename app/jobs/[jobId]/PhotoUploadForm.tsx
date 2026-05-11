@@ -66,7 +66,7 @@ export default function PhotoUploadForm({
   return (
     <form
       onSubmit={handleUpload}
-      className="bg-white rounded-3xl shadow-lg p-8 mt-8"
+      className="bg-gray-300 rounded-3xl shadow-lg p-8 mt-8"
     >
       <h2 className="text-2xl font-bold mb-4">Upload Photo</h2>
 
@@ -99,7 +99,7 @@ export default function PhotoUploadForm({
       <button
         type="submit"
         disabled={loading}
-        className="bg-black text-white px-6 py-3 rounded-xl"
+        className="bg-black text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition"
       >
         {loading ? 'Uploading...' : 'Upload Photo'}
       </button>

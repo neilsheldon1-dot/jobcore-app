@@ -70,7 +70,7 @@ export default function AddNoteForm({
       <button
         type="submit"
         disabled={loading}
-        className="mt-4 bg-black text-gray-300 font-bold px-6 py-3 rounded-xl"
+        className="mt-4 bg-black text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition"
       >
         {loading ? 'Saving...' : 'Save Note'}
       </button>

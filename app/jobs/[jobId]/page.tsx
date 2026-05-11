@@ -1,9 +1,21 @@
+import Link from 'next/link'
+import StatusButtons from './StatusButtons'
+import PhotoGallery from './PhotoGallery'
 import PhotoUploadForm from './PhotoUploadForm'
-
 import AddNoteForm from './AddNoteForm'
-
 import { supabase } from '../../../lib/supabase'
+<div className="flex justify-between items-center mb-8">
+  <h1 className="text-4xl font-bold">
+    Job Details
+  </h1>
 
+  <Link
+    href="/"
+    className="bg-black text-white px-5 py-3 rounded-xl font-bold hover:scale-105 transition"
+  >
+    ← Dashboard
+  </Link>
+</div>
 type JobPageProps = {
   params: Promise<{
     jobId: string
@@ -24,11 +36,12 @@ export default async function JobPage({ params }: JobPageProps) {
     .select('*')
     .eq('job_id', jobId)
     .order('created_at', { ascending: false })
-const { data: photos } = await supabase
-  .from('photos')
-  .select('*')
-  .eq('job_id', jobId)
-  .order('created_at', { ascending: false })
+
+  const { data: photos } = await supabase
+    .from('photos')
+    .select('*')
+    .eq('job_id', jobId)
+    .order('created_at', { ascending: false })
 
   if (error) {
     return (
@@ -75,7 +88,27 @@ const { data: photos } = await supabase
 
         <div>
           <h2 className="text-sm text-gray-500 uppercase">Status</h2>
-          <p className="text-xl font-bold">{job.status}</p>
+          <p
+  className={`text-xl font-bold px-4 py-2 rounded-xl inline-block ${
+    job.status === 'Ticket'
+      ? 'bg-pink-500 text-white'
+      : job.status === 'Needs Quoting'
+      ? 'bg-purple-500 text-white'
+      : job.status === 'Awaiting Approval'
+      ? 'bg-orange-500 text-white'
+      : job.status === 'Awaiting Scaffolding'
+      ? 'bg-red-700 text-white'
+      : job.status === 'Ready'
+      ? 'bg-emerald-600 text-white'
+      : job.status === 'Scaffold Ready'
+      ? 'bg-green-900 text-white'
+      : job.status === 'Needs Invoicing'
+      ? 'bg-blue-900 text-white'
+      : 'bg-gray-500 text-white'
+  }`}
+>
+  {job.status}
+</p>
         </div>
 
         <div>
@@ -95,6 +128,15 @@ const { data: photos } = await supabase
           </p>
         </div>
       </div>
+      <div className="mt-8 text-center">
+  <Link
+    href="/"
+    className="inline-block bg-black text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition"
+  >
+    ← Back to Dashboard
+  </Link>
+</div>
+<StatusButtons jobId={jobId} />
 
       <div className="bg-white rounded-3xl shadow-lg p-8 mt-8">
         <h2 className="text-2xl font-bold mb-4">Job Notes</h2>
@@ -121,47 +163,12 @@ const { data: photos } = await supabase
           <p className="text-gray-500">No notes added yet.</p>
         )}
       </div>
+
       <AddNoteForm jobId={jobId} />
-<div className="bg-white rounded-3xl shadow-lg p-8 mt-8">
-  <h2 className="text-2xl font-bold mb-6">
-    Job Photos
-  </h2>
 
-  {photos && photos.length > 0 ? (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {photos.map((photo) => (
-        <div
-          key={photo.id}
-          className="border rounded-2xl overflow-hidden bg-gray-50"
-        >
-          <img
-            src={photo.file_url}
-            alt="Job Photo"
-            className="w-full h-48 object-cover"
-          />
+    
+      <PhotoGallery photos={photos ?? []} />
 
-          <div className="p-3">
-            <p className="text-sm font-bold uppercase">
-              {photo.category}
-            </p>
-
-            <p className="text-xs text-gray-500">
-              Uploaded by {photo.uploaded_by}
-            </p>
-
-            <p className="text-xs text-gray-400 mt-1">
-              {new Date(photo.created_at).toLocaleString('en-GB')}
-            </p>
-          </div>
-        </div>
-      ))}
-    </div>
-  ) : (
-    <p className="text-gray-500">
-      No photos uploaded yet.
-    </p>
-  )}
-</div>
       <PhotoUploadForm jobId={jobId} />
     </main>
   )
