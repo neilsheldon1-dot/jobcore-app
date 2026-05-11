@@ -1,3 +1,5 @@
+import PhotoUploadForm from './PhotoUploadForm'
+
 import AddNoteForm from './AddNoteForm'
 
 import { supabase } from '../../../lib/supabase'
@@ -22,6 +24,11 @@ export default async function JobPage({ params }: JobPageProps) {
     .select('*')
     .eq('job_id', jobId)
     .order('created_at', { ascending: false })
+const { data: photos } = await supabase
+  .from('photos')
+  .select('*')
+  .eq('job_id', jobId)
+  .order('created_at', { ascending: false })
 
   if (error) {
     return (
@@ -115,6 +122,47 @@ export default async function JobPage({ params }: JobPageProps) {
         )}
       </div>
       <AddNoteForm jobId={jobId} />
+<div className="bg-white rounded-3xl shadow-lg p-8 mt-8">
+  <h2 className="text-2xl font-bold mb-6">
+    Job Photos
+  </h2>
+
+  {photos && photos.length > 0 ? (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {photos.map((photo) => (
+        <div
+          key={photo.id}
+          className="border rounded-2xl overflow-hidden bg-gray-50"
+        >
+          <img
+            src={photo.file_url}
+            alt="Job Photo"
+            className="w-full h-48 object-cover"
+          />
+
+          <div className="p-3">
+            <p className="text-sm font-bold uppercase">
+              {photo.category}
+            </p>
+
+            <p className="text-xs text-gray-500">
+              Uploaded by {photo.uploaded_by}
+            </p>
+
+            <p className="text-xs text-gray-400 mt-1">
+              {new Date(photo.created_at).toLocaleString('en-GB')}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <p className="text-gray-500">
+      No photos uploaded yet.
+    </p>
+  )}
+</div>
+      <PhotoUploadForm jobId={jobId} />
     </main>
   )
 }

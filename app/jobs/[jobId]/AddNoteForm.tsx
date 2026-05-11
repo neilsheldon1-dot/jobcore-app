@@ -47,9 +47,9 @@ export default function AddNoteForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white rounded-3xl shadow-lg p-8 mt-8"
+      className="bg-gray-300 rounded-3xl shadow-lg p-8 mt-8"
     >
-      <h2 className="text-2xl font-bold mb-4">
+      <h2 className="text-black text-2xl font-bold mb-4">
         Add Note
       </h2>
 
@@ -57,20 +57,20 @@ export default function AddNoteForm({
         value={createdBy}
         onChange={(e) => setCreatedBy(e.target.value)}
         placeholder="Your name"
-        className="w-full border rounded-xl p-4 mb-4"
+        className="bg-white w-full border rounded-xl p-4 mb-4"
       />
 
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder="Add job update..."
-        className="w-full border rounded-xl p-4 min-h-[120px]"
+        className="bg-white w-full border rounded-xl p-4 min-h-[120px]"
       />
 
       <button
         type="submit"
         disabled={loading}
-        className="mt-4 bg-black text-white px-6 py-3 rounded-xl"
+        className="mt-4 bg-black text-gray-300 font-bold px-6 py-3 rounded-xl"
       >
         {loading ? 'Saving...' : 'Save Note'}
       </button>
