@@ -1,3 +1,5 @@
+import AddNoteForm from './AddNoteForm'
+
 import { supabase } from '../../../lib/supabase'
 
 type JobPageProps = {
@@ -112,6 +114,7 @@ export default async function JobPage({ params }: JobPageProps) {
           <p className="text-gray-500">No notes added yet.</p>
         )}
       </div>
+      <AddNoteForm jobId={jobId} />
     </main>
   )
 }
