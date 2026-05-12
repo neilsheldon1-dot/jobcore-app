@@ -1,3 +1,4 @@
+import JobTypeButtons from './JobTypeButtons'
 import UrgentButtons from './UrgentButtons'
 import Link from 'next/link'
 import StatusButtons from './StatusButtons'
@@ -151,6 +152,8 @@ export default async function JobPage({ params }: JobPageProps) {
   </Link>
 </div>
 <StatusButtons jobId={jobId} />
+<JobTypeButtons jobId={jobId} />
+
 
 
       <div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 mt-8">
