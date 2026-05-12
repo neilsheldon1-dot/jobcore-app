@@ -74,13 +74,13 @@ export default function PhotoUploadForm({
         value={uploadedBy}
         onChange={(e) => setUploadedBy(e.target.value)}
         placeholder="Uploaded by"
-        className="w-full border rounded-xl p-4 mb-4"
+        className="bg-white w-full border rounded-xl p-4 mb-4"
       />
 
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
-        className="w-full border rounded-xl p-4 mb-4"
+        className="bg-white w-full border rounded-xl p-4 mb-4"
       >
         <option value="before">Before</option>
         <option value="during">During</option>
@@ -93,7 +93,7 @@ export default function PhotoUploadForm({
         type="file"
         accept="image/*"
         onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-        className="w-full border rounded-xl p-4 mb-4"
+        className="bg-white w-full border rounded-xl p-4 mb-4"
       />
 
       <button

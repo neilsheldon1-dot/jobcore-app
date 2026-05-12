@@ -18,7 +18,7 @@ export default async function Home() {
     jobs?.filter((job) => job.status === 'Needs Quoting').length ?? 0,
 
   awaiting_approval:
-    jobs?.filter((job) => job.status === 'Quoted Awaiting Approval').length ?? 0,
+    jobs?.filter((job) => job.status === 'Awaiting Approval').length ?? 0,
 
   awaiting_scaffolding:
     jobs?.filter((job) => job.status === 'Awaiting Scaffolding').length ?? 0,
@@ -55,6 +55,24 @@ export default async function Home() {
 
   scaffolding:
     jobs?.filter((job) => job.status === 'Scaffold Ready').length ?? 0,
+
+  awaiting_asbestos:
+    jobs?.filter((job) => job.status === 'Awaiting Asbestos Removal').length ?? 0,
+
+  awaiting_gas:
+    jobs?.filter((job) => job.status === 'Awaiting Gas Engineer').length ?? 0,
+
+  awaiting_solar:
+    jobs?.filter((job) => job.status === 'Awaiting Solar Contractor').length ?? 0,
+
+  awaiting_tv:
+    jobs?.filter((job) => job.status === 'Awaiting TV Contractor').length ?? 0,
+
+  awaiting_materials:
+    jobs?.filter((job) => job.status === 'Awaiting Materials').length ?? 0,
+
+  access_issue:
+    jobs?.filter((job) => job.status === 'Access Issue').length ?? 0,
 }
 console.log('JOBS:', jobs)
 
@@ -65,96 +83,179 @@ console.log('JOBS:', jobs)
       </h1>
 
        {/* Total Jobs */}
-<section className="mb-10">
+<div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 mb-10">
   <h2 className="text-2xl font-bold text-orange-500 mb-4">
-    Total Jobs
+    <u>Total Jobs</u>
   </h2>
 
   <div className="flex flex-wrap gap-4 justify-start">
     {/* Total Jobs */}
     <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
       <h2 className="text-orange-400 text-sm uppercase font-bold tracking-wide">
-        Total Jobs
+        Total Live Jobs
       </h2>
       <p className="text-4xl font-bold text-orange-400">
         {stats.total_jobs}
       </p>
     </div>
+
   </div>
-</section>
+</div>
 
       {/* Needs Attention */}
-<section className="mb-10">
+<div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 mb-10">
   <h2 className="text-2xl font-bold text-red-500 mb-4">
-    Needs Attention
+    <u>Jobs Awaiting Action...</u>
   </h2>
 
-  <div className="flex flex-wrap gap-4 justify-start">
-    {/* Needs Quote */}
-    <div className="bg-purple-300 border-4 border-red-500 rounded-3xl shadow-lg p-6 w-[260px] h-32">
-      <h2 className="text-purple-800 text-sm uppercase font-bold tracking-wide">
-        Need To Quote
-      </h2>
-      <p className="text-4xl font-bold text-purple-800">
-        {stats.needs_quote}
-      </p>
-    </div>
+<div className="flex flex-wrap gap-4 justify-start">
 
-    {/* Needs Invoicing */}
-    <div className="bg-blue-900 border-4 border-red-500 rounded-3xl shadow-lg p-6 w-[260px] h-32">
-      <h2 className="text-blue-200 text-sm uppercase font-bold tracking-wide">
-        Needs Invoicing
-      </h2>
-      <p className="text-4xl font-bold text-blue-200">
-        {stats.needs_invoicing}
-      </p>
-    </div>
-
-    {/* Urgent Jobs */}
-    <div className="bg-red-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
+       {/* Urgent Jobs */}
+    <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+      <h2 className="text-red-500 text-sm uppercase font-bold tracking-wide">
         Jobs Marked Urgent
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-4xl font-bold text-red-500">
         {stats.urgent_jobs}
       </p>
     </div>
 
-    {/* Quoted / Awaiting Approval */}
-    <div className="bg-orange-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
-      <h2 className="text-orange-800 text-sm uppercase font-bold tracking-wide">
-        Quoted / Awaiting Approval
+   {/* Needs Invoicing */}
+    <Link href="/jobs?status=Needs%20Invoicing">
+    <div className="bg-blue-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
+        Invoicing
       </h2>
-      <p className="text-4xl font-bold text-orange-800">
+      <p className="text-4xl font-bold text-white">
+        {stats.needs_invoicing}
+      </p>
+    </div>
+    </Link>
+  
+    {/* Needs Quote */}
+    <Link href="/jobs?status=Needs%20Quoting">
+    <div className="bg-purple-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
+        Quoting
+      </h2>
+      <p className="text-4xl font-bold text-white">
+        {stats.needs_quote}
+      </p>
+    </div>
+    </Link>
+
+     {/* Quoted / Awaiting Approval */}
+    <Link href="/jobs?status=Awaiting%20Approval">
+    <div className="bg-orange-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
+        Awaiting Approval
+      </h2>
+      <p className="text-4xl font-bold text-white">
         {stats.awaiting_approval}
       </p>
     </div>
+    </Link>
 
     {/* Awaiting Scaffold */}
+    <Link href="/jobs?status=Awaiting%20Scafolding">
     <div className="bg-red-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
-      <h2 className="text-red-300 text-sm uppercase font-bold tracking-wide">
-        Paused Awaiting Scaffold
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
+        Scaffolding
       </h2>
-      <p className="text-4xl font-bold text-red-300">
+      <p className="text-4xl font-bold text-white">
         {stats.awaiting_scaffolding}
       </p>
     </div>
+    </Link>
+
+    {/* Awaiting Asbestos */}
+    <Link href="/jobs?status=Awaiting%20Asbestos%20Removal">
+    <div className="bg-sky-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
+        Asbestos Removal
+      </h2>
+      <p className="text-4xl font-bold text-white">
+        {stats.awaiting_asbestos}
+      </p>
+    </div>
+    </Link>
+
+    {/* Awaiting Gas */}
+    <Link href="/jobs?status=Awaiting%20Gas%20Engineer">
+    <div className="bg-yellow-700 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
+        Gas Engineer
+      </h2>
+      <p className="text-4xl font-bold text-white">
+        {stats.awaiting_gas}
+      </p>
+    </div>
+    </Link>
+
+    {/* Awaiting Solar */}
+    <Link href="/jobs?status=Awaiting%20Solar%20Contractor">
+    <div className="bg-yellow-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+      <h2 className="text-black text-sm uppercase font-bold tracking-wide">
+        Solar Contractor
+      </h2>
+      <p className="text-4xl font-bold text-black">
+        {stats.awaiting_solar}
+      </p>
+    </div>
+    </Link>
+
+    {/* Awaiting TV */}
+    <Link href="/jobs?status=Awaiting%20TV%20Contractor">
+    <div className="bg-zinc-600 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
+        TV Contractor
+      </h2>
+      <p className="text-4xl font-bold text-white">
+        {stats.awaiting_tv}
+      </p>
+    </div>
+    </Link>
+
+    {/* Awaiting Materials */}
+    <Link href="/jobs?status=Awaiting%20Materials">
+    <div className="bg-purple-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
+        Material
+      </h2>
+      <p className="text-4xl font-bold text-white">
+        {stats.awaiting_materials}
+      </p>
+    </div>
+    </Link>
+
+    {/* Access Issue */}
+    <Link href="/jobs?status=Access%20Issue">
+    <div className="bg-teal-400 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
+        Access Issue
+      </h2>
+      <p className="text-4xl font-bold text-white">
+        {stats.access_issue}
+      </p>
+    </div>
+    </Link>
+
   </div>
-</section>
+</div>
 
 {/* Current Work Status */}
-<section className="mb-10">
-  <h2 className="text-2xl font-bold text-black mb-4">
-    Current Work Status
+<div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 mb-10">
+  <h2 className="text-2xl font-bold text-blue-700 mb-4">
+    <u>Current Work Status</u>
   </h2>
 
   <div className="flex flex-wrap gap-4 justify-start">
     {/* Tickets */}
     <div className="bg-pink-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
-      <h2 className="text-pink-200 text-sm uppercase font-bold tracking-wide">
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Tickets
       </h2>
-      <p className="text-4xl font-bold text-pink-200">
+      <p className="text-4xl font-bold text-white">
         {stats.tickets}
       </p>
     </div>
@@ -171,22 +272,22 @@ console.log('JOBS:', jobs)
 
     {/* Scaffold Ready */}
     <div className="bg-emerald-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
-      <h2 className="text-green-200 text-sm uppercase font-bold tracking-wide">
+      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         READY - Scaffolding Up
       </h2>
-      <p className="text-4xl font-bold text-green-200">
+      <p className="text-4xl font-bold text-white">
         {stats.scaffolding}
       </p>
     </div>
 
 
   </div>
-</section>
+</div>
 
 {/* Job Types */}
-<section className="mb-10">
-  <h2 className="text-2xl font-bold text-black mb-4">
-    Job Types
+<div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 mb-10">
+  <h2 className="text-2xl font-bold text-emerald-700 mb-4">
+    <u>Job Types</u>
   </h2>
 
   <div className="flex flex-wrap gap-4 justify-start">
@@ -260,9 +361,9 @@ console.log('JOBS:', jobs)
       </p>
     </div>
   </div>
-</section>
+</div>
 
-      <div className="bg-white rounded-2xl shadow p-6">
+      <div className="bg-white border border-gray-200 rounded-2xl shadow p-6">
         <h2 className="text-2xl font-bold mb-4">Live Jobs</h2>
 
         <table className="w-full border-collapse">

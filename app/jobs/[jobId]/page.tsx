@@ -1,3 +1,4 @@
+import UrgentButtons from './UrgentButtons'
 import Link from 'next/link'
 import StatusButtons from './StatusButtons'
 import PhotoGallery from './PhotoGallery'
@@ -70,7 +71,7 @@ export default async function JobPage({ params }: JobPageProps) {
     <main className="min-h-screen bg-gray-100 p-8">
       <h1 className="text-4xl font-bold mb-8">Job Details</h1>
 
-      <div className="bg-white rounded-3xl shadow-lg p-8 space-y-6">
+      <div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 space-y-6">
         <div>
           <h2 className="text-sm text-gray-500 uppercase">Job Number</h2>
           <p className="text-2xl font-bold">{job.job_number || 'Not Assigned'}</p>
@@ -89,21 +90,33 @@ export default async function JobPage({ params }: JobPageProps) {
         <div>
           <h2 className="text-sm text-gray-500 uppercase">Status</h2>
           <p
-  className={`text-xl font-bold px-4 py-2 rounded-xl inline-block ${
+  className={`text-xl border border-gray-200 font-bold px-4 py-2 rounded-xl inline-block ${
     job.status === 'Ticket'
       ? 'bg-pink-500 text-white'
       : job.status === 'Needs Quoting'
-      ? 'bg-purple-500 text-white'
+      ? 'bg-purple-300 text-white'
       : job.status === 'Awaiting Approval'
       ? 'bg-orange-500 text-white'
       : job.status === 'Awaiting Scaffolding'
-      ? 'bg-red-700 text-white'
+      ? 'bg-red-900 text-white'
       : job.status === 'Ready'
-      ? 'bg-emerald-600 text-white'
+      ? 'bg-emerald-200 text-emerald-800'
       : job.status === 'Scaffold Ready'
       ? 'bg-green-900 text-white'
       : job.status === 'Needs Invoicing'
       ? 'bg-blue-900 text-white'
+      : job.status === 'Awaiting Asbestos Removal'
+      ? 'bg-sky-500 text-white'
+      : job.status === 'Awaiting Gas Engineer'
+      ? 'bg-yellow-700 text-white'
+      : job.status === 'Awaiting Solar Contractor'
+      ? 'bg-yellow-300 text-black'
+      : job.status === 'Awaiting TV Contractor'
+      ? 'bg-zinc-600 text-white'
+      : job.status === 'Awaiting Materials'
+      ? 'bg-purple-500 text-white'
+      : job.status === 'Access Issue'
+      ? 'bg-teal-400 text-white'
       : 'bg-gray-500 text-white'
   }`}
 >
@@ -128,6 +141,7 @@ export default async function JobPage({ params }: JobPageProps) {
           </p>
         </div>
       </div>
+      <UrgentButtons jobId={jobId} urgent={job.urgent} />
       <div className="mt-8 text-center">
   <Link
     href="/"
@@ -138,7 +152,8 @@ export default async function JobPage({ params }: JobPageProps) {
 </div>
 <StatusButtons jobId={jobId} />
 
-      <div className="bg-white rounded-3xl shadow-lg p-8 mt-8">
+
+      <div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 mt-8">
         <h2 className="text-2xl font-bold mb-4">Job Notes</h2>
 
         {notes && notes.length > 0 ? (

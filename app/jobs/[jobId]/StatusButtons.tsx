@@ -37,7 +37,7 @@ export default function StatusButtons({
         
         <button
           onClick={() => updateStatus('Needs Quoting')}
-          className="bg-purple-500 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+          className="bg-purple-300 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
         >
           Needs Quote
         </button>
@@ -51,14 +51,14 @@ export default function StatusButtons({
 
         <button
           onClick={() => updateStatus('Awaiting Scaffolding')}
-          className="bg-red-700 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+          className="bg-red-900 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
         >
           Awaiting Scaffold
         </button>
 
         <button
           onClick={() => updateStatus('Ready')}
-          className="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+          className="bg-emerald-200 text-emerald-800 px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
         >
           Ready
         </button>
@@ -76,6 +76,49 @@ export default function StatusButtons({
         >
           Needs Invoice
         </button>
+
+        <button
+          onClick={() => updateStatus('Awaiting Asbestos Removal')}
+         className="bg-sky-500 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+>
+         Awaiting Asbestos Removal
+        </button>
+
+        <button
+         onClick={() => updateStatus('Awaiting Gas Engineer')}
+        className="bg-yellow-700 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+>
+        Awaiting Gas Engineer
+        </button>
+
+        <button
+        onClick={() => updateStatus('Awaiting Solar Contractor')}
+        className="bg-yellow-300 text-black px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+>
+        Awaiting Solar Contractor
+        </button>
+
+        <button
+         onClick={() => updateStatus('Awaiting TV Contractor')}
+        className="bg-zinc-600 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+>
+        Awaiting TV Contractor
+        </button>
+
+        <button
+         onClick={() => updateStatus('Awaiting Materials')}
+        className="bg-purple-500 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+>
+        Awaiting Materials
+        </button>
+
+        <button
+        onClick={() => updateStatus('Access Issue')}
+        className="bg-teal-400 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+>
+        Access Issues
+        </button>
+      
       </div>
     </div>
   )
