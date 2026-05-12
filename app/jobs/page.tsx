@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 
 type SearchParams = Promise<{
   status?: string
+  type?: string
 }>
 
 export default async function JobsPage({
@@ -12,14 +13,18 @@ export default async function JobsPage({
 }) {
   const params = await searchParams
 
-  let query = supabase
-    .from('jobs_view')
-    .select('*')
-    .order('created_at', { ascending: false })
+ let query = supabase
+  .from('jobs_view')
+  .select('*')
+  .order('created_at', { ascending: false })
 
-  if (params.status) {
-    query = query.eq('status', params.status)
-  }
+if (params.status) {
+  query = query.eq('status', params.status)
+}
+
+if (params.type) {
+  query = query.eq('job_type', params.type)
+}
 
   const { data: jobs } = await query
 
@@ -134,7 +139,7 @@ export default async function JobsPage({
             <input
               type="text"
               placeholder="Search jobs..."
-              className="flex-1 text-white border border-blue-100 rounded-2xl px-5 py-3 bg-blue-50"
+              className="flex-1 border border-blue-100 rounded-2xl px-5 py-3 bg-blue-50"
               disabled
             />
 

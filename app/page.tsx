@@ -90,14 +90,16 @@ console.log('JOBS:', jobs)
 
   <div className="flex flex-wrap gap-4 justify-start">
     {/* Total Jobs */}
-    <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
-      <h2 className="text-orange-400 text-sm uppercase font-bold tracking-wide">
-        Total Live Jobs
-      </h2>
-      <p className="text-4xl font-bold text-orange-400">
-        {stats.total_jobs}
-      </p>
-    </div>
+    <Link href="/jobs">
+  <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32 hover:scale-105 active:scale-95 transition cursor-pointer">
+    <h2 className="text-orange-400 text-sm uppercase font-bold tracking-wide">
+      Total Live Jobs
+    </h2>
+    <p className="text-4xl font-bold text-orange-400">
+      {stats.total_jobs}
+    </p>
+  </div>
+</Link>
 
   </div>
 </div>
@@ -363,44 +365,7 @@ console.log('JOBS:', jobs)
   </div>
 </div>
 
-      <div className="bg-white border border-gray-200 rounded-2xl shadow p-6">
-        <h2 className="text-2xl font-bold mb-4">Live Jobs</h2>
 
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="border-b text-left">
-              <th className="p-2">Job Number</th>
-              <th className="p-2">PO Number</th>
-              <th className="p-2">Address</th>
-              <th className="p-2">Area</th>
-              <th className="p-2">Status</th>
-              <th className="p-2">Job Type</th>
-              <th className="p-2">Tenant Contact</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {jobs?.map((job) => (
-              <tr
-  key={job.job_id}
-  className="border-b hover:bg-gray-100 cursor-pointer"
->
-                <td className="p-2">
-  <Link href={`/jobs/${job.job_id}`}>
-    {job.job_number || 'Open Job'}
-  </Link>
-</td>
-                <td className="p-2">{job.po_number}</td>
-                <td className="p-2">{job.address_line_1}</td>
-                <td className="p-2">{job.town}</td>
-                <td className="p-2">{job.status}</td>
-                <td className="p-2">{job.job_type}</td>
-                <td className="p-2">{job.tenant_contact}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </main>
   )
 }
