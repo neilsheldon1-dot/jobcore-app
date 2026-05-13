@@ -77,25 +77,25 @@ export default async function Home() {
 console.log('JOBS:', jobs)
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <h1 className="text-4xl font-bold mb-8 text-black">
+    <main className="min-h-screen bg-gray-50 p-6">
+      <h1 className="text-2xl md:text-3xl font-bold mb-8 text-black">
         Rubber Roofs Dashboard
       </h1>
 
        {/* Total Jobs */}
-<div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 mb-10">
-  <h2 className="text-2xl font-bold text-orange-500 mb-4">
+<div className="bg-orange-50 border border-black rounded-3xl shadow-lg p-6 mb-10">
+  <h2 className="text-2xl font-bold text-black mb-4">
     <u>Total Jobs</u>
   </h2>
 
   <div className="flex flex-wrap gap-4 justify-start">
     {/* Total Jobs */}
     <Link href="/jobs">
-  <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32 hover:scale-105 active:scale-95 transition cursor-pointer">
+  <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
     <h2 className="text-orange-400 text-sm uppercase font-bold tracking-wide">
       Total Live Jobs
     </h2>
-    <p className="text-4xl font-bold text-orange-400">
+    <p className="text-2xl md:text-3xl font-bold text-orange-400">
       {stats.total_jobs}
     </p>
   </div>
@@ -105,30 +105,32 @@ console.log('JOBS:', jobs)
 </div>
 
       {/* Needs Attention */}
-<div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 mb-10">
-  <h2 className="text-2xl font-bold text-red-500 mb-4">
+<div className="bg-red-50 border border-black rounded-3xl shadow-lg p-6 mb-10">
+  <h2 className="text-2xl font-bold text-black mb-4">
     <u>Jobs Awaiting Action...</u>
   </h2>
 
 <div className="flex flex-wrap gap-4 justify-start">
 
-       {/* Urgent Jobs */}
-    <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
-      <h2 className="text-red-500 text-sm uppercase font-bold tracking-wide">
-        Jobs Marked Urgent
-      </h2>
-      <p className="text-4xl font-bold text-red-500">
-        {stats.urgent_jobs}
-      </p>
-    </div>
+  {/* Urgent Jobs */}
+<Link href="/jobs?urgent=true">
+  <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
+    <h2 className="text-red-500 text-sm uppercase font-bold tracking-wide">
+      Jobs Marked Urgent
+    </h2>
+    <p className="text-2xl md:text-3xl font-bold text-red-500">
+      {stats.urgent_jobs}
+    </p>
+  </div>
+</Link>
 
    {/* Needs Invoicing */}
     <Link href="/jobs?status=Needs%20Invoicing">
-    <div className="bg-blue-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <div className="bg-blue-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Invoicing
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.needs_invoicing}
       </p>
     </div>
@@ -136,11 +138,11 @@ console.log('JOBS:', jobs)
   
     {/* Needs Quote */}
     <Link href="/jobs?status=Needs%20Quoting">
-    <div className="bg-purple-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <div className="bg-purple-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Quoting
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.needs_quote}
       </p>
     </div>
@@ -148,23 +150,23 @@ console.log('JOBS:', jobs)
 
      {/* Quoted / Awaiting Approval */}
     <Link href="/jobs?status=Awaiting%20Approval">
-    <div className="bg-orange-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <div className="bg-orange-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Awaiting Approval
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.awaiting_approval}
       </p>
     </div>
     </Link>
 
     {/* Awaiting Scaffold */}
-    <Link href="/jobs?status=Awaiting%20Scafolding">
-    <div className="bg-red-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <Link href="/jobs?status=Awaiting%20Scaffolding">
+    <div className="bg-red-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Scaffolding
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.awaiting_scaffolding}
       </p>
     </div>
@@ -172,11 +174,11 @@ console.log('JOBS:', jobs)
 
     {/* Awaiting Asbestos */}
     <Link href="/jobs?status=Awaiting%20Asbestos%20Removal">
-    <div className="bg-sky-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <div className="bg-sky-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Asbestos Removal
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.awaiting_asbestos}
       </p>
     </div>
@@ -184,11 +186,11 @@ console.log('JOBS:', jobs)
 
     {/* Awaiting Gas */}
     <Link href="/jobs?status=Awaiting%20Gas%20Engineer">
-    <div className="bg-yellow-700 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <div className="bg-yellow-700 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Gas Engineer
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.awaiting_gas}
       </p>
     </div>
@@ -196,11 +198,11 @@ console.log('JOBS:', jobs)
 
     {/* Awaiting Solar */}
     <Link href="/jobs?status=Awaiting%20Solar%20Contractor">
-    <div className="bg-yellow-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <div className="bg-yellow-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-black text-sm uppercase font-bold tracking-wide">
         Solar Contractor
       </h2>
-      <p className="text-4xl font-bold text-black">
+      <p className="text-2xl md:text-3xl font-bold text-black">
         {stats.awaiting_solar}
       </p>
     </div>
@@ -208,11 +210,11 @@ console.log('JOBS:', jobs)
 
     {/* Awaiting TV */}
     <Link href="/jobs?status=Awaiting%20TV%20Contractor">
-    <div className="bg-zinc-600 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <div className="bg-zinc-600 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         TV Contractor
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.awaiting_tv}
       </p>
     </div>
@@ -220,11 +222,11 @@ console.log('JOBS:', jobs)
 
     {/* Awaiting Materials */}
     <Link href="/jobs?status=Awaiting%20Materials">
-    <div className="bg-purple-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <div className="bg-purple-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Material
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.awaiting_materials}
       </p>
     </div>
@@ -232,11 +234,11 @@ console.log('JOBS:', jobs)
 
     {/* Access Issue */}
     <Link href="/jobs?status=Access%20Issue">
-    <div className="bg-teal-400 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <div className="bg-teal-400 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Access Issue
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.access_issue}
       </p>
     </div>
@@ -246,122 +248,142 @@ console.log('JOBS:', jobs)
 </div>
 
 {/* Current Work Status */}
-<div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 mb-10">
-  <h2 className="text-2xl font-bold text-blue-700 mb-4">
+<div className="bg-blue-50 border border-black rounded-3xl shadow-lg p-6 mb-10">
+  <h2 className="text-2xl font-bold text-black mb-4">
     <u>Current Work Status</u>
   </h2>
 
   <div className="flex flex-wrap gap-4 justify-start">
     {/* Tickets */}
-    <div className="bg-pink-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+   <Link href="/jobs?status=Ticket">
+    <div className="bg-pink-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Tickets
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.tickets}
       </p>
     </div>
+    </Link>
 
     {/* Ready Jobs */}
-    <div className="bg-emerald-200 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <Link href="/jobs?status=Ready">
+    <div className="bg-emerald-200 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-emerald-800 text-sm uppercase font-bold tracking-wide">
         Ready - No Scaffolding
       </h2>
-      <p className="text-4xl font-bold text-emerald-800">
+      <p className="text-2xl md:text-3xl font-bold text-emerald-800">
         {stats.ready_jobs}
       </p>
     </div>
+    </Link>
 
     {/* Scaffold Ready */}
-    <div className="bg-emerald-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <Link href="/jobs?status=Scaffold%20Ready">
+    <div className="bg-emerald-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         READY - Scaffolding Up
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.scaffolding}
       </p>
     </div>
+    </Link>
 
 
   </div>
 </div>
 
 {/* Job Types */}
-<div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 mb-10">
-  <h2 className="text-2xl font-bold text-emerald-700 mb-4">
+<div className="bg-green-50 border border-black rounded-3xl shadow-lg p-6 mb-10">
+  <h2 className="text-2xl font-bold text-black mb-4">
     <u>Job Types</u>
   </h2>
 
   <div className="flex flex-wrap gap-4 justify-start">
   {/* Reactive */}
-    <div className="bg-lime-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+  <Link href="/jobs?type=Reactive">
+    <div className="bg-lime-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-teal-800 text-sm uppercase font-bold tracking-wide">
         Reactive
       </h2>
-      <p className="text-4xl font-bold text-teal-800">
+      <p className="text-2xl md:text-3xl font-bold text-teal-800">
         {stats.reactive}
       </p>
     </div>
+    </Link>
     
     {/* Re Roof */}
-    <div className="bg-amber-200 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <Link href="/jobs?type=Re%20Roof">
+    <div className="bg-amber-200 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-indigo-900 text-sm uppercase font-bold tracking-wide">
         Re Roof
       </h2>
-      <p className="text-4xl font-bold text-indigo-900">
+      <p className="text-2xl md:text-3xl font-bold text-indigo-900">
         {stats.re_roof}
       </p>
     </div>
+    </Link>
 
     {/* Sika Roof */}
-    <div className="bg-cyan-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <Link href="/jobs?type=Sika%20Roof">
+    <div className="bg-cyan-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-cyan-100 text-sm uppercase font-bold tracking-wide">
         Sika Roof
       </h2>
-      <p className="text-4xl font-bold text-cyan-100">
+      <p className="text-2xl md:text-3xl font-bold text-cyan-100">
         {stats.sika_roof}
       </p>
     </div>
+    </Link>
 
     {/* Hydro */}
-    <div className="bg-blue-200 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <Link href="/jobs?type=Hydro">
+    <div className="bg-blue-200 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-cyan-900 text-sm uppercase font-bold tracking-wide">
         Hydro
       </h2>
-      <p className="text-4xl font-bold text-cyan-900">
+      <p className="text-2xl md:text-3xl font-bold text-cyan-900">
         {stats.hydro}
       </p>
     </div>
+    </Link>
 
     {/* Roofline */}
-    <div className="bg-orange-400 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <Link href="/jobs?type=Roofline%20%2F%20EPS">
+    <div className="bg-orange-400 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Roofline / EPS
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.roofline}
       </p>
     </div>
+    </Link>
 
     {/* Flat Roof */}
-    <div className="bg-sky-400 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <Link href="/jobs?type=Flat%20Roof">
+    <div className="bg-sky-400 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-white text-sm uppercase font-bold tracking-wide">
         Flat Roof
       </h2>
-      <p className="text-4xl font-bold text-white">
+      <p className="text-2xl md:text-3xl font-bold text-white">
         {stats.flat_roof}
       </p>
     </div>
+    </Link>
 
     {/* Scheme */}
-    <div className="bg-amber-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-32">
+    <Link href="/jobs?type=Scheme">
+    <div className="bg-amber-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
       <h2 className="text-amber-200 text-sm uppercase font-bold tracking-wide">
         Scheme
       </h2>
-      <p className="text-4xl font-bold text-amber-200">
+      <p className="text-2xl md:text-3xl font-bold text-amber-200">
         {stats.scheme}
       </p>
     </div>
+    </Link>
   </div>
 </div>
 

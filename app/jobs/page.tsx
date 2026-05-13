@@ -4,6 +4,8 @@ import { supabase } from '../../lib/supabase'
 type SearchParams = Promise<{
   status?: string
   type?: string
+  urgent?: string
+  search?: string
 }>
 
 export default async function JobsPage({
@@ -26,6 +28,14 @@ if (params.type) {
   query = query.eq('job_type', params.type)
 }
 
+if (params.urgent === 'true') {
+  query = query.eq('urgent', true)
+}
+if (params.search) {
+  query = query.or(
+    `address_line_1.ilike.%${params.search}%,postcode.ilike.%${params.search}%,client.ilike.%${params.search}%,description.ilike.%${params.search}%,job_number.ilike.%${params.search}%,po_number.ilike.%${params.search}%`
+  )
+}
   const { data: jobs } = await query
 
   function getStatusColour(status: string) {
@@ -136,12 +146,15 @@ if (params.type) {
               ← Dashboard
             </Link>
 
-            <input
-              type="text"
-              placeholder="Search jobs..."
-              className="flex-1 border border-blue-100 rounded-2xl px-5 py-3 bg-blue-50"
-              disabled
-            />
+<form action="/jobs" className="flex-1">
+  <input
+    type="text"
+    name="search"
+    placeholder="Search address, postcode, client, description..."
+    defaultValue={params.search || ''}
+    className="w-full border border-blue-100 rounded-2xl px-5 py-3 bg-blue-50 focus:outline-none focus:ring-2 focus:ring-orange-400"
+  />
+</form>
 
           </div>
 
@@ -182,6 +195,9 @@ if (params.type) {
                   <h2 className="font-bold text-lg truncate">
                     {job.address_line_1}
                   </h2>
+                  <p className="text-sm text-gray-500">
+  {job.client}
+</p>
 
                 </div>
 
@@ -210,6 +226,12 @@ if (params.type) {
         ))}
 
       </div>
+      <Link
+  href="/jobs/new"
+  className="fixed bottom-6 right-6 z-50 bg-blue-500 text-white px-6 py-4 rounded-2xl font-bold shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer"
+>
+  + Add New Job
+</Link>
     </main>
   )
 }

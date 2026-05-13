@@ -125,10 +125,30 @@ export default async function JobPage({ params }: JobPageProps) {
 </p>
         </div>
 
-        <div>
-          <h2 className="text-sm text-gray-500 uppercase">Job Type</h2>
-          <p className="text-xl">{job.job_type}</p>
-        </div>
+<div>
+  <h2 className="text-sm text-gray-500 uppercase">Job Type</h2>
+  <p
+    className={`text-xl border border-gray-200 font-bold px-4 py-2 rounded-xl inline-block ${
+      job.job_type === 'Reactive'
+        ? 'bg-lime-300 text-teal-800'
+        : job.job_type === 'Flat Roof'
+        ? 'bg-sky-400 text-white'
+        : job.job_type === 'Re Roof'
+        ? 'bg-amber-200 text-indigo-900'
+        : job.job_type === 'Sika Roof'
+        ? 'bg-cyan-900 text-cyan-100'
+        : job.job_type === 'Roofline / EPS'
+        ? 'bg-orange-400 text-white'
+        : job.job_type === 'Hydro'
+        ? 'bg-blue-200 text-cyan-900'
+        : job.job_type === 'Scheme'
+        ? 'bg-amber-900 text-amber-200'
+        : 'bg-slate-200 text-slate-700'
+    }`}
+  >
+    {job.job_type || 'No Type Set'}
+  </p>
+</div>
 
         <div>
           <h2 className="text-sm text-gray-500 uppercase">Tenant Contact</h2>
