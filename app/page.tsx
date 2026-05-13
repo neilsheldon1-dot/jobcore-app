@@ -83,7 +83,7 @@ console.log('JOBS:', jobs)
       </h1>
 
        {/* Total Jobs */}
-<div className="bg-orange-50 border border-black rounded-3xl shadow-lg p-6 mb-10">
+<div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
   <h2 className="text-2xl font-bold text-black mb-4">
     <u>Total Jobs</u>
   </h2>
@@ -105,7 +105,7 @@ console.log('JOBS:', jobs)
 </div>
 
       {/* Needs Attention */}
-<div className="bg-red-50 border border-black rounded-3xl shadow-lg p-6 mb-10">
+<div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
   <h2 className="text-2xl font-bold text-black mb-4">
     <u>Jobs Awaiting Action...</u>
   </h2>
@@ -114,11 +114,11 @@ console.log('JOBS:', jobs)
 
   {/* Urgent Jobs */}
 <Link href="/jobs?urgent=true">
-  <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-    <h2 className="text-red-500 text-sm uppercase font-bold tracking-wide">
+  <div className="bg-red-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
+    <h2 className="text-white text-sm uppercase font-bold tracking-wide">
       Jobs Marked Urgent
     </h2>
-    <p className="text-2xl md:text-3xl font-bold text-red-500">
+    <p className="text-2xl md:text-3xl font-bold text-white">
       {stats.urgent_jobs}
     </p>
   </div>
@@ -248,7 +248,7 @@ console.log('JOBS:', jobs)
 </div>
 
 {/* Current Work Status */}
-<div className="bg-blue-50 border border-black rounded-3xl shadow-lg p-6 mb-10">
+<div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
   <h2 className="text-2xl font-bold text-black mb-4">
     <u>Current Work Status</u>
   </h2>
@@ -295,7 +295,7 @@ console.log('JOBS:', jobs)
 </div>
 
 {/* Job Types */}
-<div className="bg-green-50 border border-black rounded-3xl shadow-lg p-6 mb-10">
+<div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
   <h2 className="text-2xl font-bold text-black mb-4">
     <u>Job Types</u>
   </h2>
