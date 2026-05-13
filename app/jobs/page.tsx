@@ -134,14 +134,14 @@ if (params.search) {
     <main className="min-h-screen bg-gray-100">
 
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b z-20 p-4 shadow-sm">
+      <div className="sticky top-0 bg-white border-b z-20 p-3 md:p-4 shadow-sm">
         <div className="max-w-7xl mx-auto">
 
           <div className="flex items-center gap-4">
 
             <Link
               href="/"
-              className="bg-black text-white px-4 py-2 rounded-xl font-bold hover:scale-105 transition"
+              className="bg-blue-500 text-white px-4 py-2 rounded-xl font-bold hover:scale-105 transition"
             >
               ← Dashboard
             </Link>
@@ -178,11 +178,11 @@ if (params.search) {
             href={`/jobs/${job.job_id}`}
             className="block border-b bg-white hover:bg-gray-50 transition"
           >
-            <div className="p-4 flex items-start gap-4">
+            <div className="p-3 md:p-4 flex items-start gap-4">
 
               {/* Status Circle */}
               <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold shrink-0 ${getStatusColour(job.status)}`}
+                className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold shrink-0 ${getStatusColour(job.status)}`}
               >
                 {getStatusLetter(job.status)}
               </div>
@@ -192,7 +192,7 @@ if (params.search) {
 
                 <div className="flex items-center justify-between gap-4">
 
-                  <h2 className="font-bold text-lg truncate">
+                  <h2 className="font-bold text-base md:text-lg truncate">
                     {job.address_line_1}
                   </h2>
                   <p className="text-sm text-gray-500">
@@ -201,18 +201,18 @@ if (params.search) {
 
                 </div>
 
-                <p className="text-gray-600 line-clamp-2 mt-1">
+                <p className="text-gray-600 line-clamp-2 mt-0.5">
                   {job.description || 'No work description added'}
                 </p>
 
-                <div className="flex flex-wrap gap-2 mt-3">
+                <div className="flex flex-wrap gap-2 mt-2">
 
-                  <span className="bg-gray-200 px-3 py-1 rounded-full text-sm font-medium">
+                  <span className="bg-gray-200 px-2.5 py-0.5 rounded-full text-xs font-medium">
                     {job.job_type}
                   </span>
 
                   {job.urgent && (
-                    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    <span className="bg-red-500 text-white px-2.5 py-0.5 rounded-full text-xs font-bold">
                       URGENT
                     </span>
                   )}
