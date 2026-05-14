@@ -8,6 +8,8 @@ import PhotoUploadForm from './PhotoUploadForm'
 import AddNoteForm from './AddNoteForm'
 import { supabase } from '../../../lib/supabase'
 
+export const dynamic = 'force-dynamic'
+
 type JobPageProps = {
   params: Promise<{
     jobId: string

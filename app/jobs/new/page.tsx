@@ -3,6 +3,8 @@ import { supabase } from '../../../lib/supabase'
 import NewJobForm from './NewJobForm'
 import PropertySelection from './PropertySelection'
 
+export const dynamic = 'force-dynamic'
+
 type SearchParams = Promise<{
   property_id?: string
 }>
