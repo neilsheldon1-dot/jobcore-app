@@ -12,6 +12,7 @@ export default function NewJobForm({ propertyId }: NewJobFormProps) {
 
   const [description, setDescription] = useState('')
   const [jobTypeId, setJobTypeId] = useState('1')
+  const [statusId, setStatusId] = useState('1')
   const [jobNumber, setJobNumber] = useState('')
   const [poNumber, setPoNumber] = useState('')
   const [urgent, setUrgent] = useState(false)
@@ -30,6 +31,7 @@ export default function NewJobForm({ propertyId }: NewJobFormProps) {
         property_id: propertyId,
         description,
         job_type_id: jobTypeId,
+        status_id: statusId,
         urgent,
         job_number: jobNumber,
         po_number: poNumber,
@@ -66,7 +68,31 @@ export default function NewJobForm({ propertyId }: NewJobFormProps) {
             required
           />
         </div>
-
+<div>
+  <label className="block text-sm font-bold text-gray-700 mb-2">
+    Status
+  </label>
+  <select
+    value={statusId}
+    onChange={(event) => setStatusId(event.target.value)}
+    className="w-full border border-gray-300 rounded-2xl p-4"
+  >
+    <option value="1">Ticket</option>
+    <option value="2">Allocated</option>
+    <option value="3">Needs Quoting</option>
+    <option value="4">Awaiting Approval</option>
+    <option value="5">Awaiting Scaffolding</option>
+    <option value="6">Ready</option>
+    <option value="7">Scaffold Ready</option>
+    <option value="8">Needs Invoicing</option>
+    <option value="11">Awaiting Asbestos Removal</option>
+    <option value="12">Awaiting Gas Engineer</option>
+    <option value="13">Awaiting Solar Contractor</option>
+    <option value="14">Awaiting TV Contractor</option>
+    <option value="15">Awaiting Materials</option>
+    <option value="16">Access Issue</option>
+  </select>
+</div>
         <div>
           <label className="block text-sm font-bold text-gray-700 mb-2">
             Job Type

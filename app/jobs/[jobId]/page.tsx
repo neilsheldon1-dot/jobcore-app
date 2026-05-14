@@ -1,3 +1,4 @@
+import EditJobDetailsForm from './EditJobDetailsForm'
 import JobTypeButtons from './JobTypeButtons'
 import UrgentButtons from './UrgentButtons'
 import Link from 'next/link'
@@ -6,18 +7,7 @@ import PhotoGallery from './PhotoGallery'
 import PhotoUploadForm from './PhotoUploadForm'
 import AddNoteForm from './AddNoteForm'
 import { supabase } from '../../../lib/supabase'
-<div className="flex justify-between items-center mb-8">
-  <h1 className="text-4xl font-bold">
-    Job Details
-  </h1>
 
-  <Link
-    href="/"
-    className="bg-black text-white px-5 py-3 rounded-xl font-bold hover:scale-105 transition"
-  >
-    ← Dashboard
-  </Link>
-</div>
 type JobPageProps = {
   params: Promise<{
     jobId: string
@@ -69,8 +59,8 @@ export default async function JobPage({ params }: JobPageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
-      <h1 className="text-4xl font-bold mb-8">Job Details</h1>
+    <main className="min-h-screen bg-blue-100 p-3 md:p-8">
+  <h1 className="text-2xl md:text-4xl font-bold mb-4 md:mb-8">Job Details</h1>
 
       <div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8 space-y-6">
         <div>
@@ -80,18 +70,18 @@ export default async function JobPage({ params }: JobPageProps) {
 
         <div>
           <h2 className="text-sm text-gray-500 uppercase">Address</h2>
-          <p className="text-xl">{job.address_line_1}</p>
+          <p className="text-base md:text-xl break-words">{job.address_line_1}</p>
         </div>
 
         <div>
           <h2 className="text-sm text-gray-500 uppercase">Town</h2>
-          <p className="text-xl">{job.town}</p>
+          <p className="text-base md:text-xl break-words">{job.town}</p>
         </div>
 
         <div>
           <h2 className="text-sm text-gray-500 uppercase">Status</h2>
           <p
-  className={`text-xl border border-gray-200 font-bold px-4 py-2 rounded-xl inline-block ${
+  className={`text-sm md:text-base border border-gray-200 font-bold px-3 py-1 rounded-xl inline-block ${
     job.status === 'Ticket'
       ? 'bg-pink-500 text-white'
       : job.status === 'Needs Quoting'
@@ -128,7 +118,7 @@ export default async function JobPage({ params }: JobPageProps) {
 <div>
   <h2 className="text-sm text-gray-500 uppercase">Job Type</h2>
   <p
-    className={`text-xl border border-gray-200 font-bold px-4 py-2 rounded-xl inline-block ${
+    className={`text-sm md:text-base border border-gray-200 font-bold px-3 py-1 rounded-xl inline-block ${
       job.job_type === 'Reactive'
         ? 'bg-lime-300 text-teal-800'
         : job.job_type === 'Flat Roof'
@@ -152,17 +142,26 @@ export default async function JobPage({ params }: JobPageProps) {
 
         <div>
           <h2 className="text-sm text-gray-500 uppercase">Tenant Contact</h2>
-          <p className="text-xl">{job.tenant_contact || 'No Contact Added'}</p>
+          <p className="text-base md:text-xl break-words">{job.tenant_contact || 'No Contact Added'}</p>
         </div>
 
         <div>
           <h2 className="text-sm text-gray-500 uppercase">Work Description</h2>
-          <p className="text-xl whitespace-pre-wrap">
+          <p className="text-base md:text-xl whitespace-pre-wrap break-words">
             {job.description || 'No work description added'}
           </p>
+          
+          <div className="fixed top-4 right-4 z-50">
+  <UrgentButtons jobId={jobId} urgent={job.urgent} />
+</div>
+
+<div className="mt-6 text-center">
+  <EditJobDetailsForm job={job} />
+</div>
         </div>
       </div>
-      <UrgentButtons jobId={jobId} urgent={job.urgent} />
+      
+      
       <div className="mt-8 text-center">
   <Link
     href="/"
@@ -202,10 +201,9 @@ export default async function JobPage({ params }: JobPageProps) {
         )}
       </div>
 
-      <AddNoteForm jobId={jobId} />
 
-    
       <PhotoGallery photos={photos ?? []} />
+      <AddNoteForm jobId={jobId} />
 
       <PhotoUploadForm jobId={jobId} />
     </main>

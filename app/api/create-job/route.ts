@@ -8,6 +8,7 @@ export async function POST(request: Request) {
     property_id,
     description,
     job_type_id,
+    status_id,
     urgent,
     job_number,
     po_number,
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
         urgent,
         job_number,
         po_number,
-        status_id: 1,
+        status_id: Number(status_id || 1),
       },
     ])
     .select('id')

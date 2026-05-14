@@ -26,32 +26,28 @@ export default function UrgentButtons({
     window.location.reload()
   }
 
-  return (
-    <div className="bg-white rounded-3xl shadow-lg p-8 mt-8">
-      <h2 className="text-2xl font-bold mb-4">Urgency</h2>
+ return (
+  <label
+    className={`flex items-center gap-3 border rounded-2xl px-4 py-3 cursor-pointer w-fit transition ${
+      urgent
+        ? 'bg-red-500 border-red-700'
+        : 'bg-red-50 border-red-200'
+    }`}
+  >
+    <span
+      className={`text-sm font-bold ${
+        urgent ? 'text-white' : 'text-red-700'
+      }`}
+    >
+      Mark as urgent?
+    </span>
 
-      <p className="mb-4">
-        Current urgent status:{' '}
-        <span className={urgent ? 'font-bold text-red-600' : 'font-bold text-gray-600'}>
-          {urgent ? 'Urgent' : 'Normal'}
-        </span>
-      </p>
-
-      <div className="flex flex-wrap gap-4">
-        <button
-          onClick={() => updateUrgent(true)}
-          className="bg-red-600 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
-        >
-          Mark Urgent
-        </button>
-
-        <button
-          onClick={() => updateUrgent(false)}
-          className="bg-gray-700 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
-        >
-          Normal
-        </button>
-      </div>
-    </div>
-  )
+    <input
+      type="checkbox"
+      checked={!!urgent}
+      onChange={(event) => updateUrgent(event.target.checked)}
+      className="h-5 w-5"
+    />
+  </label>
+)
 }
