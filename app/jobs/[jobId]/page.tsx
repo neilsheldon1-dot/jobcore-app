@@ -153,7 +153,7 @@ export default async function JobPage({ params }: JobPageProps) {
             {job.description || 'No work description added'}
           </p>
           
-          <div className="fixed top-4 right-4 z-50">
+          <div className="fixed top-16 right-4 z-50">
   <UrgentButtons jobId={jobId} urgent={job.urgent} />
 </div>
 
