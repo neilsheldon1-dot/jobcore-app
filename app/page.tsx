@@ -74,21 +74,21 @@ export default async function Home() {
   access_issue:
     jobs?.filter((job) => job.status === 'Access Issue').length ?? 0,
 }
-console.log('JOBS:', jobs)
+
 
   return (
     <main className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-2xl md:text-3xl font-bold mb-8 text-black">
+      <h1 className="text-2xl md:text-3xl font-bold mb-8 text-black text-center md:text-left">
         Rubber Roofs Dashboard
       </h1>
 
        {/* Total Jobs */}
 <div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
-  <h2 className="text-2xl font-bold text-black mb-4">
+  <h2 className="text-2xl font-bold text-black mb-4 text-center md:text-left">
     <u>Total Jobs</u>
   </h2>
 
-  <div className="flex flex-wrap gap-4 justify-start">
+  <div className="flex flex-wrap gap-4 justify-center md:justify-start">
     {/* Total Jobs */}
     <Link href="/jobs">
   <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
@@ -106,11 +106,11 @@ console.log('JOBS:', jobs)
 
       {/* Needs Attention */}
 <div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
-  <h2 className="text-2xl font-bold text-black mb-4">
+  <h2 className="text-2xl font-bold text-black mb-4 text-center md:text-left">
     <u>Jobs Awaiting Action...</u>
   </h2>
 
-<div className="flex flex-wrap gap-4 justify-start">
+<div className="flex flex-wrap gap-4 justify-center md:justify-start">
 
   {/* Urgent Jobs */}
 <Link href="/jobs?urgent=true">
@@ -249,11 +249,11 @@ console.log('JOBS:', jobs)
 
 {/* Current Work Status */}
 <div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
-  <h2 className="text-2xl font-bold text-black mb-4">
+  <h2 className="text-2xl font-bold text-black mb-4 text-center md:text-left">
     <u>Current Work Status</u>
   </h2>
 
-  <div className="flex flex-wrap gap-4 justify-start">
+  <div className="flex flex-wrap gap-4 justify-center md:justify-start">
     {/* Tickets */}
    <Link href="/jobs?status=Ticket">
     <div className="bg-pink-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
@@ -296,11 +296,11 @@ console.log('JOBS:', jobs)
 
 {/* Job Types */}
 <div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
-  <h2 className="text-2xl font-bold text-black mb-4">
+  <h2 className="text-2xl font-bold text-black mb-4 text-center md:text-left">
     <u>Job Types</u>
   </h2>
 
-  <div className="flex flex-wrap gap-4 justify-start">
+  <div className="flex flex-wrap gap-4 justify-center md:justify-start">
   {/* Reactive */}
   <Link href="/jobs?type=Reactive">
     <div className="bg-lime-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
