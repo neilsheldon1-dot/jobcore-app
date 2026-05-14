@@ -129,24 +129,46 @@ if (params.search) {
       return '?'
   }
 }
+function getJobTypeStyle(jobType: string) {
+  switch (jobType) {
+    case 'Reactive':
+      return 'bg-lime-300 text-teal-800'
 
+    case 'Planned':
+      return 'bg-gray-700 text-white'
+
+    case 'Sika Roof':
+      return 'bg-cyan-900 text-cyan-100'
+
+    case 'Roofline / EPS':
+      return 'bg-orange-400 text-white'
+
+    case 'Hydro':
+      return 'bg-blue-200 text-cyan-900'
+
+    case 'Re Roof':
+      return 'bg-amber-200 text-indigo-900'
+
+    case 'Scheme':
+      return 'bg-amber-900 text-amber-200'
+
+    case 'Flat Roof':
+      return 'bg-sky-400 text-white'
+
+    default:
+      return 'bg-gray-200 text-gray-800'
+  }
+}
   return (
-    <main className="min-h-screen bg-gray-100">
+    <main className="min-h-screen bg-blue-100">
 
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b z-20 p-3 md:p-4 shadow-sm">
+      <div className="sticky top-0 bg-blue-100 border-b z-20 p-3 md:p-4 shadow-sm">
         <div className="max-w-7xl mx-auto">
 
-          <div className="flex items-center gap-4">
+<div>
 
-            <Link
-              href="/"
-              className="bg-blue-500 text-white px-4 py-2 rounded-xl font-bold hover:scale-105 transition"
-            >
-              ← Dashboard
-            </Link>
-
-<form action="/jobs" className="flex-1">
+<form action="/jobs" className="w-full">
   <input
     type="text"
     name="search"
@@ -176,16 +198,17 @@ if (params.search) {
           <Link
             key={job.job_id}
             href={`/jobs/${job.job_id}`}
-            className="block border-b bg-white hover:bg-gray-50 transition"
+            className="block border-b-0 md:border-b md:border-gray-200 bg-white hover:bg-gray-100 transition"
           >
             <div className="p-3 md:p-4 flex items-start gap-4">
 
               {/* Status Circle */}
               <div
-                className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold shrink-0 ${getStatusColour(job.status)}`}
-              >
-                {getStatusLetter(job.status)}
-              </div>
+  className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center text-white font-bold shrink-0 ${getStatusColour(job.status)}`}
+>
+  {getStatusLetter(job.status)}
+</div>
+            
 
               {/* Main Content */}
               <div className="flex-1 min-w-0">
@@ -195,7 +218,7 @@ if (params.search) {
                   <h2 className="font-bold text-base md:text-lg truncate">
                     {job.address_line_1}
                   </h2>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-700 font-bold">
   {job.client}
 </p>
 
@@ -207,9 +230,11 @@ if (params.search) {
 
                 <div className="flex flex-wrap gap-2 mt-2">
 
-                  <span className="bg-gray-200 px-2.5 py-0.5 rounded-full text-xs font-medium">
-                    {job.job_type}
-                  </span>
+ <span
+  className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getJobTypeStyle(job.job_type)}`}
+>
+  {job.job_type}
+</span>
 
                   {job.urgent && (
                     <span className="bg-red-500 text-white px-2.5 py-0.5 rounded-full text-xs font-bold">
@@ -226,6 +251,13 @@ if (params.search) {
         ))}
 
       </div>
+      <Link
+  href="/"
+  className="fixed bottom-6 left-6 z-50 bg-blue-500 text-white px-6 py-4 rounded-2xl font-bold shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer"
+>
+  ← Dashboard
+</Link>
+
       <Link
   href="/jobs/new"
   className="fixed bottom-6 right-6 z-50 bg-blue-500 text-white px-6 py-4 rounded-2xl font-bold shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer"

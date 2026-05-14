@@ -24,59 +24,54 @@ export default async function NewJobPage({
   )
 
   return (
-    <main className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-5xl mx-auto">
+    <main className="min-h-screen bg-blue-100">
+      <div className="max-w-7xl mx-auto">
 
-        <Link
-          href="/jobs"
-          className="inline-block bg-blue-500 text-white px-4 py-2 rounded-xl font-bold hover:scale-105 transition mb-6"
-        >
-          ← Back to Jobs
-        </Link>
+        <div className="sticky top-0 bg-blue-100 z-20 p-3 md:p-4">
+          <h1 className="text-2xl md:text-4xl font-bold text-black">
+            Add New Job
+          </h1>
 
-        <div className="mb-8">
-  <h1 className="text-4xl font-bold text-black">
-    Add New Job
-  </h1>
+          {selectedProperty && (
+            <p className="text-sm md:text-base text-gray-600 mt-1">
+              Complete the job details below.
+            </p>
+          )}
+        </div>
 
-  {selectedProperty && (
-    <p className="text-gray-600 mt-2">
-      Complete the job details below.
-    </p>
-  )}
-</div>
-
-{!selectedProperty && (
-  <PropertySelection properties={properties || []} />
-)}
+        {!selectedProperty && (
+          <PropertySelection properties={properties || []} />
+        )}
 
         {selectedProperty && (
-          <div className="grid gap-6">
+          <div className="grid gap-6 p-3 md:p-8">
 
-            <div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-8">
-              <h2 className="text-2xl font-bold mb-4">
+            <div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-6 md:p-8">
+              <h2 className="text-xl md:text-2xl font-bold mb-4">
                 Selected Property
               </h2>
 
-              <div className="grid gap-2">
-                <p className="font-bold text-xl">
+              <div className="grid gap-1 md:gap-2">
+                <p className="font-bold text-base md:text-xl">
                   {selectedProperty.address_line_1}
                 </p>
 
                 {selectedProperty.address_line_2 && (
-                  <p>{selectedProperty.address_line_2}</p>
+                  <p className="text-sm md:text-base">
+                    {selectedProperty.address_line_2}
+                  </p>
                 )}
 
-                <p>
+                <p className="text-sm md:text-base">
                   {selectedProperty.town}
                 </p>
 
-                <p className="text-gray-600">
+                <p className="text-sm md:text-base text-gray-600">
                   {selectedProperty.postcode}
                 </p>
 
                 {selectedProperty.client && (
-                  <p className="font-semibold text-gray-700 mt-2">
+                  <p className="text-sm md:text-base font-bold text-gray-700 mt-2">
                     Client: {selectedProperty.client}
                   </p>
                 )}
@@ -89,6 +84,13 @@ export default async function NewJobPage({
         )}
 
       </div>
+
+      <Link
+        href="/jobs"
+        className="fixed bottom-6 left-6 z-50 bg-blue-500 text-white px-6 py-4 rounded-2xl font-bold shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer"
+      >
+        ← Jobs
+      </Link>
     </main>
   )
 }
