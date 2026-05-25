@@ -2,11 +2,27 @@
 
 import { useState } from 'react'
 
-type EditJobDetailsFormProps = {
-  job: any
+type JobStatus = {
+  id: number
+  name: string
 }
 
-export default function EditJobDetailsForm({ job }: EditJobDetailsFormProps) {
+type JobType = {
+  id: number
+  name: string
+}
+
+type EditJobDetailsFormProps = {
+  job: any
+  jobStatuses: JobStatus[]
+  jobTypes: JobType[]
+}
+
+export default function EditJobDetailsForm({
+  job,
+  jobStatuses,
+  jobTypes,
+}: EditJobDetailsFormProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
@@ -17,12 +33,14 @@ export default function EditJobDetailsForm({ job }: EditJobDetailsFormProps) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        job_id: job.job_id,
-        job_number: formData.get('job_number'),
-        po_number: formData.get('po_number'),
-        quote_number: formData.get('quote_number'),
-        description: formData.get('description'),
-      }),
+      job_id: job.job_id,
+      job_number: formData.get('job_number'),
+      po_number: formData.get('po_number'),
+      quote_number: formData.get('quote_number'),
+      description: formData.get('description'),
+      status_id: formData.get('status_id'),
+      job_type_id: formData.get('job_type_id'),
+    }),
     })
 
     if (!response.ok) {
@@ -39,7 +57,7 @@ export default function EditJobDetailsForm({ job }: EditJobDetailsFormProps) {
     return (
       <button
         onClick={() => setIsEditing(true)}
-        className="bg-blue-500 text-white px-5 py-3 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+        className="bg-gray-200 text-blue-500 border-blue-500 px-5 py-1 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
       >
         Edit Job Details
       </button>
@@ -51,7 +69,31 @@ export default function EditJobDetailsForm({ job }: EditJobDetailsFormProps) {
       <h2 className="text-xl font-bold">
         Edit Job Details
       </h2>
+<div className="grid md:grid-cols-2 gap-4">
+  <select
+    name="status_id"
+    defaultValue={job.status_id || ''}
+    className="border border-gray-300 rounded-xl p-3"
+  >
+    {jobStatuses.map((status) => (
+  <option key={status.id} value={status.id}>
+    {status.name}
+  </option>
+))}
+  </select>
 
+  <select
+    name="job_type_id"
+    defaultValue={job.job_type_id || ''}
+    className="border border-gray-300 rounded-xl p-3"
+  >
+    {jobTypes.map((jobType) => (
+  <option key={jobType.id} value={jobType.id}>
+    {jobType.name}
+  </option>
+))}
+  </select>
+</div>
       <input
         name="job_number"
         defaultValue={job.job_number || ''}

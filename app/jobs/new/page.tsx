@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { supabase } from '../../../lib/supabase'
 import NewJobForm from './NewJobForm'
 import PropertySelection from './PropertySelection'
+import AppHeader from '../../../components/AppHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,78 +22,123 @@ export default async function NewJobPage({
     .select('*')
     .order('address_line_1', { ascending: true })
 
+  const { data: zoneLocations } = await supabase
+    .from('zone_locations')
+    .select(`
+      *,
+      area_zones (
+        name
+      )
+    `)
+    .order('sort_order', { ascending: true })
+
+  const { data: jobStatuses } = await supabase
+    .from('job_statuses')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  const { data: jobTypes } = await supabase
+    .from('job_types')
+    .select('*')
+    .eq('is_active', true)
+    .order('id', { ascending: true })
+
   const selectedProperty = properties?.find(
     (property) => property.id === params.property_id
   )
 
   return (
-    <main className="min-h-screen bg-blue-100">
-      <div className="max-w-7xl mx-auto">
+    <main className="min-h-screen bg-slate-100">
+      <AppHeader active="jobs" />
 
-        <div className="sticky top-0 bg-blue-100 z-20 p-3 md:p-4">
-          <h1 className="text-2xl md:text-4xl font-bold text-black">
-            Add New Job
-          </h1>
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">
+              Add New Job
+            </h1>
 
-          {selectedProperty && (
-            <p className="text-sm md:text-base text-gray-600 mt-1">
-              Complete the job details below.
+            <p className="text-sm text-slate-500">
+              {selectedProperty
+                ? 'Complete the job details for the selected property.'
+                : 'Select an existing property or add a new one to begin.'}
             </p>
-          )}
+          </div>
+
+          <Link
+            href="/jobs"
+            className="bg-slate-100 text-slate-700 px-5 py-3 rounded-xl font-bold hover:bg-slate-200 transition"
+          >
+            ← Back to Jobs
+          </Link>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-6">
 
         {!selectedProperty && (
           <PropertySelection properties={properties || []} />
         )}
 
         {selectedProperty && (
-          <div className="grid gap-6 p-3 md:p-8">
+          <div className="grid gap-5">
 
-            <div className="bg-white border border-gray-200 rounded-3xl shadow-lg p-6 md:p-8">
-              <h2 className="text-xl md:text-2xl font-bold mb-4">
-                Selected Property
-              </h2>
-
-              <div className="grid gap-1 md:gap-2">
-                <p className="font-bold text-base md:text-xl">
-                  {selectedProperty.address_line_1}
-                </p>
-
-                {selectedProperty.address_line_2 && (
-                  <p className="text-sm md:text-base">
-                    {selectedProperty.address_line_2}
+            <section className="bg-white rounded-2xl shadow-sm border border-gray-200 p-5">
+              <div className="flex items-start justify-between gap-5">
+                <div>
+                  <p className="text-xs uppercase font-bold text-slate-400">
+                    Selected Property
                   </p>
-                )}
 
-                <p className="text-sm md:text-base">
-                  {selectedProperty.town}
-                </p>
+                  <h2 className="text-xl font-semibold text-slate-900 mt-1">
+                    {selectedProperty.address_line_1}
+                  </h2>
 
-                <p className="text-sm md:text-base text-gray-600">
-                  {selectedProperty.postcode}
-                </p>
+                  {selectedProperty.address_line_2 && (
+                    <p className="text-sm text-slate-600 mt-1">
+                      {selectedProperty.address_line_2}
+                    </p>
+                  )}
 
-                {selectedProperty.client && (
-                  <p className="text-sm md:text-base font-bold text-gray-700 mt-2">
-                    Client: {selectedProperty.client}
+                  <p className="text-sm text-slate-600">
+                    {selectedProperty.town} {selectedProperty.postcode}
                   </p>
-                )}
+
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {selectedProperty.client && (
+                      <span className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-bold">
+                        {selectedProperty.client}
+                      </span>
+                    )}
+
+                    {selectedProperty.zone && (
+                      <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">
+                        {selectedProperty.zone}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <Link
+                  href="/jobs/new"
+                  className="text-sm font-bold text-blue-600 hover:text-blue-800"
+                >
+                  Change Property
+                </Link>
               </div>
-            </div>
+            </section>
 
-            <NewJobForm propertyId={selectedProperty.id} />
+            <NewJobForm
+              propertyId={selectedProperty.id}
+              jobStatuses={jobStatuses || []}
+              jobTypes={jobTypes || []}
+            />
 
           </div>
         )}
 
       </div>
-
-      <Link
-        href="/jobs"
-        className="fixed bottom-6 left-6 z-50 bg-blue-500 text-white px-6 py-4 rounded-2xl font-bold shadow-xl hover:scale-105 active:scale-95 transition cursor-pointer"
-      >
-        ← Jobs
-      </Link>
     </main>
   )
 }

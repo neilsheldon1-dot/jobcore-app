@@ -7,13 +7,13 @@ export default function AddNoteForm({
 }: {
   jobId: string
 }) {
+  const [isOpen, setIsOpen] = useState(false)
   const [content, setContent] = useState('')
   const [createdBy, setCreatedBy] = useState('Neil')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-
     setLoading(true)
 
     const response = await fetch('/api/notes', {
@@ -30,8 +30,6 @@ export default function AddNoteForm({
 
     const result = await response.json()
 
-    console.log('NOTE RESULT:', result)
-
     if (!response.ok) {
       alert(JSON.stringify(result.error, null, 2))
       setLoading(false)
@@ -40,40 +38,90 @@ export default function AddNoteForm({
 
     setContent('')
     setLoading(false)
+    setIsOpen(false)
 
     window.location.reload()
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-gray-300 rounded-3xl shadow-lg p-8 mt-8"
-    >
-      <h2 className="text-black text-2xl font-bold mb-4">
-        Add Note
-      </h2>
-
-      <input
-        value={createdBy}
-        onChange={(e) => setCreatedBy(e.target.value)}
-        placeholder="Your name"
-        className="bg-white w-full border rounded-xl p-4 mb-4"
-      />
-
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="Add job update..."
-        className="bg-white w-full border rounded-xl p-4 min-h-[120px]"
-      />
-
+    <>
       <button
-        type="submit"
-        disabled={loading}
-        className="mt-4 bg-black text-white px-6 py-3 rounded-xl font-bold hover:scale-105 transition"
+        type="button"
+        onClick={() => setIsOpen(true)}
+        className="bg-blue-500 text-white px-5 py-1 rounded-xl font-bold hover:bg-blue-700 transition"
       >
-        {loading ? 'Saving...' : 'Save Note'}
+        + Add New Note
       </button>
-    </form>
+
+      {isOpen && (
+        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 w-full max-w-xl"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="text-xl font-bold text-slate-900">
+                Add Note
+              </h2>
+
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="text-slate-400 hover:text-slate-700 text-2xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="grid gap-4">
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Added By
+                </label>
+
+                <input
+                  value={createdBy}
+                  onChange={(e) => setCreatedBy(e.target.value)}
+                  placeholder="Your name"
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Note
+                </label>
+
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="Add job update..."
+                  className="w-full border border-gray-300 rounded-xl px-4 py-3 min-h-[140px]"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="bg-slate-100 text-slate-700 px-5 py-3 rounded-xl font-bold hover:bg-slate-200 transition"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-blue-700 transition disabled:opacity-50"
+                >
+                  {loading ? 'Saving...' : 'Save Note'}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+    </>
   )
 }

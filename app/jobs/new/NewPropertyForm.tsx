@@ -3,11 +3,19 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
+type ZoneLocation = {
+  id: number
+  location_name: string
+  area_zone_id: number
+}
+
 type NewPropertyFormProps = {
+  zoneLocations: ZoneLocation[]
   onCancel?: () => void
 }
 
 export default function NewPropertyForm({
+  zoneLocations,
   onCancel,
 }: NewPropertyFormProps) {
   const router = useRouter()
@@ -115,12 +123,42 @@ export default function NewPropertyForm({
             <option value="Private">Private</option>
           </select>
 
-          <input
-            value={zone}
-            onChange={(e) => setZone(e.target.value)}
-            placeholder="Zone"
-            className="border border-gray-300 rounded-2xl p-4"
-          />
+         <select
+  value={zone}
+  onChange={(e) => setZone(e.target.value)}
+  className="border border-gray-300 rounded-2xl p-4"
+>
+  <option value="">Area</option>
+
+  {Object.entries(
+    zoneLocations.reduce((groups: any, location: any) => {
+      const zoneName =
+        location.area_zones?.name || 'Other'
+
+      if (!groups[zoneName]) {
+        groups[zoneName] = []
+      }
+
+      groups[zoneName].push(location)
+
+      return groups
+    }, {})
+  ).map(([zoneName, locations]: any) => (
+    <optgroup
+      key={zoneName}
+      label={`──────── ${zoneName} ────────`}
+    >
+      {locations.map((location: any) => (
+        <option
+          key={location.id}
+          value={location.location_name}
+        >
+          {location.location_name}
+        </option>
+      ))}
+    </optgroup>
+  ))}
+</select>
 
         </div>
 

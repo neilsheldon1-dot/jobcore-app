@@ -1,395 +1,352 @@
+import Image from 'next/image'
+import AppHeader from '../components/AppHeader'
 import Link from 'next/link'
-
 import { supabase } from '../lib/supabase'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   const { data: jobs } = await supabase
-  .from('jobs_view')
-  .select('*')
-  .order('sort_order', { ascending: true })
+    .from('jobs_view')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  const { data: blockerLinks } = await supabase
+    .from('job_blocker_links')
+    .select(`
+      *,
+      blocker_types (
+        name
+      )
+    `)
+
+  const { data: jobTypes } = await supabase
+    .from('job_types')
+    .select('*')
+    .eq('is_active', true)
+    .order('id', { ascending: true })
+
+  function hasBlockers(jobId: string) {
+    return (
+      blockerLinks?.some(
+        (link: any) => link.job_id === jobId
+      ) ?? false
+    )
+  }
+
+  function getBlockerCount(blockerName: string) {
+    return (
+      blockerLinks?.filter(
+        (link: any) => link.blocker_types?.name === blockerName
+      ).length ?? 0
+    )
+  }
+
+  function getJobTypeCount(typeName: string) {
+    return jobs?.filter((job) => job.job_type === typeName).length ?? 0
+  }
 
   const stats = {
-  total_jobs: jobs?.length ?? 0,
+    total_jobs: jobs?.length ?? 0,
 
-  tickets:
-    jobs?.filter((job) => job.status === 'Ticket').length ?? 0,
+    tickets:
+      jobs?.filter((job) => job.status === 'Ticket').length ?? 0,
 
-  needs_quote:
-    jobs?.filter((job) => job.status === 'Needs Quoting').length ?? 0,
+    ready_jobs:
+      jobs?.filter((job) => job.status === 'Ready' && !hasBlockers(job.job_id)).length ?? 0,
 
-  awaiting_approval:
-    jobs?.filter((job) => job.status === 'Awaiting Approval').length ?? 0,
+    blocked_jobs:
+      jobs?.filter((job) => hasBlockers(job.job_id)).length ?? 0,
 
-  awaiting_scaffolding:
-    jobs?.filter((job) => job.status === 'Awaiting Scaffolding').length ?? 0,
+   denbighshire:
+  jobs?.filter((job) => job.client === 'Denbighshire').length ?? 0,
 
-  ready_jobs:
-    jobs?.filter((job) => job.status === 'Ready').length ?? 0,
+cartrefi:
+  jobs?.filter((job) => job.client === 'Cartrefi').length ?? 0,
 
-  needs_invoicing:
-    jobs?.filter((job) => job.status === 'Needs Invoicing').length ?? 0,
+creating_enterprise:
+  jobs?.filter((job) => job.client === 'Creating Enterprise').length ?? 0,
 
-  urgent_jobs:
-    jobs?.filter((job) => job.urgent === true).length ?? 0,
+private_jobs:
+  jobs?.filter((job) => job.client === 'Private').length ?? 0,
+   
+      urgent_jobs:
+      jobs?.filter((job) => job.urgent === true).length ?? 0,
 
-  re_roof:
-    jobs?.filter((job) => job.job_type === 'Re Roof').length ?? 0,
+    needs_quote:
+      jobs?.filter((job) => job.status === 'Needs Quoting').length ?? 0,
 
-  roofline:
-    jobs?.filter((job) => job.job_type === 'Roofline / EPS').length ?? 0,
+    awaiting_approval:
+      jobs?.filter((job) => job.status === 'Awaiting Approval').length ?? 0,
 
-  sika_roof:
-    jobs?.filter((job) => job.job_type === 'Sika Roof').length ?? 0,
+    needs_invoicing:
+      jobs?.filter((job) => job.status === 'Needs Invoicing').length ?? 0,
+  }
 
-  hydro:
-    jobs?.filter((job) => job.job_type === 'Hydro').length ?? 0,
+  function WidgetRow({
+    href,
+    label,
+    value,
+    accent = 'border-l-blue-500',
+  }: {
+    href: string
+    label: string
+    value: number
+    accent?: string
+  }) {
+    return (
+      <Link
+        href={href}
+        className={`flex items-center justify-between border-l-4 ${accent} px-4 py-3 hover:bg-gray-50 transition`}
+      >
+        <div className="flex items-center gap-4">
+          <span className="text-xl font-bold text-slate-900 min-w-8">
+            {value}
+          </span>
 
-  scheme:
-    jobs?.filter((job) => job.job_type === 'Scheme').length ?? 0,
+          <span className="text-sm text-slate-700">
+            {label}
+          </span>
+        </div>
 
-  reactive:
-    jobs?.filter((job) => job.job_type === 'Reactive').length ?? 0,
-
-  flat_roof:
-    jobs?.filter((job) => job.job_type === 'Flat Roof').length ?? 0,
-
-  scaffolding:
-    jobs?.filter((job) => job.status === 'Scaffold Ready').length ?? 0,
-
-  awaiting_asbestos:
-    jobs?.filter((job) => job.status === 'Awaiting Asbestos Removal').length ?? 0,
-
-  awaiting_gas:
-    jobs?.filter((job) => job.status === 'Awaiting Gas Engineer').length ?? 0,
-
-  awaiting_solar:
-    jobs?.filter((job) => job.status === 'Awaiting Solar Contractor').length ?? 0,
-
-  awaiting_tv:
-    jobs?.filter((job) => job.status === 'Awaiting TV Contractor').length ?? 0,
-
-  awaiting_materials:
-    jobs?.filter((job) => job.status === 'Awaiting Materials').length ?? 0,
-
-  access_issue:
-    jobs?.filter((job) => job.status === 'Access Issue').length ?? 0,
-}
-
+        <span className="text-blue-600 font-bold">
+          →
+        </span>
+      </Link>
+    )
+  }
 
   return (
-    <main className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-2xl md:text-3xl font-bold mb-8 text-black text-center md:text-left">
-        Rubber Roofs Dashboard
-      </h1>
+    <main className="min-h-screen bg-slate-100">
 
-       {/* Total Jobs */}
-<div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
-  <h2 className="text-2xl font-bold text-black mb-4 text-center md:text-left">
-    <u>Total Jobs</u>
-  </h2>
+      {/* Top nav */}
+      <AppHeader active="home" />
 
-  <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-    {/* Total Jobs */}
-    <Link href="/jobs">
-  <div className="bg-zinc-800 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-    <h2 className="text-orange-400 text-sm uppercase font-bold tracking-wide">
-      Total Live Jobs
-    </h2>
-    <p className="text-2xl md:text-3xl font-bold text-orange-400">
-      {stats.total_jobs}
-    </p>
+      {/* Business banner */}
+      <div className="bg-white border-b">
+        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center gap-4">
+          <div className="bg-blue-100 text-blue-700 rounded-lg w-12 h-12 flex items-center justify-center font-bold">
+            RR
+          </div>
+
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">
+  Rubber Roofs Operations
+</h1>
+
+            <p className="text-sm text-slate-500">
+  Powered by JobCore
+</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Dashboard */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <h2 className="text-2xl font-bold text-slate-900 mb-5">
+          Business Overview
+        </h2>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+          {/* Current Work Status */}
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-5 border-b">
+              <h3 className="text-lg font-bold text-slate-900">
+                Current Work Status
+              </h3>
+            </div>
+
+            <div className="divide-y">
+              <WidgetRow
+                href="/jobs"
+                label="Total Live Jobs"
+                value={stats.total_jobs}
+                accent="border-l-slate-700"
+              />
+
+              <WidgetRow
+                href="/jobs?status=Ticket"
+                label="Tickets"
+                value={stats.tickets}
+                accent="border-l-pink-500"
+              />
+
+              <WidgetRow
+                href="/jobs?ready=true"
+                label="Ready Jobs"
+                value={stats.ready_jobs}
+                accent="border-l-green-500"
+              />
+
+              <WidgetRow
+                href="/jobs?blocked=true"
+                label="Blocked Jobs"
+                value={stats.blocked_jobs}
+                accent="border-l-red-600"
+              />
+            </div>
+          </section>
+
+          {/* Jobs Awaiting Action */}
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-5 border-b">
+              <h3 className="text-lg font-bold text-slate-900">
+                Jobs Awaiting Action
+              </h3>
+            </div>
+
+            <div className="divide-y">
+              <WidgetRow
+                href="/jobs?urgent=true"
+                label="Jobs Marked Urgent"
+                value={stats.urgent_jobs}
+                accent="border-l-red-500"
+              />
+
+              <WidgetRow
+                href="/jobs?status=Needs%20Quoting"
+                label="Needs Quoting"
+                value={stats.needs_quote}
+                accent="border-l-purple-500"
+              />
+
+              <WidgetRow
+                href="/jobs?status=Awaiting%20Approval"
+                label="Awaiting Approval"
+                value={stats.awaiting_approval}
+                accent="border-l-orange-500"
+              />
+
+              <WidgetRow
+                href="/jobs?status=Needs%20Invoicing"
+                label="Needs Invoicing"
+                value={stats.needs_invoicing}
+                accent="border-l-blue-900"
+              />
+            </div>
+          </section>
+
+          {/* Blockers */}
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-5 border-b">
+              <h3 className="text-lg font-bold text-slate-900">
+                Blockers / Dependencies
+              </h3>
+            </div>
+
+            <div className="divide-y">
+              <WidgetRow href="/jobs?blocker=Scaffolding" label="Scaffolding" value={getBlockerCount('Scaffolding')} accent="border-l-blue-900" />
+              <WidgetRow href="/jobs?blocker=Asbestos" label="Asbestos" value={getBlockerCount('Asbestos')} accent="border-l-sky-500" />
+              <WidgetRow href="/jobs?blocker=Materials" label="Materials" value={getBlockerCount('Materials')} accent="border-l-purple-500" />
+              <WidgetRow href="/jobs?blocker=Access" label="Access" value={getBlockerCount('Access')} accent="border-l-teal-500" />
+              <WidgetRow href="/jobs?blocker=Gas" label="Gas" value={getBlockerCount('Gas')} accent="border-l-yellow-700" />
+              <WidgetRow href="/jobs?blocker=Solar" label="Solar" value={getBlockerCount('Solar')} accent="border-l-yellow-300" />
+              <WidgetRow href="/jobs?blocker=TV%20Contractor" label="TV Contractor" value={getBlockerCount('TV Contractor')} accent="border-l-zinc-600" />
+            </div>
+          </section>
+
+          {/* Job Types */}
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden lg:col-span-2">
+            <div className="px-6 py-5 border-b">
+              <h3 className="text-lg text-center font-bold text-slate-900">
+                Job Types
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
+              <div className="divide-y">
+                {jobTypes?.slice(0, Math.ceil((jobTypes?.length || 0) / 2)).map((jobType) => (
+                  <WidgetRow
+                    key={jobType.id}
+                    href={`/jobs?type=${encodeURIComponent(jobType.name)}`}
+                    label={jobType.name}
+                    value={getJobTypeCount(jobType.name)}
+                    accent="border-l-slate-400"
+                  />
+                ))}
+              </div>
+
+              <div className="divide-y">
+                {jobTypes?.slice(Math.ceil((jobTypes?.length || 0) / 2)).map((jobType) => (
+                  <WidgetRow
+                    key={jobType.id}
+                    href={`/jobs?type=${encodeURIComponent(jobType.name)}`}
+                    label={jobType.name}
+                    value={getJobTypeCount(jobType.name)}
+                    accent="border-l-slate-400"
+                  />
+                ))}
+              </div>
+            </div>
+          </section>
+{/* Client Workload */}
+<section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+  <div className="px-6 py-5 border-b">
+    <h3 className="text-lg font-bold text-slate-900">
+      Client Workload
+    </h3>
   </div>
-</Link>
 
-  </div>
-</div>
+  <div className="divide-y">
 
-      {/* Needs Attention */}
-<div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
-  <h2 className="text-2xl font-bold text-black mb-4 text-center md:text-left">
-    <u>Jobs Awaiting Action...</u>
-  </h2>
+    <WidgetRow
+      href="/jobs?client=Denbighshire"
+      label="Denbighshire"
+      value={stats.denbighshire}
+      accent="border-l-blue-600"
+    />
 
-<div className="flex flex-wrap gap-4 justify-center md:justify-start">
+    <WidgetRow
+      href="/jobs?client=Cartrefi"
+      label="Cartrefi"
+      value={stats.cartrefi}
+      accent="border-l-emerald-600"
+    />
 
-  {/* Urgent Jobs */}
-<Link href="/jobs?urgent=true">
-  <div className="bg-red-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-    <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-      Jobs Marked Urgent
-    </h2>
-    <p className="text-2xl md:text-3xl font-bold text-white">
-      {stats.urgent_jobs}
-    </p>
-  </div>
-</Link>
+    <WidgetRow
+      href="/jobs?client=Creating%20Enterprise"
+      label="Creating Enterprise"
+      value={stats.creating_enterprise}
+      accent="border-l-orange-500"
+    />
 
-   {/* Needs Invoicing */}
-    <Link href="/jobs?status=Needs%20Invoicing">
-    <div className="bg-blue-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Invoicing
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.needs_invoicing}
-      </p>
-    </div>
-    </Link>
-  
-    {/* Needs Quote */}
-    <Link href="/jobs?status=Needs%20Quoting">
-    <div className="bg-purple-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Quoting
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.needs_quote}
-      </p>
-    </div>
-    </Link>
-
-     {/* Quoted / Awaiting Approval */}
-    <Link href="/jobs?status=Awaiting%20Approval">
-    <div className="bg-orange-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Awaiting Approval
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.awaiting_approval}
-      </p>
-    </div>
-    </Link>
-
-    {/* Awaiting Scaffold */}
-    <Link href="/jobs?status=Awaiting%20Scaffolding">
-    <div className="bg-red-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Scaffolding
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.awaiting_scaffolding}
-      </p>
-    </div>
-    </Link>
-
-    {/* Awaiting Asbestos */}
-    <Link href="/jobs?status=Awaiting%20Asbestos%20Removal">
-    <div className="bg-sky-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Asbestos Removal
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.awaiting_asbestos}
-      </p>
-    </div>
-    </Link>
-
-    {/* Awaiting Gas */}
-    <Link href="/jobs?status=Awaiting%20Gas%20Engineer">
-    <div className="bg-yellow-700 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Gas Engineer
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.awaiting_gas}
-      </p>
-    </div>
-    </Link>
-
-    {/* Awaiting Solar */}
-    <Link href="/jobs?status=Awaiting%20Solar%20Contractor">
-    <div className="bg-yellow-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-black text-sm uppercase font-bold tracking-wide">
-        Solar Contractor
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-black">
-        {stats.awaiting_solar}
-      </p>
-    </div>
-    </Link>
-
-    {/* Awaiting TV */}
-    <Link href="/jobs?status=Awaiting%20TV%20Contractor">
-    <div className="bg-zinc-600 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        TV Contractor
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.awaiting_tv}
-      </p>
-    </div>
-    </Link>
-
-    {/* Awaiting Materials */}
-    <Link href="/jobs?status=Awaiting%20Materials">
-    <div className="bg-purple-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Material
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.awaiting_materials}
-      </p>
-    </div>
-    </Link>
-
-    {/* Access Issue */}
-    <Link href="/jobs?status=Access%20Issue">
-    <div className="bg-teal-400 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Access Issue
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.access_issue}
-      </p>
-    </div>
-    </Link>
-
-  </div>
-</div>
-
-{/* Current Work Status */}
-<div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
-  <h2 className="text-2xl font-bold text-black mb-4 text-center md:text-left">
-    <u>Current Work Status</u>
-  </h2>
-
-  <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-    {/* Tickets */}
-   <Link href="/jobs?status=Ticket">
-    <div className="bg-pink-500 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Tickets
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.tickets}
-      </p>
-    </div>
-    </Link>
-
-    {/* Ready Jobs */}
-    <Link href="/jobs?status=Ready">
-    <div className="bg-emerald-200 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-emerald-800 text-sm uppercase font-bold tracking-wide">
-        Ready - No Scaffolding
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-emerald-800">
-        {stats.ready_jobs}
-      </p>
-    </div>
-    </Link>
-
-    {/* Scaffold Ready */}
-    <Link href="/jobs?status=Scaffold%20Ready">
-    <div className="bg-emerald-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        READY - Scaffolding Up
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.scaffolding}
-      </p>
-    </div>
-    </Link>
-
+    <WidgetRow
+      href="/jobs?client=Private"
+      label="Private"
+      value={stats.private_jobs}
+      accent="border-l-slate-600"
+    />
 
   </div>
-</div>
+</section>
+          {/* Quick Actions */}
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="px-6 py-5 border-b">
+              <h3 className="text-lg font-bold text-slate-900">
+                Quick Actions
+              </h3>
+            </div>
 
-{/* Job Types */}
-<div className="bg-gray-100 border border-black rounded-3xl shadow-lg p-6 mb-10">
-  <h2 className="text-2xl font-bold text-black mb-4 text-center md:text-left">
-    <u>Job Types</u>
-  </h2>
+            <div className="p-6 grid gap-3">
+              <Link
+                href="/jobs/new"
+                className="bg-blue-600 text-white text-center px-5 py-3 rounded-xl font-bold hover:bg-blue-700 transition"
+              >
+                + Add New Job
+              </Link>
 
-  <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-  {/* Reactive */}
-  <Link href="/jobs?type=Reactive">
-    <div className="bg-lime-300 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-teal-800 text-sm uppercase font-bold tracking-wide">
-        Reactive
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-teal-800">
-        {stats.reactive}
-      </p>
-    </div>
-    </Link>
-    
-    {/* Re Roof */}
-    <Link href="/jobs?type=Re%20Roof">
-    <div className="bg-amber-200 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-indigo-900 text-sm uppercase font-bold tracking-wide">
-        Re Roof
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-indigo-900">
-        {stats.re_roof}
-      </p>
-    </div>
-    </Link>
+              <Link
+                href="/jobs"
+                className="border border-gray-300 text-slate-700 text-center px-5 py-3 rounded-xl font-bold hover:bg-gray-50 transition"
+              >
+                View All Jobs
+              </Link>
+            </div>
+          </section>
 
-    {/* Sika Roof */}
-    <Link href="/jobs?type=Sika%20Roof">
-    <div className="bg-cyan-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-cyan-100 text-sm uppercase font-bold tracking-wide">
-        Sika Roof
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-cyan-100">
-        {stats.sika_roof}
-      </p>
-    </div>
-    </Link>
-
-    {/* Hydro */}
-    <Link href="/jobs?type=Hydro">
-    <div className="bg-blue-200 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-cyan-900 text-sm uppercase font-bold tracking-wide">
-        Hydro
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-cyan-900">
-        {stats.hydro}
-      </p>
-    </div>
-    </Link>
-
-    {/* Roofline */}
-    <Link href="/jobs?type=Roofline%20%2F%20EPS">
-    <div className="bg-orange-400 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Roofline / EPS
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.roofline}
-      </p>
-    </div>
-    </Link>
-
-    {/* Flat Roof */}
-    <Link href="/jobs?type=Flat%20Roof">
-    <div className="bg-sky-400 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-white text-sm uppercase font-bold tracking-wide">
-        Flat Roof
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-white">
-        {stats.flat_roof}
-      </p>
-    </div>
-    </Link>
-
-    {/* Scheme */}
-    <Link href="/jobs?type=Scheme">
-    <div className="bg-amber-900 border-4 border-white rounded-3xl shadow-lg p-6 w-[260px] h-28 hover:scale-105 active:scale-95 transition cursor-pointer">
-      <h2 className="text-amber-200 text-sm uppercase font-bold tracking-wide">
-        Scheme
-      </h2>
-      <p className="text-2xl md:text-3xl font-bold text-amber-200">
-        {stats.scheme}
-      </p>
-    </div>
-    </Link>
-  </div>
-</div>
-
-
+        </div>
+      </div>
     </main>
   )
 }
