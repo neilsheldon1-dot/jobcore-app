@@ -1,11 +1,27 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import UserMenu from './UserMenu'
+import { createClient } from '../app/utils/supabase/server'
 
 type AppHeaderProps = {
   active?: 'home' | 'jobs' | 'properties' | 'rams'
 }
 
-export default function AppHeader({ active }: AppHeaderProps) {
+export default async function AppHeader({ active }: AppHeaderProps) {
+  const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  const { data: profile } = user
+    ? await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle()
+    : { data: null }
+
   function navClass(section: AppHeaderProps['active']) {
     return active === section
       ? 'border-b-4 border-white h-16 flex items-center'
@@ -40,26 +56,38 @@ export default function AppHeader({ active }: AppHeaderProps) {
             <Link href="/properties" className={navClass('properties')}>
               Properties
             </Link>
+          </nav>
+
+          <div className="flex items-center gap-4">
+
+            
 
            
-          </nav>
-<div className="flex items-center gap-3">
 
-  <Link
-    href="/jobs/quick"
-    className="bg-white text-pink-500 px-5 py-2 rounded-xl font-bold hover:bg-pink-100 transition shadow-sm"
-  >
-    + Quick Ticket
-  </Link>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/jobs/quick"
+                className="bg-white text-pink-500 px-5 py-2 rounded-xl font-bold hover:bg-pink-100 transition shadow-sm"
+              >
+                + Quick Ticket
+              </Link>
 
-  <Link
-    href="/jobs/new"
-    className="bg-white text-blue-700 px-5 py-2 rounded-xl font-bold hover:bg-blue-50 transition shadow-sm"
-  >
-    + Add Job
-  </Link>
+              <Link
+                href="/jobs/new"
+                className="bg-white text-blue-700 px-5 py-2 rounded-xl font-bold hover:bg-blue-50 transition shadow-sm"
+              >
+                + Add Job
+              </Link>
+              {profile && (
+  <UserMenu
+    name={profile.full_name}
+    role={profile.role}
+    email={user?.email}
+  />
+)}
+            </div>
 
-</div>
+          </div>
         </div>
       </div>
     </div>
