@@ -47,7 +47,7 @@ export default function AppHeader({ active }: AppHeaderProps) {
 
   <Link
     href="/jobs/quick"
-    className="bg-white text-orange-700 px-5 py-2 rounded-xl font-bold hover:bg-orange-100 transition shadow-sm"
+    className="bg-white text-pink-500 px-5 py-2 rounded-xl font-bold hover:bg-pink-100 transition shadow-sm"
   >
     + Quick Ticket
   </Link>

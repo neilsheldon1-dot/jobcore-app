@@ -19,7 +19,7 @@ export default function PropertiesInbox({
       property.postcode,
       property.town,
       property.client,
-      property.area_zone,
+      property.zone,
     ]
       .filter(Boolean)
       .join(' ')
@@ -94,7 +94,7 @@ export default function PropertiesInbox({
               </div>
 
               <div className="col-span-2 text-slate-600">
-                {property.area_zone || '-'}
+                {property.zone || '-'}
               </div>
 
             </Link>

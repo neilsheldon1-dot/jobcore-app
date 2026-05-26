@@ -58,7 +58,7 @@ po_number: formData.get('po_number'),
     >
       <div className="px-5 py-4 border-b border-gray-200">
         <h2 className="text-lg font-bold text-slate-900">
-          Fast Intake
+          Ticket Input
         </h2>
 
         <p className="text-sm text-slate-500 mt-1">

@@ -143,7 +143,7 @@ private_jobs:
     </div>
   </div>
 
-  <div className="w-full max-w-xl">
+  <div className="w-full">
     <DashboardSearch jobs={jobs || []} />
   </div>
 
