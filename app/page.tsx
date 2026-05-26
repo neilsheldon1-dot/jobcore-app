@@ -10,6 +10,7 @@ export default async function Home() {
   const { data: jobs } = await supabase
     .from('jobs_view')
     .select('*')
+    .neq('status', 'Complete')
     .order('sort_order', { ascending: true })
 
   const { data: blockerLinks } = await supabase
@@ -35,13 +36,17 @@ export default async function Home() {
     )
   }
 
-  function getBlockerCount(blockerName: string) {
-    return (
-      blockerLinks?.filter(
-        (link: any) => link.blocker_types?.name === blockerName
-      ).length ?? 0
-    )
-  }
+ function getBlockerCount(blockerName: string) {
+  const liveJobIds = jobs?.map((job) => job.job_id) || []
+
+  return (
+    blockerLinks?.filter(
+      (link: any) =>
+        link.blocker_types?.name === blockerName &&
+        liveJobIds.includes(link.job_id)
+    ).length ?? 0
+  )
+}
 
   function getJobTypeCount(typeName: string) {
     return jobs?.filter((job) => job.job_type === typeName).length ?? 0
@@ -245,13 +250,13 @@ private_jobs:
             </div>
 
             <div className="divide-y">
-              <WidgetRow href="/jobs?blocker=Scaffolding" label="Scaffolding" value={getBlockerCount('Scaffolding')} accent="border-l-blue-900" />
+              <WidgetRow href="/jobs?blocker=Scaffold" label="Scaffolding" value={getBlockerCount('Scaffold')} accent="border-l-blue-900" />
               <WidgetRow href="/jobs?blocker=Asbestos" label="Asbestos" value={getBlockerCount('Asbestos')} accent="border-l-sky-500" />
               <WidgetRow href="/jobs?blocker=Materials" label="Materials" value={getBlockerCount('Materials')} accent="border-l-purple-500" />
               <WidgetRow href="/jobs?blocker=Access" label="Access" value={getBlockerCount('Access')} accent="border-l-teal-500" />
               <WidgetRow href="/jobs?blocker=Gas" label="Gas" value={getBlockerCount('Gas')} accent="border-l-yellow-700" />
               <WidgetRow href="/jobs?blocker=Solar" label="Solar" value={getBlockerCount('Solar')} accent="border-l-yellow-300" />
-              <WidgetRow href="/jobs?blocker=TV%20Contractor" label="TV Contractor" value={getBlockerCount('TV Contractor')} accent="border-l-zinc-600" />
+              <WidgetRow href="/jobs?blocker=TV%20Contractor" label="Satellite" value={getBlockerCount('Saatellite')} accent="border-l-zinc-600" />
             </div>
           </section>
 

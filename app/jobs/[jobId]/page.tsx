@@ -113,58 +113,91 @@ export default async function JobPage({ params }: JobPageProps) {
       <div className="max-w-7xl mx-auto px-6 py-8 grid gap-6">
 
         <section className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid gap-5">
 
-            <div>
-                
-              <p className="text-xs uppercase font-bold text-slate-400">
-                Job Number
-              </p>
-              <p className="text-xl font-bold text-slate-900">
-                {job.job_number || 'Not Assigned'}
-              </p>
-            </div>
+  {/* Reference Numbers */}
+  <div className="grid md:grid-cols-4 gap-4">
 
+    <div>
+      <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
+        Job Number
+      </p>
+
+      <p className="text-sm font-bold text-slate-900">
+        {job.job_number || 'Not Assigned'}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
+        PO Number
+      </p>
+
+      <p className="text-sm font-bold text-slate-900">
+        {job.po_number || 'Not Added'}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
+        Quote Number
+      </p>
+
+      <p className="text-sm font-bold text-slate-900">
+        {job.quote_number || 'Not Added'}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
+        Invoice Number
+      </p>
+
+      <p className="text-sm font-bold text-slate-400">
+        Future
+      </p>
+    </div>
+
+  </div>
+
+  {/* Operational Controls */}
+  <div className="grid md:grid-cols-3 gap-6">
+
+    <div>
+      <p className="text-xs uppercase font-bold text-slate-400">
+        Status
+      </p>
+
+      <StatusDropdown
+        jobId={jobId}
+        currentStatus={job.status}
+        jobStatuses={jobStatuses || []}
+      />
+    </div>
+
+    <div>
+      <p className="text-xs uppercase font-bold text-slate-400">
+        Job Type
+      </p>
+
+      <JobTypeDropdown
+        jobId={jobId}
+        currentJobType={job.job_type}
+        jobTypes={jobTypes || []}
+      />
+    </div>
+    
             <div>
   <p className="text-xs uppercase font-bold text-slate-400">
-    Status
+    Waiting On
   </p>
 
-  
-
-  <StatusDropdown
-  jobId={jobId}
-  currentStatus={job.status}
-  jobStatuses={jobStatuses || []}
-/>
-
-</div>
-
-            <div>
-  <p className="text-xs uppercase font-bold text-slate-400">
-    Job Type
-  </p>
-
-
-
-  <JobTypeDropdown
+  <BlockerDropdown
     jobId={jobId}
-    currentJobType={job.job_type}
-    jobTypes={jobTypes || []}
+    blockerTypes={blockerTypes || []}
+    currentBlockers={activeBlockers || []}
   />
 </div>
-
- <div>
-            <p className="text-xs uppercase font-bold text-slate-400 mb-2">
-              Waiting On
-            </p>
-
-            
-            <BlockerDropdown
-  jobId={jobId}
-  blockerTypes={blockerTypes || []}
-  currentBlockers={activeBlockers || []}
-/>
           </div>
           </div>
        

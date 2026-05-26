@@ -47,7 +47,7 @@ export default function BlockerDropdown({
             </span>
           ))
         ) : (
-          <span className="bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 rounded-full text-sm font-bold">
+          <span className="bg-amber-100 text-amber-700 border border-slate-200 px-3 py-1 rounded-full text-sm font-bold">
             +
           </span>
         )}

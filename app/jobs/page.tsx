@@ -25,8 +25,10 @@ export default async function JobsPage({
  let query = supabase
   .from('jobs_view')
   .select('*')
+  .neq('status', 'Complete')
   .order('sort_order', { ascending: true })
 .order('created_at', { ascending: false })
+
 
 if (params.status) {
   query = query.eq('status', params.status)

@@ -57,7 +57,7 @@ export default function EditJobDetailsForm({
     return (
       <button
         onClick={() => setIsEditing(true)}
-        className="bg-gray-200 text-blue-500 border-blue-500 px-5 py-1 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
+        className="bg-blue-500 text-white border-blue-500 px-5 py-1 rounded-xl font-bold hover:scale-105 active:scale-95 transition cursor-pointer"
       >
         Edit Job Details
       </button>
@@ -72,7 +72,9 @@ export default function EditJobDetailsForm({
 <div className="grid md:grid-cols-2 gap-4">
   <select
     name="status_id"
-    defaultValue={job.status_id || ''}
+    defaultValue={
+  jobStatuses.find((status) => status.name === job.status)?.id || ''
+}
     className="border border-gray-300 rounded-xl p-3"
   >
     {jobStatuses.map((status) => (
@@ -84,7 +86,9 @@ export default function EditJobDetailsForm({
 
   <select
     name="job_type_id"
-    defaultValue={job.job_type_id || ''}
+    defaultValue={
+  jobTypes.find((jobType) => jobType.name === job.job_type)?.id || ''
+}
     className="border border-gray-300 rounded-xl p-3"
   >
     {jobTypes.map((jobType) => (

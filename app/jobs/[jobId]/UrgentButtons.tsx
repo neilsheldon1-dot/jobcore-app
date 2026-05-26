@@ -28,7 +28,7 @@ export default function UrgentButtons({
 
  return (
   <label
-    className={`flex items-center gap-3 border rounded-2xl px-4 py-3 cursor-pointer w-fit transition ${
+    className={`flex items-center gap-3 border rounded-2xl px-5 py-1 cursor-pointer w-fit transition ${
       urgent
         ? 'bg-red-500 border-red-700'
         : 'bg-red-50 border-red-200'
