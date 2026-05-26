@@ -2,6 +2,7 @@ import Image from 'next/image'
 import AppHeader from '../components/AppHeader'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
+import DashboardSearch from './DashboardSearch'
 
 export const dynamic = 'force-dynamic'
 
@@ -124,21 +125,29 @@ private_jobs:
 
       {/* Business banner */}
       <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-6 py-6 flex items-center gap-4">
-          <div className="bg-blue-100 text-blue-700 rounded-lg w-12 h-12 flex items-center justify-center font-bold">
-            RR
-          </div>
+       <div className="max-w-7xl mx-auto px-6 py-6 flex items-center justify-between gap-6">
 
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">
-  Rubber Roofs Operations
-</h1>
+  <div className="flex items-center gap-4">
+    <div className="bg-blue-100 text-blue-700 rounded-lg w-12 h-12 flex items-center justify-center font-bold">
+      RR
+    </div>
 
-            <p className="text-sm text-slate-500">
-  Powered by JobCore
-</p>
-          </div>
-        </div>
+    <div>
+      <h1 className="text-2xl font-bold text-slate-900">
+        Rubber Roofs Operations
+      </h1>
+
+      <p className="text-sm text-slate-500">
+        Powered by JobCore
+      </p>
+    </div>
+  </div>
+
+  <div className="w-full max-w-xl">
+    <DashboardSearch jobs={jobs || []} />
+  </div>
+
+</div>
       </div>
 
       {/* Dashboard */}

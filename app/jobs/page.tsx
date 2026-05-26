@@ -198,15 +198,7 @@ function getJobTypeStyle(jobType: string) {
       {/* Header */}
  <div className="max-w-7xl mx-auto px-6 py-8">
 
-  <form action="/jobs" className="mb-6">
-    <input
-      type="text"
-      name="search"
-      placeholder="Search address, postcode, client, description..."
-      defaultValue={params.search || ''}
-      className="w-full border border-gray-300 rounded-2xl px-5 py-4 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-  </form>
+  
 
   {(params.status || params.blocked === 'true' || params.ready === 'true' || params.blocker) && (
     <div className="mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 px-6 py-4">
@@ -219,14 +211,11 @@ function getJobTypeStyle(jobType: string) {
     </div>
   )}
 
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-
-                  <JobsInbox
+  <JobsInbox
   jobs={jobs || []}
   blockerLinks={blockerLinks || []}
+  enableSelection={params.status === 'Ticket'}
 />
-
-      </div>
     </div>
   </main>
 )

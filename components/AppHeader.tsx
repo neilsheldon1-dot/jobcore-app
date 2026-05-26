@@ -43,13 +43,23 @@ export default function AppHeader({ active }: AppHeaderProps) {
 
            
           </nav>
+<div className="flex items-center gap-3">
 
-          <Link
-            href="/jobs/new"
-            className="bg-white text-blue-700 px-5 py-2 rounded-xl font-bold hover:bg-blue-50 transition shadow-sm"
-          >
-            + Add Job
-          </Link>
+  <Link
+    href="/jobs/quick"
+    className="bg-white text-orange-700 px-5 py-2 rounded-xl font-bold hover:bg-orange-100 transition shadow-sm"
+  >
+    + Quick Ticket
+  </Link>
+
+  <Link
+    href="/jobs/new"
+    className="bg-white text-blue-700 px-5 py-2 rounded-xl font-bold hover:bg-blue-50 transition shadow-sm"
+  >
+    + Add Job
+  </Link>
+
+</div>
         </div>
       </div>
     </div>
