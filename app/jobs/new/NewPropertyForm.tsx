@@ -7,6 +7,9 @@ type ZoneLocation = {
   id: number
   location_name: string
   area_zone_id: number
+  area_zones?: {
+    name: string
+  }
 }
 
 type NewPropertyFormProps = {
@@ -29,39 +32,54 @@ export default function NewPropertyForm({
   const [tenantContact, setTenantContact] = useState('')
   const [notes, setNotes] = useState('')
   const [isSaving, setIsSaving] = useState(false)
+  const [duplicateProperty, setDuplicateProperty] = useState<any>(null)
 
-  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  event.preventDefault()
 
-    setIsSaving(true)
+  setIsSaving(true)
+  setDuplicateProperty(null)
 
-    const response = await fetch('/api/create-property', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        address_line_1: address1,
-        address_line_2: address2,
-        town,
-        postcode,
-        client,
-        zone,
-        tenant_contact: tenantContact,
-        notes,
-      }),
-    })
+  const response = await fetch('/api/create-property', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      address_line_1: address1,
+      address_line_2: address2,
+      town,
+      postcode,
+      client,
+      zone,
+      tenant_contact: tenantContact,
+      notes,
+    }),
+  })
 
-    const result = await response.json()
+  const text = await response.text()
+const result = text ? JSON.parse(text) : {}
 
-    if (!response.ok) {
-      alert(JSON.stringify(result, null, 2))
+  if (!response.ok) {
+    if (response.status === 409) {
+      setDuplicateProperty(
+        result.property || {
+          address_line_1: address1,
+          town,
+          postcode,
+        }
+      )
       setIsSaving(false)
       return
     }
 
-    router.push(`/jobs/new?property_id=${result.id}`)
+    alert(JSON.stringify(result, null, 2))
+    setIsSaving(false)
+    return
   }
+
+  router.push(`/jobs/new?property_id=${result.id}`)
+}
 
   return (
     <form
@@ -175,6 +193,16 @@ export default function NewPropertyForm({
           placeholder="Property notes"
           className="border border-gray-300 rounded-2xl p-4 min-h-28"
         />
+
+        {duplicateProperty?.id && (
+  <button
+    type="button"
+    onClick={() => router.push(`/jobs/new?property_id=${duplicateProperty.id}`)}
+    className="mt-3 bg-amber-500 text-white px-4 py-2 rounded-xl font-bold hover:bg-amber-600 transition cursor-pointer"
+  >
+    Use Existing Property
+  </button>
+)}
 {onCancel && (
   <button
     type="button"

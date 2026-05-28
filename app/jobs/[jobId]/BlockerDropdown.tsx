@@ -33,24 +33,27 @@ export default function BlockerDropdown({
 
   return (
     <div className="relative mt-2">
-      <div
-        onClick={() => setOpen(!open)}
-        className="flex flex-wrap gap-2 cursor-pointer hover:brightness-95 transition"
-      >
-        {currentBlockers && currentBlockers.length > 0 ? (
-          currentBlockers.map((blocker: any) => (
-            <span
-              key={blocker.id}
-              className="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-full text-sm font-bold "
-            >
-              {blocker.blocker_types?.name}
-            </span>
-          ))
-        ) : (
-          <span className="bg-amber-100 text-amber-700 border border-slate-200 px-3 py-1 rounded-full text-sm font-bold">
-            +
-          </span>
-        )}
+      <div className="flex flex-wrap items-center gap-2">
+        {currentBlockers &&
+  currentBlockers.map((blocker: any) => (
+    <button
+      key={blocker.id}
+      type="button"
+      onClick={() => toggleBlocker(blocker.blocker_type_id)}
+      className="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-full text-sm font-bold hover:bg-amber-200 transition cursor-pointer"
+      title="Click to remove"
+    >
+      {blocker.blocker_types?.name}
+    </button>
+  ))}
+
+        <button
+          type="button"
+          onClick={() => setOpen(!open)}
+          className="bg-amber-100 text-amber-700 border border-amber-300 px-3 py-1 rounded-full text-sm font-bold hover:bg-amber-200 transition cursor-pointer"
+        >
+          +
+        </button>
       </div>
 
       {open && (
@@ -64,6 +67,7 @@ export default function BlockerDropdown({
               return (
                 <button
                   key={blocker.id}
+                  type="button"
                   onClick={() => toggleBlocker(blocker.id)}
                   className={`text-left px-3 py-2 rounded-xl text-sm transition ${
                     isActive

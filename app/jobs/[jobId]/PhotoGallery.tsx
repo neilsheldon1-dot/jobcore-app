@@ -11,7 +11,34 @@ export default function PhotoGallery({
   jobId: string
 }) {
   const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null)
+async function deletePhoto(photo: any) {
+  const confirmed = window.confirm('Delete this photo?')
 
+  if (!confirmed) return
+
+  const filePath = photo.file_url.split('/job-photos/')[1]
+
+  if (filePath) {
+    await fetch('/api/delete-photo-storage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath }),
+    })
+  }
+
+  const response = await fetch('/api/delete-photo', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ photoId: photo.id }),
+  })
+
+  if (!response.ok) {
+    alert('Could not delete photo')
+    return
+  }
+
+  window.location.reload()
+}
   return (
     <>
       <div>
@@ -27,11 +54,21 @@ export default function PhotoGallery({
         {photos && photos.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {photos.map((photo) => (
-              <button
-                key={photo.id}
-                onClick={() => setSelectedPhoto(photo)}
-                className="group relative border border-gray-200 rounded-2xl overflow-hidden bg-slate-50 text-left hover:shadow-md transition"
-              >
+              <div
+  key={photo.id}
+  onClick={() => setSelectedPhoto(photo)}
+  className="group relative border border-gray-200 rounded-2xl overflow-hidden bg-slate-50 text-left hover:shadow-md transition cursor-pointer"
+>
+                <button
+  type="button"
+  onClick={(e) => {
+    e.stopPropagation()
+    deletePhoto(photo)
+  }}
+  className="absolute top-2 right-2 z-10 bg-white text-red-600 border border-gray-200 w-8 h-8 rounded-full text-sm font-bold shadow hover:bg-red-50 transition cursor-pointer flex items-center justify-center"
+>
+  🗑
+</button>
                 <img
                   src={photo.file_url}
                   alt="Job Photo"
@@ -47,7 +84,7 @@ export default function PhotoGallery({
                     {new Date(photo.created_at).toLocaleDateString('en-GB')}
                   </p>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         ) : (

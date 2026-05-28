@@ -53,6 +53,24 @@ export default async function JobPage({ params }: JobPageProps) {
     .eq('is_active', true)
     .order('id', { ascending: true })
 
+const { data: activeJobTypeLinks } = await supabase
+  .from('job_type_links')
+  .select('*')
+  .eq('job_id', jobId)
+
+const activeJobTypes = (activeJobTypeLinks || []).map((link) => {
+  const matchingType = (jobTypes || []).find(
+    (type) => type.id === link.job_type_id
+  )
+
+  return {
+    ...link,
+    job_types: matchingType
+      ? { name: matchingType.name }
+      : null,
+  }
+})
+
   const { data: blockerTypes } = await supabase
     .from('blocker_types')
     .select('*')
@@ -96,7 +114,7 @@ export default async function JobPage({ params }: JobPageProps) {
             </h1>
 
             <p className="text-sm text-slate-500">
-              {job.address_line_1} • {job.town}
+              {job.address_line_1} • {job.town} 
             </p>
           </div>
 
@@ -180,14 +198,14 @@ export default async function JobPage({ params }: JobPageProps) {
         Job Type
       </p>
 
-      <JobTypeDropdown
-        jobId={jobId}
-        currentJobType={job.job_type}
-        jobTypes={jobTypes || []}
-      />
+  <JobTypeDropdown
+  jobId={jobId}
+  jobTypes={jobTypes || []}
+  currentJobTypes={activeJobTypes || []}
+/>
     </div>
-    
-            <div>
+
+    <div>
   <p className="text-xs uppercase font-bold text-slate-400">
     Waiting On
   </p>
