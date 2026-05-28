@@ -83,6 +83,9 @@ async function deletePhoto(photo: any) {
                   <p className="text-xs text-slate-400 mt-1">
                     {new Date(photo.created_at).toLocaleDateString('en-GB')}
                   </p>
+                  <p className="text-xs text-slate-400 mt-1">
+  Added by {photo.uploaded_by || 'Unknown'}
+</p>
                 </div>
               </div>
             ))}

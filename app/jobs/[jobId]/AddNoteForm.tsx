@@ -9,7 +9,6 @@ export default function AddNoteForm({
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [content, setContent] = useState('')
-  const [createdBy, setCreatedBy] = useState('Neil')
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -22,10 +21,9 @@ export default function AddNoteForm({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        job_id: jobId,
-        content,
-        created_by: createdBy,
-      }),
+  job_id: jobId,
+  content,
+}),
     })
 
     const result = await response.json()
@@ -74,18 +72,7 @@ export default function AddNoteForm({
             </div>
 
             <div className="grid gap-4">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
-                  Added By
-                </label>
-
-                <input
-                  value={createdBy}
-                  onChange={(e) => setCreatedBy(e.target.value)}
-                  placeholder="Your name"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3"
-                />
-              </div>
+              
 
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">

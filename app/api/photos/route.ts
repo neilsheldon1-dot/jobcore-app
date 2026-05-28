@@ -23,26 +23,29 @@ export async function POST(req: Request) {
 
   const body = await req.json()
 
-  const { job_id, content } = body
+  const {
+    job_id,
+    file_url,
+    original_file_url,
+    category,
+  } = body
 
   const { data, error } = await supabase
-    .from('job_notes')
+    .from('photos')
     .insert([
       {
         job_id,
-        content,
-        note_type: 'General',
-        created_by:
-          profile?.full_name || user.email,
+        file_url,
+        original_file_url,
+        category,
+        uploaded_by: profile?.full_name || user.email,
+        watermark_applied: false,
       },
     ])
     .select()
 
   if (error) {
-    return NextResponse.json(
-      { error },
-      { status: 500 }
-    )
+    return NextResponse.json({ error }, { status: 500 })
   }
 
   return NextResponse.json({ data })

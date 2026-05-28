@@ -34,9 +34,7 @@ if (params.status) {
   query = query.eq('status', params.status)
 }
 
-if (params.type) {
-  query = query.eq('job_type', params.type)
-}
+
 
 if (params.urgent === 'true') {
   query = query.eq('urgent', true)
@@ -46,31 +44,40 @@ if (params.search) {
     `address_line_1.ilike.%${params.search}%,postcode.ilike.%${params.search}%,client.ilike.%${params.search}%,description.ilike.%${params.search}%,job_number.ilike.%${params.search}%,po_number.ilike.%${params.search}%`
   )
 }
-  let { data: jobs } = await query
+let { data: jobs } = await query
 
-  const { data: blockerLinks } = await supabase
-    .from('job_blocker_links')
-    .select(`
-      job_id,
-      blocker_types (
-        name
-      )
-    `)
-    
-if (params.blocker) {
-  
+const { data: blockerLinks } = await supabase
+  .from('job_blocker_links')
+  .select(`
+    job_id,
+    blocker_types (
+      name
+    )
+  `)
 
-  const blockedJobIds =
-    blockerLinks
+const { data: jobTypeLinks } = await supabase
+  .from('job_type_links')
+  .select(`
+    id,
+    job_id,
+    job_type_id,
+    job_types (
+      name
+    )
+  `)
+
+if (params.type) {
+  const matchingJobIds =
+    jobTypeLinks
       ?.filter(
         (link: any) =>
-          link.blocker_types?.name === params.blocker
+          link.job_types?.name === params.type
       )
-      .map((link) => link.job_id) || []
+      .map((link: any) => link.job_id) || []
 
   jobs =
-    jobs?.filter((job) =>
-      blockedJobIds.includes(job.job_id)
+    jobs?.filter((job: any) =>
+      matchingJobIds.includes(job.job_id)
     ) || []
 }
 if (params.ready === 'true') {
@@ -97,6 +104,20 @@ if (params.blocked === 'true') {
     }) || []
 }
 
+  if (params.type) {
+  const matchingJobIds =
+    jobTypeLinks
+      ?.filter(
+        (link: any) =>
+          link.job_types?.name === params.type
+      )
+      .map((link: any) => link.job_id) || []
+
+  jobs =
+    jobs?.filter((job: any) =>
+      matchingJobIds.includes(job.job_id)
+    ) || []
+}
   function getStatusColour(status: string) {
   switch (status) {
     case 'Ticket':
@@ -202,20 +223,22 @@ function getJobTypeStyle(jobType: string) {
 
   
 
-  {(params.status || params.blocked === 'true' || params.ready === 'true' || params.blocker) && (
+  {(params.status || params.type || params.blocked === 'true' || params.ready === 'true' || params.blocker) && (
     <div className="mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 px-6 py-4">
       <h2 className="text-lg font-bold text-slate-900">
         {params.status ||
-          (params.blocked === 'true' ? 'Waiting On' : '') ||
-          (params.ready === 'true' ? 'Ready Jobs' : '') ||
-          (params.blocker ? `Waiting On: ${params.blocker}` : '')}
+  (params.type ? `Job Type: ${params.type}` : '') ||
+  (params.blocked === 'true' ? 'Waiting On' : '') ||
+  (params.ready === 'true' ? 'Ready Jobs' : '') ||
+  (params.blocker ? `Waiting On: ${params.blocker}` : '')}
       </h2>
     </div>
   )}
 
-  <JobsInbox
+ <JobsInbox
   jobs={jobs || []}
   blockerLinks={blockerLinks || []}
+  jobTypeLinks={jobTypeLinks || []}
   enableSelection={params.status === 'Ticket'}
 />
     </div>

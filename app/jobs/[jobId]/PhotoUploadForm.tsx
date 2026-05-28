@@ -11,7 +11,6 @@ export default function PhotoUploadForm({
   const [isOpen, setIsOpen] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [category, setCategory] = useState('')
-  const [uploadedBy, setUploadedBy] = useState('Neil')
   const [loading, setLoading] = useState(false)
 
   async function handleUpload(e: React.FormEvent) {
@@ -43,25 +42,28 @@ export default function PhotoUploadForm({
         .from('job-photos')
         .getPublicUrl(filePath)
 
-      const { error: dbError } = await supabase
-        .from('photos')
-        .insert([
-          {
-            job_id: jobId,
-            file_url: publicUrlData.publicUrl,
-            original_file_url: publicUrlData.publicUrl,
-            category,
-            uploaded_by: uploadedBy,
-            watermark_applied: false,
-          },
-        ])
+      const response = await fetch('/api/photos', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    job_id: jobId,
+    file_url: publicUrlData.publicUrl,
+    original_file_url: publicUrlData.publicUrl,
+    category,
+  }),
+})
 
-      if (dbError) {
-        alert(dbError.message)
-        setLoading(false)
-        return
-      }
+const result = await response.json()
+
+if (!response.ok) {
+  alert(JSON.stringify(result.error, null, 2))
+  setLoading(false)
+  return
+}
     }
+     
 
     setFiles([])
     setLoading(false)
@@ -101,19 +103,7 @@ export default function PhotoUploadForm({
             </div>
 
             <div className="grid gap-4">
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
-                  Uploaded By
-                </label>
-
-                <input
-                  value={uploadedBy}
-                  onChange={(e) => setUploadedBy(e.target.value)}
-                  placeholder="Uploaded by"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3"
-                />
-              </div>
-
+              
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">
                   Photo Category

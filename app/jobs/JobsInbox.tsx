@@ -6,8 +6,10 @@ import { useState } from 'react'
 export default function JobsInbox({
   jobs,
   blockerLinks,
+  jobTypeLinks,
   enableSelection = false,
 }: any) {
+
   const [selectedJobs, setSelectedJobs] = useState<string[]>([])
   const [search, setSearch] = useState('')
 
@@ -182,6 +184,10 @@ export default function JobsInbox({
                 (link: any) => link.job_id === job.job_id
               ) || []
 
+              const jobTypes =
+  jobTypeLinks?.filter(
+    (link: any) => link.job_id === job.job_id
+  ) || []
             const jobHasBlockers = jobBlockers.length > 0
 
             return (
@@ -227,11 +233,24 @@ export default function JobsInbox({
                   </div>
 
                   <div className="flex flex-wrap justify-end gap-2 shrink-0">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getJobTypeStyle(job.job_type)}`}
-                    >
-                      {job.job_type}
-                    </span>
+                    {jobTypes.length > 0 ? (
+  jobTypes.map((jobType: any) => (
+    <span
+      key={jobType.id}
+      className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getJobTypeStyle(
+        jobType.job_types?.name
+      )}`}
+    >
+      {jobType.job_types?.name}
+    </span>
+  ))
+) : (
+  <span
+    className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getJobTypeStyle(job.job_type)}`}
+  >
+    {job.job_type}
+  </span>
+)}
 
                     {job.urgent && (
                       <span className="bg-red-500 text-white px-2.5 py-0.5 rounded-full text-xs font-bold">
