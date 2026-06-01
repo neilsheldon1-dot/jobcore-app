@@ -4,7 +4,7 @@ import UserMenu from './UserMenu'
 import { createClient } from '../app/utils/supabase/server'
 
 type AppHeaderProps = {
-  active?: 'home' | 'jobs' | 'properties' | 'rams'
+  active?: 'home' | 'jobs' | 'properties' | 'archive' | 'rams'
 }
 
 export default async function AppHeader({ active }: AppHeaderProps) {
@@ -29,7 +29,7 @@ export default async function AppHeader({ active }: AppHeaderProps) {
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-md">
+    <div className="sticky top-0 z-50 bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-md">
       <div className="max-w-7xl mx-auto flex items-center h-16 px-6 gap-8">
 
         <Link href="/" className="flex items-center">
@@ -56,6 +56,10 @@ export default async function AppHeader({ active }: AppHeaderProps) {
             <Link href="/properties" className={navClass('properties')}>
               Properties
             </Link>
+
+            <Link href="/archive" className={navClass('archive')}>
+  Archive
+</Link>
           </nav>
 
           <div className="flex items-center gap-4">

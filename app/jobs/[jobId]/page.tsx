@@ -11,6 +11,7 @@ import WorkflowControls from './WorkflowControls'
 import StatusDropdown from './StatusDropdown'
 import JobTypeDropdown from './JobTypeDropdown'
 import BlockerDropdown from './BlockerDropdown'
+import DeleteJobButton from './DeleteJobButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -48,28 +49,30 @@ export default async function JobPage({ params }: JobPageProps) {
     .order('sort_order', { ascending: true })
 
   const { data: jobTypes } = await supabase
-    .from('job_types')
-    .select('*')
-    .eq('is_active', true)
-    .order('id', { ascending: true })
+  .from('job_types')
+  .select('*')
+  .eq('is_active', true)
+  .order('name', { ascending: true })
 
 const { data: activeJobTypeLinks } = await supabase
   .from('job_type_links')
   .select('*')
   .eq('job_id', jobId)
 
-const activeJobTypes = (activeJobTypeLinks || []).map((link) => {
-  const matchingType = (jobTypes || []).find(
-    (type) => type.id === link.job_type_id
-  )
+const activeJobTypes = (activeJobTypeLinks || [])
+  .map((link) => {
+    const matchingType = (jobTypes || []).find(
+      (type) => type.id === link.job_type_id
+    )
 
-  return {
-    ...link,
-    job_types: matchingType
-      ? { name: matchingType.name }
-      : null,
-  }
-})
+    return {
+      ...link,
+      job_types: matchingType || null,
+    }
+  })
+  .sort((a, b) =>
+    (a.job_types?.name || '').localeCompare(b.job_types?.name || '')
+  )
 
   const { data: blockerTypes } = await supabase
     .from('blocker_types')
@@ -290,6 +293,7 @@ const activeJobTypes = (activeJobTypeLinks || []).map((link) => {
   <PhotoGallery
   photos={photos ?? []}
   jobId={jobId}
+  jobAddress={`${job.address_line_1}, ${job.town} ${job.postcode}`}
 />
 </div>
           
@@ -303,14 +307,16 @@ const activeJobTypes = (activeJobTypeLinks || []).map((link) => {
     
       
 
-        <div className="pb-8">
-          <Link
-            href="/jobs"
-            className="text-blue-600 font-bold"
-          >
-            ← Back to Jobs
-          </Link>
-        </div>
+       <div className="pb-8 flex items-center justify-between">
+  <Link
+    href="/jobs"
+    className="text-blue-600 font-bold"
+  >
+    ← Back to Jobs
+  </Link>
+
+  <DeleteJobButton jobId={jobId} />
+</div>
 
       </div>
     </main>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function BlockerDropdown({
   jobId,
@@ -12,13 +12,35 @@ export default function BlockerDropdown({
   currentBlockers: any[]
 }) {
   const [open, setOpen] = useState(false)
+  const [selectedBlockers, setSelectedBlockers] = useState<any[]>(
+    currentBlockers || []
+  )
+
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   async function toggleBlocker(blockerTypeId: number) {
-    const isActive = currentBlockers.some(
+    const isActive = selectedBlockers.some(
       (blocker) => blocker.blocker_type_id === blockerTypeId
     )
 
-    await fetch('/api/toggle-blocker', {
+    const response = await fetch('/api/toggle-blocker', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -28,24 +50,48 @@ export default function BlockerDropdown({
       }),
     })
 
-    window.location.reload()
+    const result = await response.json()
+
+    if (!response.ok) {
+      alert(JSON.stringify(result, null, 2))
+      return
+    }
+
+    if (isActive) {
+      setSelectedBlockers((prev) =>
+        prev.filter((blocker) => blocker.blocker_type_id !== blockerTypeId)
+      )
+    } else {
+      const matchingBlocker = blockerTypes.find(
+        (blocker) => blocker.id === blockerTypeId
+      )
+
+      setSelectedBlockers((prev) => [
+        ...prev,
+        {
+          id: `temp-${blockerTypeId}`,
+          job_id: jobId,
+          blocker_type_id: blockerTypeId,
+          blocker_types: matchingBlocker || null,
+        },
+      ])
+    }
   }
 
   return (
-    <div className="relative mt-2">
+    <div ref={dropdownRef} className="relative mt-2">
       <div className="flex flex-wrap items-center gap-2">
-        {currentBlockers &&
-  currentBlockers.map((blocker: any) => (
-    <button
-      key={blocker.id}
-      type="button"
-      onClick={() => toggleBlocker(blocker.blocker_type_id)}
-      className="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-full text-sm font-bold hover:bg-amber-200 transition cursor-pointer"
-      title="Click to remove"
-    >
-      {blocker.blocker_types?.name}
-    </button>
-  ))}
+        {selectedBlockers.map((blocker: any) => (
+          <button
+            key={blocker.id}
+            type="button"
+            onClick={() => toggleBlocker(blocker.blocker_type_id)}
+            className="bg-amber-100 text-amber-800 border border-amber-300 px-3 py-1 rounded-full text-sm font-bold hover:bg-amber-200 transition cursor-pointer"
+            title="Click to remove"
+          >
+            {blocker.blocker_types?.name}
+          </button>
+        ))}
 
         <button
           type="button"
@@ -60,7 +106,7 @@ export default function BlockerDropdown({
         <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl p-2 w-72">
           <div className="flex flex-col gap-1">
             {blockerTypes.map((blocker) => {
-              const isActive = currentBlockers.some(
+              const isActive = selectedBlockers.some(
                 (active) => active.blocker_type_id === blocker.id
               )
 

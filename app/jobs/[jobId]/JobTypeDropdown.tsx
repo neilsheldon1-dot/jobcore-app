@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 function getJobTypeClasses(name: string) {
   return name === 'Reactive'
@@ -16,7 +16,7 @@ function getJobTypeClasses(name: string) {
     : name === 'Hydro'
     ? 'bg-teal-100 text-teal-800 border-teal-200'
     : name === 'Scheme'
-    ? 'bg-yellow-100 text-yellow-800 border-yellow-200'
+    ? 'bg-amber-900 text-amber-200 border-amber-700'
     : name === 'Planned'
     ? 'bg-green-200 text-green-700 border-slate-200'
     : name === 'Slate / Tile Repair'
@@ -52,49 +52,94 @@ export default function JobTypeDropdown({
   currentJobTypes: any[]
 }) {
   const [open, setOpen] = useState(false)
-
-  async function toggleJobType(jobTypeId: number) {
-  const isActive = currentJobTypes.some(
-    (jobType) => jobType.job_type_id === jobTypeId
+  const [selectedJobTypes, setSelectedJobTypes] = useState<any[]>(
+    currentJobTypes || []
   )
 
-  const response = await fetch('/api/toggle-job-type', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      job_id: jobId,
-      job_type_id: jobTypeId,
-      active: !isActive,
-    }),
-  })
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  const result = await response.json()
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setOpen(false)
+      }
+    }
 
-  if (!response.ok) {
-    alert(JSON.stringify(result, null, 2))
-    return
+    document.addEventListener('mousedown', handleClickOutside)
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const sortedSelectedJobTypes = [...selectedJobTypes].sort((a, b) =>
+    (a.job_types?.name || '').localeCompare(b.job_types?.name || '')
+  )
+
+  const sortedJobTypes = [...jobTypes].sort((a, b) =>
+    (a.name || '').localeCompare(b.name || '')
+  )
+
+  async function toggleJobType(jobTypeId: number) {
+    const isActive = selectedJobTypes.some(
+      (jobType) => jobType.job_type_id === jobTypeId
+    )
+
+    const response = await fetch('/api/toggle-job-type', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        job_id: jobId,
+        job_type_id: jobTypeId,
+        active: !isActive,
+      }),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      alert(JSON.stringify(result, null, 2))
+      return
+    }
+
+    if (isActive) {
+      setSelectedJobTypes((prev) =>
+        prev.filter((jobType) => jobType.job_type_id !== jobTypeId)
+      )
+    } else {
+      const matchingType = jobTypes.find((type) => type.id === jobTypeId)
+
+      setSelectedJobTypes((prev) => [
+        ...prev,
+        {
+          id: `temp-${jobTypeId}`,
+          job_id: jobId,
+          job_type_id: jobTypeId,
+          job_types: matchingType || null,
+        },
+      ])
+    }
   }
 
-  window.location.reload()
-}
-
   return (
-    <div className="relative mt-2">
+    <div ref={dropdownRef} className="relative mt-2">
       <div className="flex flex-wrap items-center gap-2">
-        {currentJobTypes &&
-          currentJobTypes.map((jobType: any) => (
-            <button
-              key={jobType.id}
-              type="button"
-              onClick={() => toggleJobType(jobType.job_type_id)}
-              className={`px-3 py-1 rounded-full text-sm font-bold border hover:brightness-95 transition cursor-pointer ${getJobTypeClasses(
-                jobType.job_types?.name
-              )}`}
-              title="Click to remove"
-            >
-              {jobType.job_types?.name}
-            </button>
-          ))}
+        {sortedSelectedJobTypes.map((jobType: any) => (
+          <button
+            key={jobType.id}
+            type="button"
+            onClick={() => toggleJobType(jobType.job_type_id)}
+            className={`px-3 py-1 rounded-full text-sm font-bold border hover:brightness-95 transition cursor-pointer ${getJobTypeClasses(
+              jobType.job_types?.name
+            )}`}
+            title="Click to remove"
+          >
+            {jobType.job_types?.name}
+          </button>
+        ))}
 
         <button
           type="button"
@@ -108,8 +153,8 @@ export default function JobTypeDropdown({
       {open && (
         <div className="absolute z-50 mt-2 bg-white border border-gray-200 rounded-2xl shadow-xl p-2 w-72">
           <div className="flex flex-col gap-1">
-            {jobTypes.map((jobType) => {
-              const isActive = currentJobTypes.some(
+            {sortedJobTypes.map((jobType) => {
+              const isActive = selectedJobTypes.some(
                 (active) => active.job_type_id === jobType.id
               )
 

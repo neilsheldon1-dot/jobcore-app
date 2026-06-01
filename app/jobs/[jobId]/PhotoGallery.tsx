@@ -6,9 +6,11 @@ import PhotoUploadForm from './PhotoUploadForm'
 export default function PhotoGallery({
   photos,
   jobId,
+  jobAddress,
 }: {
   photos: any[]
   jobId: string
+  jobAddress: string
 }) {
   const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null)
 async function deletePhoto(photo: any) {
@@ -48,7 +50,7 @@ async function deletePhoto(photo: any) {
             Job Photos
           </h2>
 
-          <PhotoUploadForm jobId={jobId} />
+          <PhotoUploadForm jobId={jobId} jobAddress={jobAddress} />
         </div>
 
         {photos && photos.length > 0 ? (

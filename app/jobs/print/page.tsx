@@ -24,6 +24,69 @@ export default async function PrintJobsPage({
     .in('job_id', ids)
     .order('created_at', { ascending: false })
 
+  const { data: zoneLocations } = await supabase
+    .from('zone_locations')
+    .select(`
+      location_name,
+      sort_order,
+      area_zones (
+        sort_order
+      )
+    `)
+
+  const locationOrder = new Map(
+    (zoneLocations || []).map((location: any) => [
+      location.location_name,
+      {
+        areaOrder: location.area_zones?.sort_order ?? 999,
+        locationOrder: location.sort_order ?? 999,
+      },
+    ])
+  )
+
+  function getZonePrintColour(zone: string) {
+    const zoneInfo = locationOrder.get(zone)
+    const areaOrder = zoneInfo?.areaOrder ?? 999
+
+    switch (areaOrder) {
+      case 1:
+        return 'bg-blue-50'
+      case 2:
+        return 'bg-green-50'
+      case 3:
+        return 'bg-amber-50'
+      case 4:
+        return 'bg-purple-50'
+      case 5:
+        return 'bg-cyan-50'
+      case 6:
+        return 'bg-rose-50'
+      case 7:
+        return 'bg-slate-50'
+      default:
+        return 'bg-white'
+    }
+  }
+
+  const sortedJobs = [...(jobs || [])].sort((a: any, b: any) => {
+    const aZone = locationOrder.get(a.zone) || {
+      areaOrder: 999,
+      locationOrder: 999,
+    }
+
+    const bZone = locationOrder.get(b.zone) || {
+      areaOrder: 999,
+      locationOrder: 999,
+    }
+
+    return (
+      aZone.areaOrder - bZone.areaOrder ||
+      aZone.locationOrder - bZone.locationOrder ||
+      (a.town || '').localeCompare(b.town || '') ||
+      (a.address_line_1 || '').localeCompare(b.address_line_1 || '')
+    )
+  })
+
   return (
     <main className="bg-white min-h-screen p-8">
       <div className="flex justify-between items-center mb-8 print:hidden">
@@ -37,15 +100,15 @@ export default async function PrintJobsPage({
       </div>
 
       <div className="grid gap-3">
-        {jobs && jobs.length > 0 ? (
-          jobs.map((job) => {
+        {sortedJobs && sortedJobs.length > 0 ? (
+          sortedJobs.map((job) => {
             const jobNotes =
               notes?.filter((note) => note.job_id === job.job_id) || []
 
             return (
               <div
                 key={job.job_id}
-                className="border border-slate-300 rounded-lg p-3 text-sm break-inside-avoid"
+                className={`border border-slate-300 rounded-lg p-3 text-sm break-inside-avoid ${getZonePrintColour(job.zone)}`}
               >
                 <div className="flex items-start justify-between gap-6 mb-3">
                   <div>
@@ -84,7 +147,7 @@ export default async function PrintJobsPage({
                   </div>
                 </div>
 
-                <div className="border border-slate-200 rounded-lg p-3">
+                <div className="border border-slate-200 rounded-lg p-3 bg-white/60">
                   <p className="text-xs uppercase font-bold text-slate-500 mb-2">
                     Work Description
                   </p>
@@ -95,7 +158,7 @@ export default async function PrintJobsPage({
                 </div>
 
                 {jobNotes.length > 0 && (
-                  <div className="border border-slate-200 rounded-lg p-3 mt-3">
+                  <div className="border border-slate-200 rounded-lg p-3 mt-3 bg-white/60">
                     <p className="text-xs uppercase font-bold text-slate-500 mb-2">
                       Updates / Notes
                     </p>

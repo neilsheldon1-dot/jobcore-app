@@ -5,14 +5,92 @@ import { supabase } from '../../../lib/supabase'
 
 export default function PhotoUploadForm({
   jobId,
+  jobAddress,
 }: {
   jobId: string
+  jobAddress: string
 }) {
   const [isOpen, setIsOpen] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [category, setCategory] = useState('')
   const [loading, setLoading] = useState(false)
+async function createWatermarkedImage(
+  file: File,
+  address: string
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const image = new Image()
 
+    image.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')
+
+      if (!ctx) {
+        reject(new Error('Could not create canvas'))
+        return
+      }
+
+      canvas.width = image.width
+      canvas.height = image.height
+
+      ctx.drawImage(image, 0, 0)
+
+      const now = new Date()
+
+      const dateString =
+        now.toLocaleDateString('en-GB') +
+        ' ' +
+        now.toLocaleTimeString('en-GB', {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+
+      const watermarkText = [
+        address,
+        dateString,
+      ]
+
+      const padding = 20
+      const lineHeight = 32
+
+      ctx.fillStyle = 'rgba(0,0,0,0.65)'
+      ctx.fillRect(
+        0,
+        canvas.height - 90,
+        canvas.width,
+        90
+      )
+
+      ctx.fillStyle = 'white'
+      ctx.font = 'bold 24px Arial'
+
+      watermarkText.forEach((line, index) => {
+        ctx.fillText(
+          line,
+          padding,
+          canvas.height - 50 + index * lineHeight
+        )
+      })
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Could not create blob'))
+            return
+          }
+
+          resolve(blob)
+        },
+        'image/jpeg',
+        0.95
+      )
+    }
+
+    image.onerror = reject
+
+    image.src = URL.createObjectURL(file)
+  })
+}
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault()
 
@@ -24,13 +102,27 @@ export default function PhotoUploadForm({
     setLoading(true)
 
     for (const file of files) {
-      const filePath = `${jobId}/${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}-${file.name}`
+      const watermarkedBlob =
+  await createWatermarkedImage(
+    file,
+    jobAddress
+  )
 
-      const { error: uploadError } = await supabase.storage
-        .from('job-photos')
-        .upload(filePath, file)
+const watermarkedFile = new File(
+  [watermarkedBlob],
+  file.name,
+  {
+    type: 'image/jpeg',
+  }
+)
+
+const filePath = `${jobId}/${Date.now()}-${Math.random()
+  .toString(36)
+  .slice(2)}-${file.name}`
+
+const { error: uploadError } = await supabase.storage
+  .from('job-photos')
+  .upload(filePath, watermarkedFile)
 
       if (uploadError) {
         alert(uploadError.message)

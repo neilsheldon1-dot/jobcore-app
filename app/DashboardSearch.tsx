@@ -3,27 +3,46 @@
 import { useState } from 'react'
 import Link from 'next/link'
 
+function getHouseNumber(address: string) {
+  const match = address?.match(/\d+/)
+  return match ? Number(match[0]) : 999999
+}
+
 export default function DashboardSearch({ jobs }: { jobs: any[] }) {
   const [search, setSearch] = useState('')
 
-  const results = jobs.filter((job) => {
-    const searchText = search.toLowerCase()
+  const results = jobs
+    .filter((job) => {
+      const searchText = search.toLowerCase()
 
-    return [
-      job.job_number,
-      job.address_line_1,
-      job.town,
-      job.postcode,
-      job.client,
-      job.description,
-      job.status,
-      job.job_type,
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
-      .includes(searchText)
-  })
+      return [
+        job.job_number,
+        job.address_line_1,
+        job.town,
+        job.postcode,
+        job.client,
+        job.description,
+        job.status,
+        job.job_type,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(searchText)
+    })
+    .sort((a, b) => {
+      const addressA = a.address_line_1 || ''
+      const addressB = b.address_line_1 || ''
+
+      const numberA = getHouseNumber(addressA)
+      const numberB = getHouseNumber(addressB)
+
+      if (numberA !== numberB) {
+        return numberA - numberB
+      }
+
+      return addressA.localeCompare(addressB)
+    })
 
   return (
     <div className="mb-8">
@@ -46,6 +65,7 @@ export default function DashboardSearch({ jobs }: { jobs: any[] }) {
                 <p className="font-semibold text-sm text-slate-900">
                   {job.address_line_1}
                 </p>
+
 
                 <p className="text-xs text-slate-600">
                   {job.job_number || 'No job number'} • {job.status}
