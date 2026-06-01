@@ -69,13 +69,28 @@ po_number,
       .single()
 
     if (jobError) {
-      return NextResponse.json(jobError, { status: 500 })
-    }
+  return NextResponse.json(jobError, { status: 500 })
+}
 
-    return NextResponse.json({
+if (reactiveType?.id) {
+  const { error: jobTypeLinkError } = await supabase
+    .from('job_type_links')
+    .insert({
+      job_id: job.id,
+      job_type_id: reactiveType.id,
+    })
+
+  if (jobTypeLinkError && jobTypeLinkError.code !== '23505') {
+    return NextResponse.json(jobTypeLinkError, { status: 500 })
+  }
+}
+
+return NextResponse.json({
   success: true,
   job_id: job.id,
 })
+
+
 
   } catch (error) {
     return NextResponse.json(error, { status: 500 })

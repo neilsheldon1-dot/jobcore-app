@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import UserMenu from './UserMenu'
 import { createClient } from '../app/utils/supabase/server'
+import JobsNavMenu from './JobsNavMenu'
 
 type AppHeaderProps = {
   active?: 'home' | 'jobs' | 'properties' | 'archive' | 'rams'
@@ -49,9 +50,7 @@ export default async function AppHeader({ active }: AppHeaderProps) {
               Home
             </Link>
 
-            <Link href="/jobs" className={navClass('jobs')}>
-              Jobs
-            </Link>
+            <JobsNavMenu active={active === 'jobs'} />
 
             <Link href="/properties" className={navClass('properties')}>
               Properties

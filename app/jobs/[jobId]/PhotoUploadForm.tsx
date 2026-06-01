@@ -14,83 +14,80 @@ export default function PhotoUploadForm({
   const [files, setFiles] = useState<File[]>([])
   const [category, setCategory] = useState('')
   const [loading, setLoading] = useState(false)
-async function createWatermarkedImage(
-  file: File,
-  address: string
-): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    const image = new Image()
 
-    image.onload = () => {
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')
+  async function createWatermarkedImage(
+    file: File,
+    address: string
+  ): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+      const image = new Image()
 
-      if (!ctx) {
-        reject(new Error('Could not create canvas'))
-        return
-      }
+      image.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
 
-      canvas.width = image.width
-      canvas.height = image.height
+        if (!ctx) {
+          reject(new Error('Could not create canvas'))
+          return
+        }
 
-      ctx.drawImage(image, 0, 0)
+        canvas.width = image.width
+        canvas.height = image.height
 
-      const now = new Date()
+        ctx.drawImage(image, 0, 0)
 
-      const dateString =
-        now.toLocaleDateString('en-GB') +
-        ' ' +
-        now.toLocaleTimeString('en-GB', {
-          hour: '2-digit',
-          minute: '2-digit',
+        const now = new Date()
+
+        const dateString =
+          now.toLocaleDateString('en-GB') +
+          ' ' +
+          now.toLocaleTimeString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+
+        const watermarkText = [address, dateString]
+
+        const padding = Math.max(20, canvas.width * 0.02)
+        const fontSize = Math.max(20, canvas.width * 0.025)
+        const lineHeight = fontSize * 1.35
+        const stripHeight = lineHeight * watermarkText.length + padding * 1.5
+        const stripTop = canvas.height - stripHeight
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.65)'
+        ctx.fillRect(0, stripTop, canvas.width, stripHeight)
+
+        ctx.fillStyle = 'white'
+        ctx.font = `bold ${fontSize}px Arial`
+        ctx.textBaseline = 'top'
+
+        watermarkText.forEach((line, index) => {
+          ctx.fillText(
+            line,
+            padding,
+            stripTop + padding * 0.6 + index * lineHeight
+          )
         })
 
-      const watermarkText = [
-        address,
-        dateString,
-      ]
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error('Could not create blob'))
+              return
+            }
 
-      const padding = 20
-      const lineHeight = 32
-
-      ctx.fillStyle = 'rgba(0,0,0,0.65)'
-      ctx.fillRect(
-        0,
-        canvas.height - 90,
-        canvas.width,
-        90
-      )
-
-      ctx.fillStyle = 'white'
-      ctx.font = 'bold 24px Arial'
-
-      watermarkText.forEach((line, index) => {
-        ctx.fillText(
-          line,
-          padding,
-          canvas.height - 50 + index * lineHeight
+            resolve(blob)
+          },
+          'image/jpeg',
+          0.92
         )
-      })
+      }
 
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            reject(new Error('Could not create blob'))
-            return
-          }
+      image.onerror = reject
+      image.src = URL.createObjectURL(file)
+    })
+  }
 
-          resolve(blob)
-        },
-        'image/jpeg',
-        0.95
-      )
-    }
-
-    image.onerror = reject
-
-    image.src = URL.createObjectURL(file)
-  })
-}
   async function handleUpload(e: React.FormEvent) {
     e.preventDefault()
 
@@ -101,67 +98,71 @@ async function createWatermarkedImage(
 
     setLoading(true)
 
-    for (const file of files) {
-      const watermarkedBlob =
-  await createWatermarkedImage(
-    file,
-    jobAddress
-  )
+    try {
+      for (const file of files) {
+        const watermarkedBlob = await createWatermarkedImage(
+          file,
+          jobAddress
+        )
 
-const watermarkedFile = new File(
-  [watermarkedBlob],
-  file.name,
-  {
-    type: 'image/jpeg',
-  }
-)
+        const watermarkedFile = new File(
+          [watermarkedBlob],
+          file.name,
+          {
+            type: 'image/jpeg',
+          }
+        )
 
-const filePath = `${jobId}/${Date.now()}-${Math.random()
-  .toString(36)
-  .slice(2)}-${file.name}`
+        const filePath = `${jobId}/${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2)}-${file.name}`
 
-const { error: uploadError } = await supabase.storage
-  .from('job-photos')
-  .upload(filePath, watermarkedFile)
+        const { error: uploadError } = await supabase.storage
+          .from('job-photos')
+          .upload(filePath, watermarkedFile)
 
-      if (uploadError) {
-        alert(uploadError.message)
-        setLoading(false)
-        return
+        if (uploadError) {
+          alert(uploadError.message)
+          setLoading(false)
+          return
+        }
+
+        const { data: publicUrlData } = supabase.storage
+          .from('job-photos')
+          .getPublicUrl(filePath)
+
+        const response = await fetch('/api/photos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            job_id: jobId,
+            file_url: publicUrlData.publicUrl,
+            original_file_url: publicUrlData.publicUrl,
+            category,
+          }),
+        })
+
+        const result = await response.json()
+
+        if (!response.ok) {
+          alert(JSON.stringify(result.error, null, 2))
+          setLoading(false)
+          return
+        }
       }
 
-      const { data: publicUrlData } = supabase.storage
-        .from('job-photos')
-        .getPublicUrl(filePath)
+      setFiles([])
+      setCategory('')
+      setLoading(false)
+      setIsOpen(false)
 
-      const response = await fetch('/api/photos', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    job_id: jobId,
-    file_url: publicUrlData.publicUrl,
-    original_file_url: publicUrlData.publicUrl,
-    category,
-  }),
-})
-
-const result = await response.json()
-
-if (!response.ok) {
-  alert(JSON.stringify(result.error, null, 2))
-  setLoading(false)
-  return
-}
+      window.location.reload()
+    } catch (error: any) {
+      alert(error.message || 'Could not upload photo')
+      setLoading(false)
     }
-     
-
-    setFiles([])
-    setLoading(false)
-    setIsOpen(false)
-
-    window.location.reload()
   }
 
   return (
@@ -195,7 +196,6 @@ if (!response.ok) {
             </div>
 
             <div className="grid gap-4">
-              
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">
                   Photo Category
