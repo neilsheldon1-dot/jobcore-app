@@ -34,41 +34,7 @@ export default function NewJobForm({
   const [urgent, setUrgent] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
 
-  'use client'
 
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
-
-type JobStatus = {
-  id: number
-  name: string
-}
-
-type JobType = {
-  id: number
-  name: string
-}
-
-type NewJobFormProps = {
-  propertyId: string
-  jobStatuses: JobStatus[]
-  jobTypes: JobType[]
-}
-
-export default function NewJobForm({
-  propertyId,
-  jobStatuses,
-  jobTypes,
-}: NewJobFormProps) {
-  const router = useRouter()
-
-  const [description, setDescription] = useState('')
-  const [jobTypeId, setJobTypeId] = useState(jobTypes?.[0]?.id?.toString() || '')
-  const [statusId, setStatusId] = useState(jobStatuses?.[0]?.id?.toString() || '')
-  const [jobNumber, setJobNumber] = useState('')
-  const [poNumber, setPoNumber] = useState('')
-  const [urgent, setUrgent] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
