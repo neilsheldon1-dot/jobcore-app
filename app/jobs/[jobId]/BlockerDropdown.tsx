@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function BlockerDropdown({
   jobId,
@@ -11,6 +12,7 @@ export default function BlockerDropdown({
   blockerTypes: any[]
   currentBlockers: any[]
 }) {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [selectedBlockers, setSelectedBlockers] = useState<any[]>(
     currentBlockers || []
@@ -76,6 +78,8 @@ export default function BlockerDropdown({
         },
       ])
     }
+
+    router.refresh()
   }
 
   return (

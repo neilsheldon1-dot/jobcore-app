@@ -36,6 +36,22 @@ export default async function Home() {
         name
       )
     `)
+const liveJobIds = jobs?.map((job) => job.job_id) || []
+
+const { data: workflowJobs } = await supabase
+  .from('jobs')
+  .select('id, scaffold_status_id, asbestos_status_id')
+  .in('id', liveJobIds)
+
+const { data: scaffoldStatuses } = await supabase
+  .from('scaffold_statuses')
+  .select('*')
+  .order('sort_order', { ascending: true })
+
+const { data: asbestosStatuses } = await supabase
+  .from('asbestos_statuses')
+  .select('*')
+  .order('sort_order', { ascending: true })
 
   function hasBlockers(jobId: string) {
     return blockerLinks?.some((link: any) => link.job_id === jobId) ?? false
@@ -64,6 +80,22 @@ export default async function Home() {
       ).length ?? 0
     )
   }
+
+  function getScaffoldWorkflowCount(statusId: number) {
+  return (
+    workflowJobs?.filter(
+      (job: any) => job.scaffold_status_id === statusId
+    ).length ?? 0
+  )
+}
+
+function getAsbestosWorkflowCount(statusId: number) {
+  return (
+    workflowJobs?.filter(
+      (job: any) => job.asbestos_status_id === statusId
+    ).length ?? 0
+  )
+}
 
   const dashboardBlockers = [
     { name: 'Scaffold', label: 'Scaffolding', accent: 'border-l-blue-900' },
@@ -181,144 +213,202 @@ export default async function Home() {
         <DashboardSearch jobs={jobs || []} />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 pt-1 pb-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+     <div className="max-w-7xl mx-auto px-6 pt-1 pb-8">
+  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-5 border-b">
-              <h3 className="text-lg font-bold text-slate-900">
-                Current Work Status
-              </h3>
-            </div>
+    {/* Row 1: Action + Workflow */}
+    <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="px-6 py-5 border-b">
+        <h3 className="text-lg font-bold text-slate-900">
+          Jobs Awaiting Action
+        </h3>
+      </div>
 
-            <div className="divide-y">
-              <WidgetRow href="/jobs" label="Total Live Jobs" value={stats.total_jobs} accent="border-l-slate-700" />
-              <WidgetRow href="/jobs?status=Ticket" label="Tickets" value={stats.tickets} accent="border-l-pink-500" />
-              <WidgetRow href="/jobs?ready=true" label="Ready Jobs" value={stats.ready_jobs} accent="border-l-green-500" />
-              <WidgetRow href="/jobs?blocked=true" label="Blocked Jobs" value={stats.blocked_jobs} accent="border-l-red-600" />
-            </div>
-          </section>
+      <div className="divide-y">
+        <WidgetRow href="/jobs?urgent=true" label="Jobs Marked Urgent" value={stats.urgent_jobs} accent="border-l-red-500" />
+        <WidgetRow href="/jobs?status=Needs%20Quoting" label="Needs Quoting" value={stats.needs_quote} accent="border-l-purple-500" />
+        <WidgetRow href="/jobs?status=Awaiting%20Approval" label="Awaiting Approval" value={stats.awaiting_approval} accent="border-l-orange-500" />
+        <WidgetRow href="/jobs?status=Needs%20Invoicing" label="Needs Invoicing" value={stats.needs_invoicing} accent="border-l-blue-900" />
+      </div>
+    </section>
 
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-5 border-b">
-              <h3 className="text-lg font-bold text-slate-900">
-                Jobs Awaiting Action
-              </h3>
-            </div>
+    <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden lg:col-span-2">
+      <div className="px-6 py-5 border-b">
+        <h3 className="text-lg text-center font-bold text-slate-900">
+          Operational Workflow
+        </h3>
+      </div>
 
-            <div className="divide-y">
-              <WidgetRow href="/jobs?urgent=true" label="Jobs Marked Urgent" value={stats.urgent_jobs} accent="border-l-red-500" />
-              <WidgetRow href="/jobs?status=Needs%20Quoting" label="Needs Quoting" value={stats.needs_quote} accent="border-l-purple-500" />
-              <WidgetRow href="/jobs?status=Awaiting%20Approval" label="Awaiting Approval" value={stats.awaiting_approval} accent="border-l-orange-500" />
-              <WidgetRow href="/jobs?status=Needs%20Invoicing" label="Needs Invoicing" value={stats.needs_invoicing} accent="border-l-blue-900" />
-            </div>
-          </section>
+      <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
+        <div>
+          <div className="px-4 py-3 bg-slate-50 border-b">
+            <p className="text-sm font-bold text-slate-700">
+              Scaffold Workflow
+            </p>
+          </div>
 
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-5 border-b">
-              <h3 className="text-lg font-bold text-slate-900">
-                Blockers / Dependencies
-              </h3>
-            </div>
+          <div className="divide-y">
+            {scaffoldStatuses?.map((status) => {
+              const count = getScaffoldWorkflowCount(status.id)
 
-            <div className="divide-y">
-              {dashboardBlockers.length > 0 ? (
-                dashboardBlockers.map((blocker) => (
-                  <WidgetRow
-                    key={blocker.name}
-                    href={`/jobs?blocker=${encodeURIComponent(blocker.name)}`}
-                    label={blocker.label}
-                    value={blocker.count}
-                    accent={blocker.accent}
-                  />
-                ))
-              ) : (
-                <div className="px-4 py-3 text-sm text-slate-400">
-                  No active blockers
-                </div>
-              )}
-            </div>
-          </section>
+              if (count === 0) return null
 
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden lg:col-span-2">
-            <div className="px-6 py-5 border-b">
-              <h3 className="text-lg text-center font-bold text-slate-900">
-                Job Types
-              </h3>
-            </div>
+              return (
+                <WidgetRow
+                  key={status.id}
+                  href={`/jobs?scaffoldStatus=${status.id}`}
+                  label={status.name}
+                  value={count}
+                  accent="border-l-orange-500"
+                />
+              )
+            })}
+          </div>
+        </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
-              <div className="divide-y">
-                {jobTypes
-                  ?.slice(0, Math.ceil((jobTypes?.length || 0) / 2))
-                  .map((jobType) => (
-                    <WidgetRow
-                      key={jobType.id}
-                      href={`/jobs?type=${encodeURIComponent(jobType.name)}`}
-                      label={jobType.name}
-                      value={getJobTypeCount(jobType.name)}
-                      accent="border-l-slate-400"
-                    />
-                  ))}
-              </div>
+        <div>
+          <div className="px-4 py-3 bg-slate-50 border-b">
+            <p className="text-sm font-bold text-slate-700">
+              Asbestos Workflow
+            </p>
+          </div>
 
-              <div className="divide-y">
-                {jobTypes
-                  ?.slice(Math.ceil((jobTypes?.length || 0) / 2))
-                  .map((jobType) => (
-                    <WidgetRow
-                      key={jobType.id}
-                      href={`/jobs?type=${encodeURIComponent(jobType.name)}`}
-                      label={jobType.name}
-                      value={getJobTypeCount(jobType.name)}
-                      accent="border-l-slate-400"
-                    />
-                  ))}
-              </div>
-            </div>
-          </section>
+          <div className="divide-y">
+            {asbestosStatuses?.map((status) => {
+              const count = getAsbestosWorkflowCount(status.id)
 
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-5 border-b">
-              <h3 className="text-lg font-bold text-slate-900">
-                Client Workload
-              </h3>
-            </div>
+              if (count === 0) return null
 
-            <div className="divide-y">
-              <WidgetRow href="/jobs?client=Denbighshire" label="Denbighshire" value={stats.denbighshire} accent="border-l-blue-600" />
-              <WidgetRow href="/jobs?client=Cartrefi" label="Cartrefi" value={stats.cartrefi} accent="border-l-emerald-600" />
-              <WidgetRow href="/jobs?client=Creating%20Enterprise" label="Creating Enterprise" value={stats.creating_enterprise} accent="border-l-orange-500" />
-              <WidgetRow href="/jobs?client=Private" label="Private" value={stats.private_jobs} accent="border-l-slate-600" />
-            </div>
-          </section>
-
-          <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="px-6 py-5 border-b">
-              <h3 className="text-lg font-bold text-slate-900">
-                Quick Actions
-              </h3>
-            </div>
-
-            <div className="p-6 grid gap-3">
-              <Link
-                href="/jobs/new"
-                className="bg-blue-600 text-white text-center px-5 py-3 rounded-xl font-bold hover:bg-blue-700 transition"
-              >
-                + Add New Job
-              </Link>
-
-              <Link
-                href="/jobs"
-                className="border border-gray-300 text-slate-700 text-center px-5 py-3 rounded-xl font-bold hover:bg-gray-50 transition"
-              >
-                View All Jobs
-              </Link>
-            </div>
-          </section>
-
+              return (
+                <WidgetRow
+                  key={status.id}
+                  href={`/jobs?asbestosStatus=${status.id}`}
+                  label={status.name}
+                  value={count}
+                  accent="border-l-red-500"
+                />
+              )
+            })}
+          </div>
         </div>
       </div>
-    </main>
+    </section>
+
+    {/* Row 2: Information */}
+    <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="px-6 py-5 border-b">
+        <h3 className="text-lg font-bold text-slate-900">
+          Current Work Status
+        </h3>
+      </div>
+
+      <div className="divide-y">
+        <WidgetRow href="/jobs" label="Total Live Jobs" value={stats.total_jobs} accent="border-l-slate-700" />
+        <WidgetRow href="/jobs?status=Ticket" label="Tickets" value={stats.tickets} accent="border-l-pink-500" />
+        <WidgetRow href="/jobs?ready=true" label="Ready Jobs" value={stats.ready_jobs} accent="border-l-green-500" />
+        <WidgetRow href="/jobs?blocked=true" label="Blocked Jobs" value={stats.blocked_jobs} accent="border-l-red-600" />
+      </div>
+    </section>
+
+    <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="px-6 py-5 border-b">
+        <h3 className="text-lg font-bold text-slate-900">
+          Blockers / Dependencies
+        </h3>
+      </div>
+
+      <div className="divide-y">
+        {dashboardBlockers.length > 0 ? (
+          dashboardBlockers.map((blocker) => (
+            <WidgetRow
+              key={blocker.name}
+              href={`/jobs?blocker=${encodeURIComponent(blocker.name)}`}
+              label={blocker.label}
+              value={blocker.count}
+              accent={blocker.accent}
+            />
+          ))
+        ) : (
+          <div className="px-4 py-3 text-sm text-slate-400">
+            No active blockers
+          </div>
+        )}
+      </div>
+    </section>
+
+    <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="px-6 py-5 border-b">
+        <h3 className="text-lg font-bold text-slate-900">
+          Client Workload
+        </h3>
+      </div>
+
+      <div className="divide-y">
+        <WidgetRow href="/jobs?client=Denbighshire" label="Denbighshire" value={stats.denbighshire} accent="border-l-blue-600" />
+        <WidgetRow href="/jobs?client=Cartrefi" label="Cartrefi" value={stats.cartrefi} accent="border-l-emerald-600" />
+        <WidgetRow href="/jobs?client=Creating%20Enterprise" label="Creating Enterprise" value={stats.creating_enterprise} accent="border-l-orange-500" />
+        <WidgetRow href="/jobs?client=Private" label="Private" value={stats.private_jobs} accent="border-l-slate-600" />
+      </div>
+    </section>
+
+    {/* Row 3: Job Types */}
+    <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden lg:col-span-3">
+      <div className="px-6 py-5 border-b">
+        <h3 className="text-lg text-center font-bold text-slate-900">
+          Job Types
+        </h3>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x">
+        <div className="divide-y">
+          {jobTypes
+            ?.slice(0, Math.ceil((jobTypes?.length || 0) / 3))
+            .map((jobType) => (
+              <WidgetRow
+                key={jobType.id}
+                href={`/jobs?type=${encodeURIComponent(jobType.name)}`}
+                label={jobType.name}
+                value={getJobTypeCount(jobType.name)}
+                accent="border-l-slate-400"
+              />
+            ))}
+        </div>
+
+        <div className="divide-y">
+          {jobTypes
+            ?.slice(
+              Math.ceil((jobTypes?.length || 0) / 3),
+              Math.ceil(((jobTypes?.length || 0) / 3) * 2)
+            )
+            .map((jobType) => (
+              <WidgetRow
+                key={jobType.id}
+                href={`/jobs?type=${encodeURIComponent(jobType.name)}`}
+                label={jobType.name}
+                value={getJobTypeCount(jobType.name)}
+                accent="border-l-slate-400"
+              />
+            ))}
+        </div>
+
+        <div className="divide-y">
+          {jobTypes
+            ?.slice(Math.ceil(((jobTypes?.length || 0) / 3) * 2))
+            .map((jobType) => (
+              <WidgetRow
+                key={jobType.id}
+                href={`/jobs?type=${encodeURIComponent(jobType.name)}`}
+                label={jobType.name}
+                value={getJobTypeCount(jobType.name)}
+                accent="border-l-slate-400"
+              />
+            ))}
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
+</main>
   )
 }

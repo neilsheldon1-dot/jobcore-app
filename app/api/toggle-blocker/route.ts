@@ -10,6 +10,16 @@ export async function POST(request: Request) {
     active,
   } = body
 
+  const { data: blockerType, error: blockerTypeError } = await supabase
+    .from('blocker_types')
+    .select('name')
+    .eq('id', blocker_type_id)
+    .maybeSingle()
+
+  if (blockerTypeError) {
+    return NextResponse.json({ error: blockerTypeError }, { status: 500 })
+  }
+
   if (active) {
     const { error } = await supabase
       .from('job_blocker_links')
@@ -32,6 +42,28 @@ export async function POST(request: Request) {
 
     if (error) {
       return NextResponse.json({ error }, { status: 500 })
+    }
+
+    if (blockerType?.name?.toLowerCase() === 'scaffold') {
+      const { error: updateError } = await supabase
+        .from('jobs')
+        .update({ scaffold_status_id: null })
+        .eq('id', job_id)
+
+      if (updateError) {
+        return NextResponse.json({ error: updateError }, { status: 500 })
+      }
+    }
+
+    if (blockerType?.name?.toLowerCase() === 'asbestos') {
+      const { error: updateError } = await supabase
+        .from('jobs')
+        .update({ asbestos_status_id: null })
+        .eq('id', job_id)
+
+      if (updateError) {
+        return NextResponse.json({ error: updateError }, { status: 500 })
+      }
     }
   }
 

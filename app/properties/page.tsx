@@ -30,6 +30,7 @@ if (params.search) {
 }
 
 const { data: properties } = await query
+const propertyCount = properties?.length || 0
 
   return (
     <main className="min-h-screen bg-slate-100">
@@ -47,8 +48,12 @@ const { data: properties } = await query
             </h1>
 
             <p className="text-sm text-slate-500">
-              Property database and operational locations
-            </p>
+  Property database and operational locations
+</p>
+
+<p className="text-sm font-bold text-blue-700 mt-1">
+  Total number of properties in database: {propertyCount}
+</p>
           </div>
 
           <Link

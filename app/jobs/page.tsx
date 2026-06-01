@@ -12,6 +12,8 @@ type SearchParams = Promise<{
   blocker?: string
   ready?: string
   blocked?: string
+  scaffoldStatus?: string
+  asbestosStatus?: string
 }>
 
 export default async function JobsPage({
@@ -43,6 +45,51 @@ export default async function JobsPage({
   }
 
   let { data: jobs } = await query
+
+ const liveJobIds = jobs?.map((job: any) => job.job_id) || []
+
+const { data: workflowJobs } = await supabase
+  .from('jobs')
+  .select(`
+    id,
+    scaffold_status_id,
+    asbestos_status_id,
+    scaffold_statuses (
+      name
+    ),
+    asbestos_statuses (
+      name
+    )
+  `)
+  .in('id', liveJobIds)
+
+if (params.scaffoldStatus) {
+  const scaffoldStatusId = Number(params.scaffoldStatus)
+
+  const matchingJobIds =
+    workflowJobs
+      ?.filter((job: any) => job.scaffold_status_id === scaffoldStatusId)
+      .map((job: any) => job.id) || []
+
+  jobs =
+    jobs?.filter((job: any) =>
+      matchingJobIds.includes(job.job_id)
+    ) || []
+}
+
+if (params.asbestosStatus) {
+  const asbestosStatusId = Number(params.asbestosStatus)
+
+  const matchingJobIds =
+    workflowJobs
+      ?.filter((job: any) => job.asbestos_status_id === asbestosStatusId)
+      .map((job: any) => job.id) || []
+
+  jobs =
+    jobs?.filter((job: any) =>
+      matchingJobIds.includes(job.job_id)
+    ) || []
+}
 
   const { data: blockerLinks } = await supabase
     .from('job_blocker_links')
@@ -156,11 +203,12 @@ export default async function JobsPage({
         )}
 
         <JobsInbox
-          jobs={jobs || []}
-          blockerLinks={blockerLinks || []}
-          jobTypeLinks={jobTypeLinks || []}
-          enableSelection={params.status === 'Ticket'}
-        />
+  jobs={jobs || []}
+  blockerLinks={blockerLinks || []}
+  jobTypeLinks={jobTypeLinks || []}
+  workflowJobs={workflowJobs || []}
+  enableSelection={params.status === 'Ticket'}
+/>
       </div>
     </main>
   )

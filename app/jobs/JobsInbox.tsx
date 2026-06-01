@@ -7,6 +7,7 @@ export default function JobsInbox({
   jobs,
   blockerLinks,
   jobTypeLinks,
+  workflowJobs,
   enableSelection = false,
 }: any) {
 
@@ -110,7 +111,41 @@ export default function JobsInbox({
       ? 'bg-purple-900 text-white border border-stone-300'
       : 'bg-slate-100 text-slate-700 border border-slate-200'
   }
+function getScaffoldWorkflowStyle(statusName: string) {
+  switch (statusName) {
+    case 'Awaiting Quote':
+      return 'bg-amber-50 text-amber-800 border border-amber-300'
+    case 'Quote Received':
+      return 'bg-blue-50 text-blue-800 border border-blue-300'
+    case 'Awaiting Erection':
+      return 'bg-orange-50 text-orange-800 border border-orange-300'
+    case 'Scaffold Up':
+      return 'bg-green-50 text-green-800 border border-green-300'
+    case 'Needs Adapting':
+      return 'bg-red-50 text-red-800 border border-red-300'
+    case 'Awaiting Dismantle':
+      return 'bg-purple-50 text-purple-800 border border-purple-300'
+    case 'Scaffold Removed':
+      return 'bg-slate-100 text-slate-700 border border-slate-300'
+    default:
+      return 'bg-slate-100 text-slate-700 border border-slate-200'
+  }
+}
 
+function getAsbestosWorkflowStyle(statusName: string) {
+  switch (statusName) {
+    case 'Report Requested':
+      return 'bg-amber-50 text-amber-800 border border-amber-300'
+    case 'Inspection Required':
+      return 'bg-orange-50 text-orange-800 border border-orange-300'
+    case 'Removal Required':
+      return 'bg-red-50 text-red-800 border border-red-300'
+    case 'Safe To Work':
+      return 'bg-green-50 text-green-800 border border-green-300'
+    default:
+      return 'bg-slate-100 text-slate-700 border border-slate-200'
+  }
+}
   function toggleJob(jobId: string) {
     setSelectedJobs((prev) =>
       prev.includes(jobId)
@@ -188,6 +223,19 @@ export default function JobsInbox({
   jobTypeLinks?.filter(
     (link: any) => link.job_id === job.job_id
   ) || []
+
+  const workflowJob =
+  workflowJobs?.find(
+    (workflow: any) => workflow.id === job.job_id
+  ) || null
+
+const scaffoldStatusName =
+  workflowJob?.scaffold_statuses?.name
+
+const asbestosStatusName =
+  workflowJob?.asbestos_statuses?.name
+
+
             const jobHasBlockers = jobBlockers.length > 0
 
             return (
@@ -258,14 +306,40 @@ export default function JobsInbox({
                       </span>
                     )}
 
-                    {jobBlockers.map((blocker: any, index: number) => (
-                      <span
-                        key={index}
-                        className="bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full text-xs font-bold"
-                      >
-                        {blocker.blocker_types?.name}
-                      </span>
-                    ))}
+                    {jobBlockers.map((blocker: any, index: number) => {
+  const blockerName = blocker.blocker_types?.name
+
+  if (blockerName === 'Scaffold' && scaffoldStatusName) {
+    return (
+      <span
+        key={index}
+        className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getScaffoldWorkflowStyle(scaffoldStatusName)}`}
+      >
+        Scaffold: {scaffoldStatusName}
+      </span>
+    )
+  }
+
+  if (blockerName === 'Asbestos' && asbestosStatusName) {
+    return (
+      <span
+        key={index}
+        className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getAsbestosWorkflowStyle(asbestosStatusName)}`}
+      >
+        Asbestos: {asbestosStatusName}
+      </span>
+    )
+  }
+
+  return (
+    <span
+      key={index}
+      className="bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full text-xs font-bold"
+    >
+      {blockerName}
+    </span>
+  )
+})}
                   </div>
                 </Link>
               </div>

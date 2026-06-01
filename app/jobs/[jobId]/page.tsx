@@ -1,17 +1,16 @@
 import AppHeader from '../../../components/AppHeader'
-import BlockerButtons from './BlockerButtons'
 import EditJobDetailsForm from './EditJobDetailsForm'
 import UrgentButtons from './UrgentButtons'
 import Link from 'next/link'
 import PhotoGallery from './PhotoGallery'
-import PhotoUploadForm from './PhotoUploadForm'
 import AddNoteForm from './AddNoteForm'
 import { supabase } from '../../../lib/supabase'
-import WorkflowControls from './WorkflowControls'
 import StatusDropdown from './StatusDropdown'
 import JobTypeDropdown from './JobTypeDropdown'
 import BlockerDropdown from './BlockerDropdown'
 import DeleteJobButton from './DeleteJobButton'
+import ScaffoldStatusDropdown from './ScaffoldStatusDropdown'
+import AsbestosStatusDropdown from './AsbestosStatusDropdown'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,6 +28,12 @@ export default async function JobPage({ params }: JobPageProps) {
     .select('*')
     .eq('job_id', jobId)
     .maybeSingle()
+
+  const { data: workflowJob } = await supabase
+    .from('jobs')
+    .select('scaffold_status_id, asbestos_status_id')
+    .eq('id', jobId)
+    .single()
 
   const { data: notes } = await supabase
     .from('job_notes')
@@ -48,31 +53,41 @@ export default async function JobPage({ params }: JobPageProps) {
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
 
+  const { data: scaffoldStatuses } = await supabase
+    .from('scaffold_statuses')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  const { data: asbestosStatuses } = await supabase
+    .from('asbestos_statuses')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
   const { data: jobTypes } = await supabase
-  .from('job_types')
-  .select('*')
-  .eq('is_active', true)
-  .order('name', { ascending: true })
+    .from('job_types')
+    .select('*')
+    .eq('is_active', true)
+    .order('name', { ascending: true })
 
-const { data: activeJobTypeLinks } = await supabase
-  .from('job_type_links')
-  .select('*')
-  .eq('job_id', jobId)
+  const { data: activeJobTypeLinks } = await supabase
+    .from('job_type_links')
+    .select('*')
+    .eq('job_id', jobId)
 
-const activeJobTypes = (activeJobTypeLinks || [])
-  .map((link) => {
-    const matchingType = (jobTypes || []).find(
-      (type) => type.id === link.job_type_id
+  const activeJobTypes = (activeJobTypeLinks || [])
+    .map((link) => {
+      const matchingType = (jobTypes || []).find(
+        (type) => type.id === link.job_type_id
+      )
+
+      return {
+        ...link,
+        job_types: matchingType || null,
+      }
+    })
+    .sort((a, b) =>
+      (a.job_types?.name || '').localeCompare(b.job_types?.name || '')
     )
-
-    return {
-      ...link,
-      job_types: matchingType || null,
-    }
-  })
-  .sort((a, b) =>
-    (a.job_types?.name || '').localeCompare(b.job_types?.name || '')
-  )
 
   const { data: blockerTypes } = await supabase
     .from('blocker_types')
@@ -90,6 +105,18 @@ const activeJobTypes = (activeJobTypeLinks || [])
       )
     `)
     .eq('job_id', jobId)
+
+ const showScaffoldWorkflow =
+  activeBlockers?.some(
+    (blocker: any) =>
+      blocker.blocker_types?.name?.toLowerCase() === 'scaffold'
+  ) ?? false
+
+const showAsbestosWorkflow =
+  activeBlockers?.some(
+    (blocker: any) =>
+      blocker.blocker_types?.name?.toLowerCase() === 'asbestos'
+  ) ?? false
 
   if (error || !job) {
     return (
@@ -117,207 +144,219 @@ const activeJobTypes = (activeJobTypeLinks || [])
             </h1>
 
             <p className="text-sm text-slate-500">
-              {job.address_line_1} • {job.town} 
+              {job.address_line_1} • {job.town}
             </p>
           </div>
 
-<EditJobDetailsForm
-              job={job}
-              jobStatuses={jobStatuses || []}
-              jobTypes={jobTypes || []}
-            />
+          <EditJobDetailsForm
+            job={job}
+            jobStatuses={jobStatuses || []}
+            jobTypes={jobTypes || []}
+          />
 
           <UrgentButtons jobId={jobId} urgent={job.urgent} />
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8 grid gap-6">
-
         <section className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <div className="grid gap-5">
 
-  {/* Reference Numbers */}
-  <div className="grid md:grid-cols-4 gap-4">
+            <div className="grid md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
+                  Job Number
+                </p>
+                <p className="text-sm font-bold text-slate-900">
+                  {job.job_number || 'Not Assigned'}
+                </p>
+              </div>
 
-    <div>
-      <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
-        Job Number
-      </p>
+              <div>
+                <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
+                  PO Number
+                </p>
+                <p className="text-sm font-bold text-slate-900">
+                  {job.po_number || 'Not Added'}
+                </p>
+              </div>
 
-      <p className="text-sm font-bold text-slate-900">
-        {job.job_number || 'Not Assigned'}
-      </p>
-    </div>
+              <div>
+                <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
+                  Quote Number
+                </p>
+                <p className="text-sm font-bold text-slate-900">
+                  {job.quote_number || 'Not Added'}
+                </p>
+              </div>
 
-    <div>
-      <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
-        PO Number
-      </p>
-
-      <p className="text-sm font-bold text-slate-900">
-        {job.po_number || 'Not Added'}
-      </p>
-    </div>
-
-    <div>
-      <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
-        Quote Number
-      </p>
-
-      <p className="text-sm font-bold text-slate-900">
-        {job.quote_number || 'Not Added'}
-      </p>
-    </div>
-
-    <div>
-      <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
-        Invoice Number
-      </p>
-
-      <p className="text-sm font-bold text-slate-400">
-        Future
-      </p>
-    </div>
-
-  </div>
-
-  {/* Operational Controls */}
-  <div className="grid md:grid-cols-3 gap-6">
-
-    <div>
-      <p className="text-xs uppercase font-bold text-slate-400">
-        Status
-      </p>
-
-      <StatusDropdown
-        jobId={jobId}
-        currentStatus={job.status}
-        jobStatuses={jobStatuses || []}
-      />
-    </div>
-
-    <div>
-      <p className="text-xs uppercase font-bold text-slate-400">
-        Job Type
-      </p>
-
-  <JobTypeDropdown
-  jobId={jobId}
-  jobTypes={jobTypes || []}
-  currentJobTypes={activeJobTypes || []}
-/>
-    </div>
-
-    <div>
-  <p className="text-xs uppercase font-bold text-slate-400">
-    Waiting On
-  </p>
-
-  <BlockerDropdown
-    jobId={jobId}
-    blockerTypes={blockerTypes || []}
-    currentBlockers={activeBlockers || []}
-  />
-</div>
-          </div>
-          </div>
-       
-          <div className="border-t border-slate-200 mt-6 pt-6 grid md:grid-cols-2 gap-6">
-            <div>
-              <p className="text-xs uppercase font-bold text-slate-400">
-                Address
-              </p>
-              <p className="text-slate-900 font-semibold">
-                {job.address_line_1}
-              </p>
-              <p className="text-slate-600">
-                {job.town} {job.postcode}
-              </p>
+              <div>
+                <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
+                  Invoice Number
+                </p>
+                <p className="text-sm font-bold text-slate-400">
+                  Future
+                </p>
+              </div>
             </div>
 
-            <div>
-              <p className="text-xs uppercase font-bold text-slate-400">
-                Tenant Contact
-              </p>
-              <p className="text-slate-700 break-words">
-                {job.tenant_contact || 'No Contact Added'}
-              </p>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-200 mt-6 pt-6">
-            <p className="text-xs uppercase font-bold text-slate-400">
-              Work Description
-            </p>
-            <p className="text-slate-700 whitespace-pre-wrap break-words mt-1">
-              {job.description || 'No work description added'}
-            </p>
-          </div>
-
-         
- <div className="border-t border-slate-200 mt-6 pt-6">
-         <div className="flex items-center justify-between mb-4">
-  <h2 className="text-lg font-bold text-slate-900">
-    Job Notes
-  </h2>
-
-  <AddNoteForm jobId={jobId} />
-</div>
-
-          {notes && notes.length > 0 ? (
-            <div className="space-y-4">
-              {notes.map((note) => (
-                <div key={note.id} className="border-b pb-4 last:border-b-0">
-                  <p className="text-xs text-slate-400 uppercase font-bold">
-                    {note.note_type || 'Note'} • {note.created_by || 'Unknown'}
+            <div className="grid gap-5">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div>
+                  <p className="text-xs uppercase font-bold text-slate-400">
+                    Status
                   </p>
 
-                  <p className="text-slate-700 whitespace-pre-wrap mt-1">
-                    {note.content}
-                  </p>
-
-                  <p className="text-xs text-slate-400 mt-1">
-                    {new Date(note.created_at).toLocaleString('en-GB')}
-                  </p>
+                  <StatusDropdown
+                    jobId={jobId}
+                    currentStatus={job.status}
+                    jobStatuses={jobStatuses || []}
+                  />
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-slate-500">
-              No notes added yet.
-            </p>
-          )}
-        </div>
 
-        <div className="border-t border-slate-200 mt-6 pt-6">
-  <PhotoGallery
-  photos={photos ?? []}
-  jobId={jobId}
-  jobAddress={`${job.address_line_1}, ${job.town} ${job.postcode}`}
-/>
-</div>
-          
+                <div>
+                  <p className="text-xs uppercase font-bold text-slate-400">
+                    Job Type
+                  </p>
+
+                  <JobTypeDropdown
+                    jobId={jobId}
+                    jobTypes={jobTypes || []}
+                    currentJobTypes={activeJobTypes || []}
+                  />
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase font-bold text-slate-400">
+                    Waiting On
+                  </p>
+
+                  <BlockerDropdown
+                    jobId={jobId}
+                    blockerTypes={blockerTypes || []}
+                    currentBlockers={activeBlockers || []}
+                  />
+                </div>
+                
+              </div>
+
+              {(showScaffoldWorkflow || showAsbestosWorkflow) && (
+                <div className="border-t border-slate-200 mt-3 pt-5 grid md:grid-cols-2 gap-6">
+                  {showScaffoldWorkflow && (
+                    <div>
+                      <p className="text-xs uppercase font-bold text-slate-400 mb-2">
+                        Scaffold Workflow
+                      </p>
+
+                      <ScaffoldStatusDropdown
+                        jobId={jobId}
+                        currentStatusId={workflowJob?.scaffold_status_id || null}
+                        statuses={scaffoldStatuses || []}
+                      />
+                    </div>
+                  )}
+
+                  {showAsbestosWorkflow && (
+                    <div>
+                      <p className="text-xs uppercase font-bold text-slate-400 mb-2">
+                        Asbestos Workflow
+                      </p>
+
+                      <AsbestosStatusDropdown
+                        jobId={jobId}
+                        currentStatusId={workflowJob?.asbestos_status_id || null}
+                        statuses={asbestosStatuses || []}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-slate-200 mt-6 pt-6 grid md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-xs uppercase font-bold text-slate-400">
+                  Address
+                </p>
+                <p className="text-slate-900 font-semibold">
+                  {job.address_line_1}
+                </p>
+                <p className="text-slate-600">
+                  {job.town} {job.postcode}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase font-bold text-slate-400">
+                  Tenant Contact
+                </p>
+                <p className="text-slate-700 break-words">
+                  {job.tenant_contact || 'No Contact Added'}
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-200 mt-6 pt-6">
+              <p className="text-xs uppercase font-bold text-slate-400">
+                Work Description
+              </p>
+
+              <p className="text-slate-700 whitespace-pre-wrap break-words mt-1">
+                {job.description || 'No work description added'}
+              </p>
+            </div>
+
+            <div className="border-t border-slate-200 mt-6 pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-bold text-slate-900">
+                  Job Notes
+                </h2>
+
+                <AddNoteForm jobId={jobId} />
+              </div>
+
+              {notes && notes.length > 0 ? (
+                <div className="space-y-4">
+                  {notes.map((note) => (
+                    <div key={note.id} className="border-b pb-4 last:border-b-0">
+                      <p className="text-xs text-slate-400 uppercase font-bold">
+                        {note.note_type || 'Note'} • {note.created_by || 'Unknown'}
+                      </p>
+
+                      <p className="text-slate-700 whitespace-pre-wrap mt-1">
+                        {note.content}
+                      </p>
+
+                      <p className="text-xs text-slate-400 mt-1">
+                        {new Date(note.created_at).toLocaleString('en-GB')}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-slate-500">
+                  No notes added yet.
+                </p>
+              )}
+            </div>
+
+            <div className="border-t border-slate-200 mt-6 pt-6">
+              <PhotoGallery
+                photos={photos ?? []}
+                jobId={jobId}
+                jobAddress={`${job.address_line_1}, ${job.town} ${job.postcode}`}
+              />
+            </div>
+          </div>
         </section>
 
-       
+        <div className="pb-8 flex items-center justify-between">
+          <Link href="/jobs" className="text-blue-600 font-bold">
+            ← Back to Jobs
+          </Link>
 
-       
-
-
-    
-      
-
-       <div className="pb-8 flex items-center justify-between">
-  <Link
-    href="/jobs"
-    className="text-blue-600 font-bold"
-  >
-    ← Back to Jobs
-  </Link>
-
-  <DeleteJobButton jobId={jobId} />
-</div>
-
+          <DeleteJobButton jobId={jobId} />
+        </div>
       </div>
     </main>
   )
