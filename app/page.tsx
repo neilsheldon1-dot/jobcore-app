@@ -287,7 +287,7 @@ function getAsbestosWorkflowCount(statusId: number) {
           return (
             <WidgetRow
               key={stage.label}
-              href="/jobs"
+              href={`/jobs?scaffoldPipeline=${encodeURIComponent(stage.label)}`}
               label={stage.label}
               value={count}
               accent={stage.accent}

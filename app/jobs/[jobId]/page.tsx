@@ -93,6 +93,7 @@ export default async function JobPage({ params }: JobPageProps) {
   })
   .sort((a, b) =>
     (a.job_types?.name || '').localeCompare(b.job_types?.name || '')
+  
   )
 
 const { data: scaffoldRecord } = await supabase
@@ -291,6 +292,7 @@ const showAsbestosWorkflow =
 <ScaffoldRecordPanel
   jobId={jobId}
   scaffoldRecord={scaffoldRecord}
+  job={job}
 />
                       
                     </div>

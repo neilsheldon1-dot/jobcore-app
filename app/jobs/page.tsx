@@ -14,6 +14,7 @@ type SearchParams = Promise<{
   blocked?: string
   scaffoldStatus?: string
   asbestosStatus?: string
+  scaffoldPipeline?: string
 }>
 
 export default async function JobsPage({
@@ -76,6 +77,44 @@ if (params.scaffoldStatus) {
       matchingJobIds.includes(job.job_id)
     ) || []
 }
+const { data: scaffoldRecords } = await supabase
+  .from('scaffold_records')
+  .select('*')
+  .in('job_id', liveJobIds)
+
+if (params.scaffoldPipeline) {
+  const matchingJobIds =
+    scaffoldRecords
+      ?.filter((record: any) => {
+        if (params.scaffoldPipeline === 'Awaiting Quote') {
+          return record.quote_requested_date && !record.quote_received_date
+        }
+
+        if (params.scaffoldPipeline === 'Quote Received') {
+          return record.quote_received_date && !record.erection_requested_date
+        }
+
+        if (params.scaffoldPipeline === 'Awaiting Erection') {
+          return record.erection_requested_date && !record.erected_date
+        }
+
+        if (params.scaffoldPipeline === 'Scaffold Up') {
+          return record.erected_date && !record.dismantle_requested_date
+        }
+
+        if (params.scaffoldPipeline === 'Awaiting Dismantle') {
+          return record.dismantle_requested_date && !record.dismantled_date
+        }
+
+        return false
+      })
+      .map((record: any) => record.job_id) || []
+
+  jobs =
+    jobs?.filter((job: any) =>
+      matchingJobIds.includes(job.job_id)
+    ) || []
+}
 
 if (params.asbestosStatus) {
   const asbestosStatusId = Number(params.asbestosStatus)
@@ -99,6 +138,8 @@ if (params.asbestosStatus) {
         name
       )
     `)
+
+
 
   const { data: jobTypeLinks } = await supabase
     .from('job_type_links')
@@ -146,16 +187,15 @@ if (params.asbestosStatus) {
   }
 
   if (params.ready === 'true') {
-    jobs =
-      jobs?.filter((job: any) => {
-        const hasBlockers =
-          blockerLinks?.some(
-            (link: any) => link.job_id === job.job_id
-          ) ?? false
+  jobs =
+    jobs?.filter((job: any) => {
+      const hasBlocker = blockerLinks?.some(
+        (blocker: any) => blocker.job_id === job.job_id
+      )
 
-        return job.status === 'Ready' && !hasBlockers
-      }) || []
-  }
+      return job.status === 'Ready' && !hasBlocker
+    }) || []
+}
 
   if (params.blocked === 'true') {
     jobs =
@@ -207,6 +247,7 @@ if (params.asbestosStatus) {
   blockerLinks={blockerLinks || []}
   jobTypeLinks={jobTypeLinks || []}
   workflowJobs={workflowJobs || []}
+  scaffoldRecords={scaffoldRecords || []}
   enableSelection={params.status === 'Ticket'}
 />
       </div>

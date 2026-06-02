@@ -5,17 +5,14 @@ import { useState } from 'react'
 export default function ScaffoldRecordPanel({
   jobId,
   scaffoldRecord,
+  job,
 }: {
   jobId: string
   scaffoldRecord: any
+  job: any
 }) {
-  const [quoteAmount, setQuoteAmount] = useState(
-    scaffoldRecord?.quote_amount || ''
-  )
-
-  const [invoiceAmount, setInvoiceAmount] = useState(
-  scaffoldRecord?.invoice_amount || ''
-)
+  const [quoteAmount, setQuoteAmount] = useState(scaffoldRecord?.quote_amount || '')
+  const [invoiceAmount, setInvoiceAmount] = useState(scaffoldRecord?.invoice_amount || '')
 
   async function runAction(endpoint: string) {
     await fetch(endpoint, {
@@ -25,6 +22,67 @@ export default function ScaffoldRecordPanel({
     })
 
     window.location.reload()
+  }
+
+  async function createEmailDraft(subject: string, message: string) {
+    const response = await fetch('/api/create-scaffold-email-draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: 'info@jamieseagerscaffolding.co.uk',
+        subject,
+        message,
+      }),
+    })
+
+    const result = await response.json()
+
+    if (result.success) {
+      alert('Gmail draft created successfully')
+    } else {
+      alert('Failed to create draft')
+    }
+  }
+
+  async function createQuoteDraft() {
+    await createEmailDraft(
+      `Scaffold quote request - ${job.address_line_1}`,
+      `Please provide a quotation for scaffolding at the above address.
+
+Works required:
+
+${job.description || ''}
+
+Many thanks
+
+Neil Sheldon`
+    )
+  }
+
+  async function createErectionDraft() {
+    await createEmailDraft(
+      `Scaffold erection request - ${job.address_line_1}`,
+      `Please erect the scaffold at the above address.
+
+Works required:
+
+${job.description || ''}
+
+Many thanks
+
+Neil Sheldon`
+    )
+  }
+
+  async function createDismantleDraft() {
+    await createEmailDraft(
+      `Dismantle scaffolding at ${job.address_line_1}`,
+      `Please dismantle the scaffolding at the above address.
+
+Many thanks
+
+Neil Sheldon`
+    )
   }
 
   async function saveQuoteAmount() {
@@ -37,8 +95,6 @@ export default function ScaffoldRecordPanel({
       }),
     })
 
-    
-
     await fetch('/api/scaffold-quote-received', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -49,19 +105,17 @@ export default function ScaffoldRecordPanel({
   }
 
   async function saveInvoiceAmount() {
-  await fetch('/api/update-scaffold-invoice-amount', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      job_id: jobId,
-      invoice_amount: invoiceAmount,
-    }),
-  })
+    await fetch('/api/update-scaffold-invoice-amount', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        job_id: jobId,
+        invoice_amount: invoiceAmount,
+      }),
+    })
 
-  window.location.reload()
-}
+    window.location.reload()
+  }
 
   async function resetField(field: string) {
     await fetch('/api/reset-scaffold-field', {
@@ -107,6 +161,18 @@ export default function ScaffoldRecordPanel({
     }).format(Number(value))
   }
 
+  function varianceDisplay() {
+    if (!scaffoldRecord?.invoice_amount || !scaffoldRecord?.quote_amount) {
+      return 'Pending'
+    }
+
+    const variance =
+      Number(scaffoldRecord.invoice_amount) -
+      Number(scaffoldRecord.quote_amount)
+
+    return `${variance >= 0 ? '+' : ''}${formatMoney(variance)}`
+  }
+
   function ChecklistRow({
     label,
     value,
@@ -115,6 +181,7 @@ export default function ScaffoldRecordPanel({
     resetFieldName,
     done,
     colour = 'bg-green-600',
+    draftAction,
   }: {
     label: string
     value: string | null
@@ -123,6 +190,7 @@ export default function ScaffoldRecordPanel({
     resetFieldName: string
     done: boolean
     colour?: string
+    draftAction?: () => void
   }) {
     return (
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 py-2 last:border-b-0">
@@ -159,6 +227,16 @@ export default function ScaffoldRecordPanel({
             {value || emptyText}
           </span>
 
+          {draftAction && (
+            <button
+              type="button"
+              onClick={draftAction}
+              className="bg-white border border-slate-300 text-slate-700 px-2 py-1 rounded-lg text-[10px] font-bold hover:bg-slate-50 transition"
+            >
+              email
+            </button>
+          )}
+
           {done && (
             <button
               type="button"
@@ -178,7 +256,6 @@ export default function ScaffoldRecordPanel({
     <div className="border-t border-slate-200 mt-4 pt-4">
       <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-200">
-
           <div className="px-3 py-2">
             <p className="text-xs uppercase font-bold text-slate-400 mb-1">
               Scaffold Workflow
@@ -192,6 +269,7 @@ export default function ScaffoldRecordPanel({
               resetFieldName="quote_requested_date"
               done={!!scaffoldRecord?.quote_requested_date}
               colour="bg-orange-500"
+              draftAction={createQuoteDraft}
             />
 
             <div className="border-b border-slate-100 py-2">
@@ -203,12 +281,16 @@ export default function ScaffoldRecordPanel({
                 >
                   <span
                     className={`w-4 h-4 rounded border flex items-center justify-center text-[10px] font-bold shrink-0 ${
-                      scaffoldRecord?.quote_received_date || scaffoldRecord?.quote_amount
+                      scaffoldRecord?.quote_received_date ||
+                      scaffoldRecord?.quote_amount
                         ? 'bg-green-600 text-white border-transparent'
                         : 'bg-white border-slate-300 text-slate-300'
                     }`}
                   >
-                    {scaffoldRecord?.quote_received_date || scaffoldRecord?.quote_amount ? '✓' : ''}
+                    {scaffoldRecord?.quote_received_date ||
+                    scaffoldRecord?.quote_amount
+                      ? '✓'
+                      : ''}
                   </span>
 
                   <span className="text-xs font-bold text-slate-900">
@@ -219,7 +301,8 @@ export default function ScaffoldRecordPanel({
                 <div className="flex items-center gap-2 shrink-0">
                   <span
                     className={`text-xs font-semibold ${
-                      scaffoldRecord?.quote_received_date || scaffoldRecord?.quote_amount
+                      scaffoldRecord?.quote_received_date ||
+                      scaffoldRecord?.quote_amount
                         ? 'text-slate-900'
                         : 'text-slate-400'
                     }`}
@@ -227,7 +310,8 @@ export default function ScaffoldRecordPanel({
                     {scaffoldRecord?.quote_received_date || 'Not received'}
                   </span>
 
-                  {(scaffoldRecord?.quote_received_date || scaffoldRecord?.quote_amount) && (
+                  {(scaffoldRecord?.quote_received_date ||
+                    scaffoldRecord?.quote_amount) && (
                     <button
                       type="button"
                       onClick={resetQuote}
@@ -240,7 +324,8 @@ export default function ScaffoldRecordPanel({
                 </div>
               </div>
 
-              {(scaffoldRecord?.quote_received_date || scaffoldRecord?.quote_amount) && (
+              {(scaffoldRecord?.quote_received_date ||
+                scaffoldRecord?.quote_amount) && (
                 <div className="flex items-center gap-2 mt-2 ml-6">
                   <span className="text-[11px] font-semibold text-slate-500">
                     Quote amount
@@ -278,6 +363,7 @@ export default function ScaffoldRecordPanel({
               resetFieldName="erection_requested_date"
               done={!!scaffoldRecord?.erection_requested_date}
               colour="bg-orange-600"
+              draftAction={createErectionDraft}
             />
 
             <ChecklistRow
@@ -298,6 +384,7 @@ export default function ScaffoldRecordPanel({
               resetFieldName="dismantle_requested_date"
               done={!!scaffoldRecord?.dismantle_requested_date}
               colour="bg-purple-600"
+              draftAction={createDismantleDraft}
             />
 
             <ChecklistRow
@@ -338,39 +425,39 @@ export default function ScaffoldRecordPanel({
               </div>
 
               <div className="border-b border-slate-100 pb-2">
-  <div className="flex items-center justify-between mb-2">
-    <span className="font-semibold text-slate-500">
-      Invoice Amount
-    </span>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="font-semibold text-slate-500">
+                    Invoice Amount
+                  </span>
 
-    <span className="font-bold text-slate-900">
-      {formatMoney(scaffoldRecord?.invoice_amount)}
-    </span>
-  </div>
+                  <span className="font-bold text-slate-900">
+                    {formatMoney(scaffoldRecord?.invoice_amount)}
+                  </span>
+                </div>
 
-  <div className="flex items-center gap-2">
-    <span className="text-[11px] font-semibold text-slate-500">
-      £
-    </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-semibold text-slate-500">
+                    £
+                  </span>
 
-    <input
-      type="number"
-      step="0.01"
-      value={invoiceAmount}
-      onChange={(e) => setInvoiceAmount(e.target.value)}
-      placeholder="0.00"
-      className="w-20 border border-slate-300 rounded-lg px-2 py-1 text-[11px]"
-    />
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={invoiceAmount}
+                    onChange={(e) => setInvoiceAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-20 border border-slate-300 rounded-lg px-2 py-1 text-[11px]"
+                  />
 
-    <button
-      type="button"
-      onClick={saveInvoiceAmount}
-      className="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px] font-bold hover:bg-blue-700 transition"
-    >
-      Save
-    </button>
-  </div>
-</div>
+                  <button
+                    type="button"
+                    onClick={saveInvoiceAmount}
+                    className="bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px] font-bold hover:bg-blue-700 transition"
+                  >
+                    Save
+                  </button>
+                </div>
+              </div>
 
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-slate-500">
@@ -378,25 +465,20 @@ export default function ScaffoldRecordPanel({
                 </span>
 
                 <span
-  className={`font-bold ${
-    Number(scaffoldRecord?.invoice_amount || 0) >
-    Number(scaffoldRecord?.quote_amount || 0)
-      ? 'text-red-600'
-      : 'text-green-600'
-  }`}
->
-  {scaffoldRecord?.invoice_amount &&
-  scaffoldRecord?.quote_amount
-    ? `£${(
-        Number(scaffoldRecord.invoice_amount) -
-        Number(scaffoldRecord.quote_amount)
-      ).toFixed(2)}`
-    : 'Pending'}
-</span>
+                  className={`font-bold ${
+                    scaffoldRecord?.invoice_amount &&
+                    scaffoldRecord?.quote_amount &&
+                    Number(scaffoldRecord.invoice_amount) >
+                      Number(scaffoldRecord.quote_amount)
+                      ? 'text-red-600'
+                      : 'text-green-600'
+                  }`}
+                >
+                  {varianceDisplay()}
+                </span>
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

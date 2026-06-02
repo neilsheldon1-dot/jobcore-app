@@ -8,6 +8,7 @@ export default function JobsInbox({
   blockerLinks,
   jobTypeLinks,
   workflowJobs,
+  scaffoldRecords,
   enableSelection = false,
 }: any) {
 
@@ -162,6 +163,31 @@ function getAsbestosWorkflowStyle(statusName: string) {
     }
   }
 
+  function getScaffoldWorkflowName(jobId: string) {
+  const record = scaffoldRecords?.find(
+    (r) => r.job_id === jobId
+  )
+
+  if (!record) return null
+
+  if (record.dismantle_requested_date && !record.dismantled_date)
+    return 'Awaiting Dismantle'
+
+  if (record.erected_date && !record.dismantle_requested_date)
+    return 'Scaffold Up'
+
+  if (record.erection_requested_date && !record.erected_date)
+    return 'Awaiting Erection'
+
+  if (record.quote_received_date && !record.erection_requested_date)
+    return 'Quote Received'
+
+  if (record.quote_requested_date && !record.quote_received_date)
+    return 'Awaiting Quote'
+
+  return null
+}
+
   function printSelected() {
     const printUrl = `/jobs/print?ids=${selectedJobs.join(',')}`
     window.open(printUrl, '_blank')
@@ -230,7 +256,7 @@ function getAsbestosWorkflowStyle(statusName: string) {
   ) || null
 
 const scaffoldStatusName =
-  workflowJob?.scaffold_statuses?.name
+  getScaffoldWorkflowName(job.job_id)
 
 const asbestosStatusName =
   workflowJob?.asbestos_statuses?.name
