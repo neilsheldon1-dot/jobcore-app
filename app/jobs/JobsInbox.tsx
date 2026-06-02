@@ -165,9 +165,8 @@ function getAsbestosWorkflowStyle(statusName: string) {
 
   function getScaffoldWorkflowName(jobId: string) {
   const record = scaffoldRecords?.find(
-    (r) => r.job_id === jobId
-  )
-
+  (r: any) => r.job_id === jobId
+)
   if (!record) return null
 
   if (record.dismantle_requested_date && !record.dismantled_date)
