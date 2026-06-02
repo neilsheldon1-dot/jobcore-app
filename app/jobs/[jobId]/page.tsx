@@ -11,6 +11,7 @@ import BlockerDropdown from './BlockerDropdown'
 import DeleteJobButton from './DeleteJobButton'
 import ScaffoldStatusDropdown from './ScaffoldStatusDropdown'
 import AsbestosStatusDropdown from './AsbestosStatusDropdown'
+import ScaffoldRecordPanel from './ScaffoldRecordPanel'
 
 export const dynamic = 'force-dynamic'
 
@@ -75,19 +76,25 @@ export default async function JobPage({ params }: JobPageProps) {
     .eq('job_id', jobId)
 
   const activeJobTypes = (activeJobTypeLinks || [])
-    .map((link) => {
-      const matchingType = (jobTypes || []).find(
-        (type) => type.id === link.job_type_id
-      )
-
-      return {
-        ...link,
-        job_types: matchingType || null,
-      }
-    })
-    .sort((a, b) =>
-      (a.job_types?.name || '').localeCompare(b.job_types?.name || '')
+  .map((link) => {
+    const matchingType = (jobTypes || []).find(
+      (type) => type.id === link.job_type_id
     )
+
+    return {
+      ...link,
+      job_types: matchingType || null,
+    }
+  })
+  .sort((a, b) =>
+    (a.job_types?.name || '').localeCompare(b.job_types?.name || '')
+  )
+
+const { data: scaffoldRecord } = await supabase
+  .from('scaffold_records')
+  .select('*')
+  .eq('job_id', jobId)
+  .maybeSingle()
 
   const { data: blockerTypes } = await supabase
     .from('blocker_types')
@@ -245,14 +252,15 @@ const showAsbestosWorkflow =
                   {showScaffoldWorkflow && (
                     <div>
                       <p className="text-xs uppercase font-bold text-slate-400 mb-2">
-                        Scaffold Workflow
+                        Scaffold Workflow / Record
                       </p>
 
-                      <ScaffoldStatusDropdown
-                        jobId={jobId}
-                        currentStatusId={workflowJob?.scaffold_status_id || null}
-                        statuses={scaffoldStatuses || []}
-                      />
+                      
+<ScaffoldRecordPanel
+  jobId={jobId}
+  scaffoldRecord={scaffoldRecord}
+/>
+                      
                     </div>
                   )}
 
