@@ -71,9 +71,14 @@ export default async function JobPage({ params }: JobPageProps) {
     .order('name', { ascending: true })
 
   const { data: activeJobTypeLinks } = await supabase
-    .from('job_type_links')
-    .select('*')
-    .eq('job_id', jobId)
+  .from('job_type_links')
+  .select(`
+    *,
+    job_types (
+      name
+    )
+  `)
+  .eq('job_id', jobId)
 
   const activeJobTypes = (activeJobTypeLinks || [])
   .map((link) => {
@@ -113,11 +118,12 @@ const { data: scaffoldRecord } = await supabase
     `)
     .eq('job_id', jobId)
 
- const showScaffoldWorkflow =
+const showScaffoldWorkflow =
   activeBlockers?.some(
     (blocker: any) =>
       blocker.blocker_types?.name?.toLowerCase() === 'scaffold'
-  ) ?? false
+  ) ||
+  !!scaffoldRecord
 
 const showAsbestosWorkflow =
   activeBlockers?.some(
@@ -247,7 +253,33 @@ const showAsbestosWorkflow =
                 
               </div>
 
-              {(showScaffoldWorkflow || showAsbestosWorkflow) && (
+              
+            </div>
+
+            <div className="border-t border-slate-200 mt-6 pt-6 grid md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-xs uppercase font-bold text-slate-400">
+                  Address
+                </p>
+                <p className="text-slate-900 font-semibold">
+                  {job.address_line_1}
+                </p>
+                <p className="text-slate-600">
+                  {job.town} {job.postcode}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-xs uppercase font-bold text-slate-400">
+                  Tenant Contact
+                </p>
+                <p className="text-slate-700 break-words">
+                  {job.tenant_contact || 'No Contact Added'}
+                </p>
+              </div>
+            </div>
+
+{(showScaffoldWorkflow || showAsbestosWorkflow) && (
                 <div className="border-t border-slate-200 mt-3 pt-5 grid md:grid-cols-2 gap-6">
                   {showScaffoldWorkflow && (
                     <div>
@@ -279,30 +311,6 @@ const showAsbestosWorkflow =
                   )}
                 </div>
               )}
-            </div>
-
-            <div className="border-t border-slate-200 mt-6 pt-6 grid md:grid-cols-2 gap-6">
-              <div>
-                <p className="text-xs uppercase font-bold text-slate-400">
-                  Address
-                </p>
-                <p className="text-slate-900 font-semibold">
-                  {job.address_line_1}
-                </p>
-                <p className="text-slate-600">
-                  {job.town} {job.postcode}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-xs uppercase font-bold text-slate-400">
-                  Tenant Contact
-                </p>
-                <p className="text-slate-700 break-words">
-                  {job.tenant_contact || 'No Contact Added'}
-                </p>
-              </div>
-            </div>
 
             <div className="border-t border-slate-200 mt-6 pt-6">
               <p className="text-xs uppercase font-bold text-slate-400">

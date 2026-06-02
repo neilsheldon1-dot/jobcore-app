@@ -17,5 +17,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error }, { status: 500 })
   }
 
+  const { data: scaffoldBlocker } = await supabase
+    .from('blocker_types')
+    .select('id')
+    .eq('name', 'Scaffold')
+    .maybeSingle()
+
+  if (scaffoldBlocker?.id) {
+    const { error: blockerError } = await supabase
+      .from('job_blocker_links')
+      .delete()
+      .eq('job_id', job_id)
+      .eq('blocker_type_id', scaffoldBlocker.id)
+
+    if (blockerError) {
+      return NextResponse.json({ error: blockerError }, { status: 500 })
+    }
+  }
+
   return NextResponse.json({ success: true })
 }

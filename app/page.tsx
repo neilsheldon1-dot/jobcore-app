@@ -40,8 +40,13 @@ const liveJobIds = jobs?.map((job) => job.job_id) || []
 
 const { data: workflowJobs } = await supabase
   .from('jobs')
-  .select('id, scaffold_status_id, asbestos_status_id')
+  .select('id, asbestos_status_id')
   .in('id', liveJobIds)
+
+const { data: scaffoldRecords } = await supabase
+  .from('scaffold_records')
+  .select('*')
+  .in('job_id', liveJobIds)
 
 const { data: scaffoldStatuses } = await supabase
   .from('scaffold_statuses')
@@ -81,11 +86,31 @@ const { data: asbestosStatuses } = await supabase
     )
   }
 
-  function getScaffoldWorkflowCount(statusId: number) {
+  function getScaffoldPipelineCount(stage: string) {
   return (
-    workflowJobs?.filter(
-      (job: any) => job.scaffold_status_id === statusId
-    ).length ?? 0
+    scaffoldRecords?.filter((record: any) => {
+      if (stage === 'Awaiting Quote') {
+        return record.quote_requested_date && !record.quote_received_date
+      }
+
+      if (stage === 'Quote Received') {
+        return record.quote_received_date && !record.erection_requested_date
+      }
+
+      if (stage === 'Awaiting Erection') {
+        return record.erection_requested_date && !record.erected_date
+      }
+
+      if (stage === 'Scaffold Up') {
+        return record.erected_date && !record.dismantle_requested_date
+      }
+
+      if (stage === 'Awaiting Dismantle') {
+        return record.dismantle_requested_date && !record.dismantled_date
+      }
+
+      return false
+    }).length ?? 0
   )
 }
 
@@ -233,66 +258,72 @@ function getAsbestosWorkflowCount(statusId: number) {
     </section>
 
     <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden lg:col-span-2">
-      <div className="px-6 py-5 border-b">
-        <h3 className="text-lg text-center font-bold text-slate-900">
-          Operational Workflow
-        </h3>
+  <div className="px-6 py-5 border-b">
+    <h3 className="text-lg text-center font-bold text-slate-900">
+      Operational Workflow
+    </h3>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
+    <div>
+      <div className="px-4 py-3 bg-slate-50 border-b">
+        <p className="text-sm font-bold text-slate-700">
+          Scaffold Pipeline
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
-        <div>
-          <div className="px-4 py-3 bg-slate-50 border-b">
-            <p className="text-sm font-bold text-slate-700">
-              Scaffold Workflow
-            </p>
-          </div>
+      <div className="divide-y">
+        {[
+          { label: 'Awaiting Quote', accent: 'border-l-orange-500' },
+          { label: 'Quote Received', accent: 'border-l-green-600' },
+          { label: 'Awaiting Erection', accent: 'border-l-orange-600' },
+          { label: 'Scaffold Up', accent: 'border-l-green-600' },
+          { label: 'Awaiting Dismantle', accent: 'border-l-purple-600' },
+        ].map((stage) => {
+          const count = getScaffoldPipelineCount(stage.label)
 
-          <div className="divide-y">
-            {scaffoldStatuses?.map((status) => {
-              const count = getScaffoldWorkflowCount(status.id)
+          if (count === 0) return null
 
-              if (count === 0) return null
-
-              return (
-                <WidgetRow
-                  key={status.id}
-                  href={`/jobs?scaffoldStatus=${status.id}`}
-                  label={status.name}
-                  value={count}
-                  accent="border-l-orange-500"
-                />
-              )
-            })}
-          </div>
-        </div>
-
-        <div>
-          <div className="px-4 py-3 bg-slate-50 border-b">
-            <p className="text-sm font-bold text-slate-700">
-              Asbestos Workflow
-            </p>
-          </div>
-
-          <div className="divide-y">
-            {asbestosStatuses?.map((status) => {
-              const count = getAsbestosWorkflowCount(status.id)
-
-              if (count === 0) return null
-
-              return (
-                <WidgetRow
-                  key={status.id}
-                  href={`/jobs?asbestosStatus=${status.id}`}
-                  label={status.name}
-                  value={count}
-                  accent="border-l-red-500"
-                />
-              )
-            })}
-          </div>
-        </div>
+          return (
+            <WidgetRow
+              key={stage.label}
+              href="/jobs"
+              label={stage.label}
+              value={count}
+              accent={stage.accent}
+            />
+          )
+        })}
       </div>
-    </section>
+    </div>
+
+    <div>
+      <div className="px-4 py-3 bg-slate-50 border-b">
+        <p className="text-sm font-bold text-slate-700">
+          Asbestos Workflow
+        </p>
+      </div>
+
+      <div className="divide-y">
+        {asbestosStatuses?.map((status) => {
+          const count = getAsbestosWorkflowCount(status.id)
+
+          if (count === 0) return null
+
+          return (
+            <WidgetRow
+              key={status.id}
+              href={`/jobs?asbestosStatus=${status.id}`}
+              label={status.name}
+              value={count}
+              accent="border-l-red-500"
+            />
+          )
+        })}
+      </div>
+    </div>
+  </div>
+</section>
 
     {/* Row 2: Information */}
     <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
