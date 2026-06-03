@@ -10,8 +10,7 @@ export default function CreateMenu() {
   return (
     <div
   className="relative"
-  onBlur={() => setOpen(false)}
-  tabIndex={0}
+
 >
       <button
         type="button"
