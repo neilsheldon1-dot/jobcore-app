@@ -248,7 +248,11 @@ if (params.asbestosStatus) {
   jobTypeLinks={jobTypeLinks || []}
   workflowJobs={workflowJobs || []}
   scaffoldRecords={scaffoldRecords || []}
-  enableSelection={params.status === 'Ticket'}
+  currentStatus={params.status || null}
+  enableSelection={
+    params.status === 'Ticket' ||
+    params.status === 'Awaiting Approval'
+  }
 />
       </div>
     </main>

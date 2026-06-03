@@ -9,6 +9,7 @@ export default function JobsInbox({
   jobTypeLinks,
   workflowJobs,
   scaffoldRecords,
+  currentStatus,
   enableSelection = false,
 }: any) {
 
@@ -204,19 +205,44 @@ function getAsbestosWorkflowStyle(statusName: string) {
       </div>
 
       {enableSelection && selectedJobs.length > 0 && (
-        <div className="mb-4 bg-white border border-slate-200 rounded-2xl px-5 py-4 flex items-center justify-between">
-          <p className="text-sm font-bold text-slate-700">
-            {selectedJobs.length} selected
-          </p>
+  <div className="mb-4 bg-white border border-slate-200 rounded-2xl px-5 py-4 flex items-center justify-between">
+    <p className="text-sm font-bold text-slate-700">
+      {selectedJobs.length} selected
+    </p>
 
-          <button
-            onClick={printSelected}
-            className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-blue-700 transition"
-          >
-            Print Selected
-          </button>
-        </div>
-      )}
+    {currentStatus === 'Awaiting Approval' ? (
+      <button
+        onClick={() => {
+          const selectedAddresses = filteredJobs
+            .filter((job: any) =>
+              selectedJobs.includes(job.job_id)
+            )
+            .map(
+              (job: any) =>
+                `• ${job.address_line_1}, ${job.town}`
+            )
+            .join('\n')
+
+          navigator.clipboard.writeText(
+            `Please provide an update on the following jobs:\n\n${selectedAddresses}`
+          )
+
+          alert('Addresses copied to clipboard')
+        }}
+        className="bg-orange-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-orange-700 transition"
+      >
+        Copy Chase List
+      </button>
+    ) : (
+      <button
+        onClick={printSelected}
+        className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-blue-700 transition"
+      >
+        Print Selected
+      </button>
+    )}
+  </div>
+)}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         {enableSelection && (

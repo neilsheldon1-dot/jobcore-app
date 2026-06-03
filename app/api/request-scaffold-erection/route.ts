@@ -13,12 +13,17 @@ export async function POST(request: Request) {
 
   const payload = {
     supplier_name: 'Jamie Seager Scaffolding',
-    quote_received_date: today,
+    erection_requested_date: today,
   }
 
   const { error } = existingRecord
-    ? await supabase.from('scaffold_records').update(payload).eq('job_id', job_id)
-    : await supabase.from('scaffold_records').insert({ job_id, ...payload })
+    ? await supabase
+        .from('scaffold_records')
+        .update(payload)
+        .eq('job_id', job_id)
+    : await supabase
+        .from('scaffold_records')
+        .insert({ job_id, ...payload })
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 })

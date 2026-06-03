@@ -12,7 +12,8 @@ import DeleteJobButton from './DeleteJobButton'
 import ScaffoldStatusDropdown from './ScaffoldStatusDropdown'
 import AsbestosStatusDropdown from './AsbestosStatusDropdown'
 import ScaffoldRecordPanel from './ScaffoldRecordPanel'
-
+import EditDescriptionForm from './EditDescriptionForm'
+import CopyButton from '../../../components/CopyButton'
 export const dynamic = 'force-dynamic'
 
 type JobPageProps = {
@@ -177,23 +178,30 @@ const showAsbestosWorkflow =
           <div className="grid gap-5">
 
             <div className="grid md:grid-cols-4 gap-4">
-              <div>
-                <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
-                  Job Number
-                </p>
-                <p className="text-sm font-bold text-slate-900">
-                  {job.job_number || 'Not Assigned'}
-                </p>
-              </div>
+             
+             
+             <div>
+  <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
+    Job / PO Number
+  </p>
 
-              <div>
-                <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
-                  PO Number
-                </p>
-                <p className="text-sm font-bold text-slate-900">
-                  {job.po_number || 'Not Added'}
-                </p>
-              </div>
+  <div className="flex items-center gap-2">
+    <p className="text-sm font-bold text-slate-900">
+      {[job.job_number, job.po_number]
+        .filter(Boolean)
+        .join(' / ') || 'Not Added'}
+    </p>
+
+    <CopyButton
+      value={[
+        job.job_number,
+        job.po_number,
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    />
+  </div>
+</div>
 
               <div>
                 <p className="text-[11px] uppercase font-bold text-slate-400 tracking-wide">
@@ -262,22 +270,41 @@ const showAsbestosWorkflow =
                 <p className="text-xs uppercase font-bold text-slate-400">
                   Address
                 </p>
-                <p className="text-slate-900 font-semibold">
-                  {job.address_line_1}
-                </p>
+                <div className="flex items-center gap-2">
+  <p className="text-slate-900">
+    {job.address_line_1}
+  </p>
+
+  <CopyButton
+    value={[
+      job.address_line_1,
+      job.town,
+      job.postcode,
+    ]
+      .filter(Boolean)
+      .join('\n')}
+  />
+</div>
                 <p className="text-slate-600">
                   {job.town} {job.postcode}
                 </p>
               </div>
 
               <div>
-                <p className="text-xs uppercase font-bold text-slate-400">
-                  Tenant Contact
-                </p>
-                <p className="text-slate-700 break-words">
-                  {job.tenant_contact || 'No Contact Added'}
-                </p>
-              </div>
+  <p className="text-xs uppercase font-bold text-slate-400">
+    Tenant Contact
+  </p>
+
+  <div className="flex items-center gap-2">
+    <p className="text-slate-700 break-words">
+      {job.tenant_contact || 'No Contact Added'}
+    </p>
+
+    {job.tenant_contact && (
+      <CopyButton value={job.tenant_contact} />
+    )}
+  </div>
+</div>
             </div>
 
 {(showScaffoldWorkflow || showAsbestosWorkflow) && (
@@ -315,14 +342,15 @@ const showAsbestosWorkflow =
               )}
 
             <div className="border-t border-slate-200 mt-6 pt-6">
-              <p className="text-xs uppercase font-bold text-slate-400">
-                Work Description
-              </p>
+  <p className="text-xs uppercase font-bold text-slate-400 mb-2">
+    Work Description
+  </p>
 
-              <p className="text-slate-700 whitespace-pre-wrap break-words mt-1">
-                {job.description || 'No work description added'}
-              </p>
-            </div>
+  <EditDescriptionForm
+    jobId={jobId}
+    currentDescription={job.description}
+  />
+</div>
 
             <div className="border-t border-slate-200 mt-6 pt-6">
               <div className="flex items-center justify-between mb-4">

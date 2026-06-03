@@ -174,83 +174,76 @@ Neil Sheldon`
   }
 
   function ChecklistRow({
-    label,
-    value,
-    emptyText,
-    endpoint,
-    resetFieldName,
-    done,
-    colour = 'bg-green-600',
-    draftAction,
-  }: {
-    label: string
-    value: string | null
-    emptyText: string
-    endpoint: string
-    resetFieldName: string
-    done: boolean
-    colour?: string
-    draftAction?: () => void
-  }) {
-    return (
-      <div className="flex items-center justify-between gap-3 border-b border-slate-100 py-2 last:border-b-0">
-        <button
-          type="button"
-          onClick={() => runAction(endpoint)}
-          className="flex items-center gap-2 min-w-0 text-left"
-        >
-          <span
-            className={`w-4 h-4 rounded border flex items-center justify-center text-[10px] font-bold shrink-0 ${
-              done
-                ? `${colour} text-white border-transparent`
-                : 'bg-white border-slate-300 text-slate-300'
-            }`}
-          >
-            {done ? '✓' : ''}
-          </span>
-
-          <span
-            className={`text-xs font-bold ${
-              done ? 'text-slate-900' : 'text-slate-600'
-            }`}
-          >
-            {label}
-          </span>
-        </button>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <span
-            className={`text-xs font-semibold ${
-              done ? 'text-slate-900' : 'text-slate-400'
-            }`}
-          >
-            {value || emptyText}
-          </span>
-
-          {draftAction && (
-            <button
-              type="button"
-              onClick={draftAction}
-              className="bg-white border border-slate-300 text-slate-700 px-2 py-1 rounded-lg text-[10px] font-bold hover:bg-slate-50 transition"
-            >
-              email
-            </button>
-          )}
-
-          {done && (
-            <button
-              type="button"
-              onClick={() => resetField(resetFieldName)}
-              className="bg-red-50 border border-red-200 text-red-600 px-1.5 py-0.5 rounded text-[10px] font-bold hover:bg-red-100 transition"
-              title="Clear this item"
-            >
-              ↺
-            </button>
-          )}
-        </div>
-      </div>
-    )
+  label,
+  value,
+  emptyText,
+  endpoint,
+  resetFieldName,
+  done,
+  colour = 'bg-green-600',
+  draftAction,
+}: {
+  label: string
+  value: string | null
+  emptyText: string
+  endpoint: string
+  resetFieldName: string
+  done: boolean
+  colour?: string
+  draftAction?: () => void
+}) {
+  async function toggleItem() {
+    if (done) {
+      await resetField(resetFieldName)
+    } else {
+      await runAction(endpoint)
+    }
   }
+
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-slate-100 py-2 last:border-b-0 min-h-[38px]">
+      <button
+        type="button"
+        onClick={toggleItem}
+        className="flex items-center gap-2 min-w-0 text-left"
+      >
+        <span
+          className={`w-4 h-4 rounded border flex items-center justify-center text-[10px] font-bold shrink-0 ${
+            done
+              ? `${colour} text-white border-transparent`
+              : 'bg-white border-slate-300 text-transparent'
+          }`}
+        >
+          ✓
+        </span>
+
+        <span className="text-xs font-semibold text-slate-800">
+          {label}
+        </span>
+      </button>
+
+      <div className="flex items-center gap-2 shrink-0">
+        <span
+          className={`text-xs font-semibold ${
+            done ? 'text-slate-900' : 'text-slate-400'
+          }`}
+        >
+          {value || emptyText}
+        </span>
+
+        {draftAction && (
+          <button
+            type="button"
+            onClick={draftAction}
+            className="bg-white border border-slate-300 text-slate-700 px-2 py-1 rounded-lg text-[10px] font-bold hover:bg-slate-50 transition"
+          >
+            Draft
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
 
   return (
     <div className="border-t border-slate-200 mt-4 pt-4">
