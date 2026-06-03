@@ -3,15 +3,22 @@ import { supabase } from '../../../lib/supabase'
 
 export async function POST(request: Request) {
   const { job_id } = await request.json()
-
   const today = new Date().toISOString().split('T')[0]
 
-  const { error } = await supabase
+  const { data: existingRecord } = await supabase
     .from('scaffold_records')
-    .update({
-      erected_date: today,
-    })
+    .select('id')
     .eq('job_id', job_id)
+    .maybeSingle()
+
+  const payload = {
+    supplier_name: 'Jamie Seager Scaffolding',
+    erected_date: today,
+  }
+
+  const { error } = existingRecord
+    ? await supabase.from('scaffold_records').update(payload).eq('job_id', job_id)
+    : await supabase.from('scaffold_records').insert({ job_id, ...payload })
 
   if (error) {
     return NextResponse.json({ error }, { status: 500 })

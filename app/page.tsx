@@ -149,6 +149,9 @@ function getAsbestosWorkflowCount(statusId: number) {
         (job) => job.status === 'Ready' && !hasBlockers(job.job_id)
       ).length ?? 0,
 
+allocated_jobs:
+  jobs?.filter((job: any) => job.status === 'Allocated').length ?? 0,
+
     blocked_jobs:
       jobs?.filter((job) => hasBlockers(job.job_id)).length ?? 0,
 
@@ -337,7 +340,8 @@ function getAsbestosWorkflowCount(statusId: number) {
         <WidgetRow href="/jobs" label="Total Live Jobs" value={stats.total_jobs} accent="border-l-slate-700" />
         <WidgetRow href="/jobs?status=Ticket" label="Tickets" value={stats.tickets} accent="border-l-pink-500" />
         <WidgetRow href="/jobs?ready=true" label="Ready Jobs" value={stats.ready_jobs} accent="border-l-green-500" />
-        <WidgetRow href="/jobs?blocked=true" label="Blocked Jobs" value={stats.blocked_jobs} accent="border-l-red-600" />
+<WidgetRow href="/jobs?status=Allocated" label="Allocated Jobs" value={stats.allocated_jobs} accent="border-l-blue-500" />
+<WidgetRow href="/jobs?blocked=true" label="Blocked Jobs" value={stats.blocked_jobs} accent="border-l-red-600" />
       </div>
     </section>
 
