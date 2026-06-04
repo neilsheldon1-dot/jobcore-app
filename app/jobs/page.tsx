@@ -16,6 +16,7 @@ type SearchParams = Promise<{
   scaffoldStatus?: string
   asbestosStatus?: string
   scaffoldPipeline?: string
+  client?: string
 }>
 
 export default async function JobsPage({
