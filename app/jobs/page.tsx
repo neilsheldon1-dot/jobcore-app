@@ -1,6 +1,7 @@
 import AppHeader from '../../components/AppHeader'
 import { supabase } from '../../lib/supabase'
 import JobsInbox from './JobsInbox'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -34,6 +35,10 @@ export default async function JobsPage({
   if (params.status) {
     query = query.eq('status', params.status)
   }
+
+  if (params.client) {
+  query = query.eq('client', params.client)
+}
 
   if (params.urgent === 'true') {
     query = query.eq('urgent', true)
@@ -241,7 +246,40 @@ if (params.asbestosStatus) {
             </h2>
           </div>
         )}
+{params.status === 'Awaiting Approval' && (
+  <div className="mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 px-6 py-4">
+    <p className="text-xs uppercase font-bold text-slate-400 mb-3">
+      Filter Awaiting Approval by Client
+    </p>
 
+    <div className="flex flex-wrap gap-2">
+      <Link
+        href="/jobs?status=Awaiting%20Approval"
+        className={`px-4 py-2 rounded-xl text-sm font-bold border transition ${
+          !params.client
+            ? 'bg-blue-600 text-white border-blue-600'
+            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+        }`}
+      >
+        All
+      </Link>
+
+      {['Denbighshire', 'Cartrefi', 'Creating Enterprise'].map((client) => (
+        <Link
+          key={client}
+          href={`/jobs?status=Awaiting%20Approval&client=${encodeURIComponent(client)}`}
+          className={`px-4 py-2 rounded-xl text-sm font-bold border transition ${
+            params.client === client
+              ? 'bg-blue-600 text-white border-blue-600'
+              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+          }`}
+        >
+          {client}
+        </Link>
+      ))}
+    </div>
+  </div>
+)}
         <JobsInbox
   jobs={jobs || []}
   blockerLinks={blockerLinks || []}

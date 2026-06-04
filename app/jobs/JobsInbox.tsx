@@ -193,6 +193,80 @@ function getAsbestosWorkflowStyle(statusName: string) {
     window.open(printUrl, '_blank')
   }
 
+  async function createApprovalChaseDraft() {
+  const selectedAddresses = filteredJobs
+    .filter((job: any) => selectedJobs.includes(job.job_id))
+    .map((job: any) => {
+  const quoteNumber = job.quote_number
+    ? `Quote ${job.quote_number}`
+    : null
+
+  const jobPoNumber = [job.job_number, job.po_number]
+    .filter(Boolean)
+    .join(' / ')
+
+  const reference = [quoteNumber, jobPoNumber]
+    .filter(Boolean)
+    .join(' | ')
+
+  const address = `${job.address_line_1}${job.town ? `, ${job.town}` : ''}${
+    job.postcode ? `, ${job.postcode}` : ''
+  }`
+
+  return `• ${reference ? `${reference} - ` : ''}${address}`
+})
+.join('\n')
+
+  const selectedClients = Array.from(
+  new Set(
+    filteredJobs
+      .filter((job: any) => selectedJobs.includes(job.job_id))
+      .map((job: any) => job.client)
+      .filter(Boolean)
+  )
+)
+
+const clientLabel =
+  selectedClients.length === 1
+    ? selectedClients[0]
+    : 'Multiple Clients'
+
+    const greeting =
+  new Date().getHours() < 12
+    ? 'Good morning'
+    : new Date().getHours() < 17
+    ? 'Good afternoon'
+    : 'Good evening'
+
+  const response = await fetch('/api/create-scaffold-email-draft', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      to: '',
+      subject: `Awaiting Approval Chase - ${selectedJobs.length} Jobs`,
+      message: `${greeting},
+
+Please could you provide an update on the following jobs:
+
+${selectedAddresses}
+
+Many thanks
+
+Ian Jackson`,
+    }),
+  })
+
+  const result = await response.json()
+
+  if (result.success) {
+    alert('Gmail draft created successfully')
+  } else {
+    alert('Failed to create draft')
+  }
+}
+
   return (
     <>
       <div className="mb-6">
@@ -211,36 +285,20 @@ function getAsbestosWorkflowStyle(statusName: string) {
     </p>
 
     {currentStatus === 'Awaiting Approval' ? (
-      <button
-        onClick={() => {
-          const selectedAddresses = filteredJobs
-            .filter((job: any) =>
-              selectedJobs.includes(job.job_id)
-            )
-            .map(
-              (job: any) =>
-                `• ${job.address_line_1}, ${job.town}`
-            )
-            .join('\n')
-
-          navigator.clipboard.writeText(
-            `Please provide an update on the following jobs:\n\n${selectedAddresses}`
-          )
-
-          alert('Addresses copied to clipboard')
-        }}
-        className="bg-orange-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-orange-700 transition"
-      >
-        Copy Chase List
-      </button>
-    ) : (
-      <button
-        onClick={printSelected}
-        className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-blue-700 transition"
-      >
-        Print Selected
-      </button>
-    )}
+  <button
+    onClick={createApprovalChaseDraft}
+    className="bg-orange-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-orange-700 transition"
+  >
+    Create Chase Draft
+  </button>
+) : (
+  <button
+    onClick={printSelected}
+    className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-blue-700 transition"
+  >
+    Print Selected
+  </button>
+)}
   </div>
 )}
 
@@ -321,9 +379,17 @@ const asbestosStatusName =
                     </div>
 
                     <div className="min-w-0">
-                      <p className="font-semibold text-sm text-slate-900 truncate">
-                        {job.address_line_1}
-                      </p>
+                      <div className="flex items-center gap-2 min-w-0">
+  <p className="font-semibold text-sm text-slate-900 truncate">
+    {job.address_line_1}
+  </p>
+
+  {job.client && (
+    <span className="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0">
+      {job.client}
+    </span>
+  )}
+</div>
 
                       <p className="text-xs text-slate-600 truncate">
                         {job.description}

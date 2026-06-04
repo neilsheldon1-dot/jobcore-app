@@ -1,16 +1,37 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
 
 export default function CreateMenu() {
   const [open, setOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    if (
+      menuRef.current &&
+      !menuRef.current.contains(event.target as Node)
+    ) {
+      setOpen(false)
+    }
+  }
+
+  document.addEventListener('mousedown', handleClickOutside)
+
+  return () => {
+    document.removeEventListener(
+      'mousedown',
+      handleClickOutside
+    )
+  }
+}, [])
 
   return (
-    <div
+   <div
+  ref={menuRef}
   className="relative"
-
 >
       <button
         type="button"

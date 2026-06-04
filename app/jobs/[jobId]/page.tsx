@@ -15,6 +15,7 @@ import ScaffoldRecordPanel from './ScaffoldRecordPanel'
 import EditDescriptionForm from './EditDescriptionForm'
 import CopyButton from '../../../components/CopyButton'
 export const dynamic = 'force-dynamic'
+import EditableNote from './EditableNote'
 
 type JobPageProps = {
   params: Promise<{
@@ -30,6 +31,15 @@ export default async function JobPage({ params }: JobPageProps) {
     .select('*')
     .eq('job_id', jobId)
     .maybeSingle()
+
+const {
+  data: { user },
+} = await supabase.auth.getUser()
+
+const loggedInName =
+  user?.email === 'neil.sheldon1@gmail.com'
+    ? 'Neil Sheldon'
+    : user?.email || ''
 
   const { data: workflowJob } = await supabase
     .from('jobs')
@@ -352,6 +362,7 @@ const showAsbestosWorkflow =
   />
 </div>
 
+
             <div className="border-t border-slate-200 mt-6 pt-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-slate-900">
@@ -369,11 +380,14 @@ const showAsbestosWorkflow =
                         {note.note_type || 'Note'} • {note.created_by || 'Unknown'}
                       </p>
 
-                      <p className="text-slate-700 whitespace-pre-wrap mt-1">
-                        {note.content}
-                      </p>
 
-                      <p className="text-xs text-slate-400 mt-1">
+                      
+  <EditableNote
+  note={note}
+  canEdit={true}
+/>
+
+<p className="text-xs text-slate-400 mt-1">
                         {new Date(note.created_at).toLocaleString('en-GB')}
                       </p>
                     </div>

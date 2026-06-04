@@ -18,6 +18,7 @@ export default function QuickTicketForm({
 }) {
   const router = useRouter()
   const [isSaving, setIsSaving] = useState(false)
+const [duplicateWarning, setDuplicateWarning] = useState(false)
 
   async function handleSubmit(formData: FormData) {
     setIsSaving(true)
@@ -67,7 +68,38 @@ po_number: formData.get('po_number'),
       </div>
 
       <div className="p-5 grid gap-5">
-        <input name="address_line_1" required placeholder="Address Line 1" className="w-full border border-gray-300 rounded-xl px-4 py-3" />
+        <input
+  name="address_line_1"
+  required
+  placeholder="Address Line 1"
+  onBlur={async (e) => {
+    const response = await fetch(
+      `/api/check-property?address=${encodeURIComponent(
+        e.target.value
+      )}`
+    )
+
+    const result = await response.json()
+
+    setDuplicateWarning(result.exists)
+  }}
+  className={`w-full rounded-xl px-4 py-3 border ${
+    duplicateWarning
+      ? 'border-red-500 bg-red-50'
+      : 'border-gray-300'
+  }`}
+/>
+{duplicateWarning && (
+  <div className="bg-red-50 border border-red-300 rounded-xl px-4 py-3">
+    <p className="font-bold text-red-700">
+      ⚠ Warning: Property already exists
+    </p>
+
+    <p className="text-sm text-red-600 mt-1">
+      Please check before creating a duplicate property.
+    </p>
+  </div>
+)}
         <input name="address_line_2" placeholder="Address Line 2" className="w-full border border-gray-300 rounded-xl px-4 py-3" />
 
         <div className="grid md:grid-cols-2 gap-5">
