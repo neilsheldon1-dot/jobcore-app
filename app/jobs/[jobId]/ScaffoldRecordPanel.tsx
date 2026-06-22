@@ -13,6 +13,14 @@ export default function ScaffoldRecordPanel({
 }) {
   const [quoteAmount, setQuoteAmount] = useState(scaffoldRecord?.quote_amount || '')
   const [invoiceAmount, setInvoiceAmount] = useState(scaffoldRecord?.invoice_amount || '')
+const fullAddress = [
+  job.address_line_1,
+  job.town,
+  job.postcode,
+]
+  .filter(Boolean)
+  .join(', ')
+
 
   async function runAction(endpoint: string) {
     await fetch(endpoint, {
@@ -46,7 +54,7 @@ export default function ScaffoldRecordPanel({
 
   async function createQuoteDraft() {
     await createEmailDraft(
-      `Scaffold quote request - ${job.address_line_1}`,
+      `Scaffold quote request - ${fullAddress}`,
       `Please provide a quotation for scaffolding at the above address.
 
 Works required:
@@ -61,7 +69,7 @@ Neil Sheldon`
 
   async function createErectionDraft() {
     await createEmailDraft(
-      `Scaffold erection request - ${job.address_line_1}`,
+      `Scaffold erection request - ${fullAddress}`,
       `Please erect the scaffold at the above address.
 
 Works required:
@@ -76,7 +84,7 @@ Neil Sheldon`
 
   async function createDismantleDraft() {
     await createEmailDraft(
-      `Dismantle scaffolding at ${job.address_line_1}`,
+      `Dismantle scaffolding at ${fullAddress}`,
       `Please dismantle the scaffolding at the above address.
 
 Many thanks
