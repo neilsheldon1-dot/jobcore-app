@@ -456,7 +456,13 @@ const asbestosStatusName =
       {blockerName}
     </span>
   )
+  
 })}
+{asbestosStatusName === 'Safe To Work' && (
+  <span className="bg-green-50 text-green-800 border border-green-300 px-2.5 py-0.5 rounded-full text-xs font-bold">
+    Asbestos: Safe To Work
+  </span>
+)}
                   </div>
                 </Link>
               </div>

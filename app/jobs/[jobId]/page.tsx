@@ -12,6 +12,7 @@ import DeleteJobButton from './DeleteJobButton'
 import ScaffoldStatusDropdown from './ScaffoldStatusDropdown'
 import AsbestosStatusDropdown from './AsbestosStatusDropdown'
 import ScaffoldRecordPanel from './ScaffoldRecordPanel'
+import AsbestosRecordPanel from './AsbestosRecordPanel'
 import EditDescriptionForm from './EditDescriptionForm'
 import CopyButton from '../../../components/CopyButton'
 export const dynamic = 'force-dynamic'
@@ -137,10 +138,23 @@ const showScaffoldWorkflow =
   ) ||
   !!scaffoldRecord
 
+
+  const { data: asbestosRecord } = await supabase
+  .from('asbestos_records')
+  .select('*')
+  .eq('job_id', jobId)
+  .maybeSingle()
+
 const showAsbestosWorkflow =
-  activeBlockers?.some(
-    (blocker: any) =>
-      blocker.blocker_types?.name?.toLowerCase() === 'asbestos'
+  (
+    activeBlockers?.some(
+      (blocker: any) =>
+        blocker.blocker_types?.name?.toLowerCase() === 'asbestos'
+    ) ||
+    asbestosRecord?.report_requested_date ||
+    asbestosRecord?.inspection_date ||
+    asbestosRecord?.removal_requested_date ||
+    asbestosRecord?.safe_to_work_date
   ) ?? false
 
   if (error || !job) {
@@ -336,18 +350,21 @@ const showAsbestosWorkflow =
                   )}
 
                   {showAsbestosWorkflow && (
-                    <div>
-                      <p className="text-xs uppercase font-bold text-slate-400 mb-2">
-                        Asbestos Workflow
-                      </p>
+  <div>
+    <p className="text-xs uppercase font-bold text-slate-400 mb-2">
+      Asbestos Workflow / Record
+  <br />
+    </p>
 
-                      <AsbestosStatusDropdown
-                        jobId={jobId}
-                        currentStatusId={workflowJob?.asbestos_status_id || null}
-                        statuses={asbestosStatuses || []}
-                      />
-                    </div>
-                  )}
+    <AsbestosRecordPanel
+  jobId={jobId}
+  asbestosRecord={asbestosRecord}
+  job={job}
+  currentStatusId={workflowJob?.asbestos_status_id || null}
+  statuses={asbestosStatuses || []}
+/>
+  </div>
+)}
                 </div>
               )}
 
