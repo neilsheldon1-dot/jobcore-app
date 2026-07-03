@@ -61,7 +61,11 @@ export default async function DocumentsPage({
       </div>
 
       <div className="mb-8">
-        <JobSummaryCard job={job} />
+        <JobSummaryCard
+  job={job}
+  showClient={false}
+  showStatus={false}
+/>
       </div>
 
       <div className="space-y-4">

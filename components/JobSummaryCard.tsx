@@ -1,17 +1,19 @@
 type JobSummaryCardProps = {
   job: any
+  showClient?: boolean
+  showStatus?: boolean
 }
 
 function valueOrDash(value: any) {
   return value || '—'
 }
 
-export default function JobSummaryCard({ job }: JobSummaryCardProps) {
-  const address = [
-    job?.address_line_1,
-    job?.town,
-    job?.postcode,
-  ]
+export default function JobSummaryCard({
+  job,
+  showClient = true,
+  showStatus = true,
+}: JobSummaryCardProps) {
+  const address = [job?.address_line_1, job?.town, job?.postcode]
     .filter(Boolean)
     .join(', ')
 
@@ -44,23 +46,27 @@ export default function JobSummaryCard({ job }: JobSummaryCardProps) {
           </p>
         </div>
 
-        <div>
-          <p className="text-xs uppercase font-bold text-slate-400">
-            Client
-          </p>
-          <p className="font-bold text-slate-900">
-            {valueOrDash(job?.client)}
-          </p>
-        </div>
+        {showClient && (
+          <div>
+            <p className="text-xs uppercase font-bold text-slate-400">
+              Client
+            </p>
+            <p className="font-bold text-slate-900">
+              {valueOrDash(job?.client)}
+            </p>
+          </div>
+        )}
 
-        <div>
-          <p className="text-xs uppercase font-bold text-slate-400">
-            Status
-          </p>
-          <p className="font-bold text-slate-900">
-            {valueOrDash(job?.status_name)}
-          </p>
-        </div>
+        {showStatus && (
+          <div>
+            <p className="text-xs uppercase font-bold text-slate-400">
+              Status
+            </p>
+            <p className="font-bold text-slate-900">
+              {valueOrDash(job?.status_name)}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -91,7 +91,11 @@ const { data: completionReport } = await supabase
       </div>
 
       <div className="mb-8">
-        <JobSummaryCard job={job} />
+        <JobSummaryCard
+  job={job}
+  showClient={false}
+  showStatus={false}
+/>
       </div>
 
       <CompletionPackBuilder
