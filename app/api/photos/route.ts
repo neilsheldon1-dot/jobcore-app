@@ -24,23 +24,25 @@ export async function POST(req: Request) {
   const body = await req.json()
 
   const {
-    job_id,
-    file_url,
-    original_file_url,
-    category,
-  } = body
+  job_id,
+  file_url,
+  original_file_url,
+  category,
+  photo_group,
+} = body
 
   const { data, error } = await supabase
     .from('photos')
     .insert([
       {
-        job_id,
-        file_url,
-        original_file_url,
-        category,
-        uploaded_by: profile?.full_name || user.email,
-        watermark_applied: false,
-      },
+  job_id,
+  file_url,
+  original_file_url,
+  category,
+  photo_group,
+  uploaded_by: profile?.full_name || user.email,
+  watermark_applied: false,
+},
     ])
     .select()
 

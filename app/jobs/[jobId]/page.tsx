@@ -18,6 +18,7 @@ import CopyButton from '../../../components/CopyButton'
 export const dynamic = 'force-dynamic'
 import EditableNote from './EditableNote'
 
+
 type JobPageProps = {
   params: Promise<{
     jobId: string
@@ -91,6 +92,12 @@ const loggedInName =
     )
   `)
   .eq('job_id', jobId)
+
+  const { data: completionReport } = await supabase
+  .from('completion_reports')
+  .select('*')
+  .eq('job_id', jobId)
+  .maybeSingle()
 
   const activeJobTypes = (activeJobTypeLinks || [])
   .map((link) => {
@@ -192,7 +199,12 @@ const showAsbestosWorkflow =
             jobStatuses={jobStatuses || []}
             jobTypes={jobTypes || []}
           />
-
+<Link
+  href={`/jobs/${jobId}/documents`}
+  className="inline-flex items-center rounded-xl bg-slate-100 px-5 py-1 text-sm font-bold text-slate-700 hover:scale-105 active:scale-95 bg-slate-200 transition cursor-pointer"
+>
+  Create Documents →
+</Link>
           <UrgentButtons jobId={jobId} urgent={job.urgent} />
         </div>
       </div>
@@ -393,11 +405,23 @@ const showAsbestosWorkflow =
                 <div className="space-y-4">
                   {notes.map((note) => (
                     <div key={note.id} className="border-b pb-4 last:border-b-0">
-                      <p className="text-xs text-slate-400 uppercase font-bold">
-                        {note.note_type || 'Note'} • {note.created_by || 'Unknown'}
-                      </p>
+                     
 
+<div className="flex items-center gap-2 mb-1">
+  <span
+    className={`inline-flex rounded-full px-2 py-0.5 text-[10px] uppercase font-bold ${
+      note.internal_only
+        ? 'bg-amber-100 text-amber-800 border border-amber-200'
+        : 'bg-green-100 text-green-800 border border-green-200'
+    }`}
+  >
+    {note.internal_only ? 'Internal only' : 'Everyone'}
+  </span>
 
+  <span className="text-xs text-slate-400 uppercase font-bold">
+    {note.created_by || 'Unknown'}
+  </span>
+</div>
                       
   <EditableNote
   note={note}

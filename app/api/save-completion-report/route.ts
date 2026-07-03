@@ -15,28 +15,23 @@ export async function POST(req: Request) {
     )
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name')
-    .eq('id', user.id)
-    .maybeSingle()
-
   const body = await req.json()
-
-  const { job_id, content, internal_only } = body
+  const { job_id, summary } = body
 
   const { data, error } = await supabase
-  .from('job_notes')
-  .insert([
-    {
-      job_id,
-      content,
-      note_type: internal_only ? 'Internal' : 'General',
-      internal_only: !!internal_only,
-      created_by: profile?.full_name || user.email,
-    },
-  ])
-  .select()
+    .from('completion_reports')
+    .upsert(
+      {
+        job_id,
+        summary,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: 'job_id',
+      }
+    )
+    .select()
+    .single()
 
   if (error) {
     return NextResponse.json(

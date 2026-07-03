@@ -11,6 +11,7 @@ export default function EditableNote({
 }) {
   const [editing, setEditing] = useState(false)
   const [content, setContent] = useState(note.content || '')
+  const [deleting, setDeleting] = useState(false)
 
   async function saveNote() {
     const response = await fetch('/api/update-note', {
@@ -28,6 +29,32 @@ export default function EditableNote({
     }
 
     setEditing(false)
+  }
+
+  async function deleteNote() {
+    const confirmed = window.confirm(
+      'Delete this note? This cannot be undone.'
+    )
+
+    if (!confirmed) return
+
+    setDeleting(true)
+
+    const response = await fetch('/api/delete-note', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        note_id: note.id,
+      }),
+    })
+
+    if (!response.ok) {
+      alert('Failed to delete note')
+      setDeleting(false)
+      return
+    }
+
+    window.location.reload()
   }
 
   if (editing) {
@@ -71,13 +98,24 @@ export default function EditableNote({
       </p>
 
       {canEdit && (
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          className="text-xs font-bold text-blue-600 hover:text-blue-700 mt-2"
-        >
-          Edit Note
-        </button>
+        <div className="flex items-center gap-3 mt-2">
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="text-xs font-bold text-blue-600 hover:text-blue-700"
+          >
+            Edit Note
+          </button>
+
+          <button
+            type="button"
+            onClick={deleteNote}
+            disabled={deleting}
+            className="text-xs font-bold text-red-600 hover:text-red-700 disabled:opacity-50"
+          >
+            {deleting ? 'Deleting...' : 'Delete Note'}
+          </button>
+        </div>
       )}
     </>
   )

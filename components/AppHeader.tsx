@@ -1,4 +1,8 @@
-import Image from 'next/image'
+<img
+  src="/jobcore-logo.png"
+  alt="JobCore"
+  className="h-6 w-auto"
+/>
 import Link from 'next/link'
 import UserMenu from './UserMenu'
 import JobsNavMenu from './JobsNavMenu'
@@ -35,14 +39,11 @@ export default async function AppHeader({ active }: AppHeaderProps) {
     <div className="sticky top-0 z-50 bg-gradient-to-r from-blue-700 to-blue-500 text-white shadow-md">
       <div className="max-w-7xl mx-auto flex items-center h-16 px-6 gap-8">
         <Link href="/" className="flex items-center">
-          <Image
-            src="/jobcore-logo.png"
-            alt="JobCore"
-            width={240}
-            height={60}
-            className="h-6 w-auto"
-            priority
-          />
+          <img
+  src="/jobcore-logo.png"
+  alt="JobCore"
+  className="h-6 w-auto"
+/>
         </Link>
 
         <div className="flex items-center justify-between flex-1">

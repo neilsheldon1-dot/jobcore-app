@@ -13,6 +13,7 @@ export default function PhotoUploadForm({
   const [isOpen, setIsOpen] = useState(false)
   const [files, setFiles] = useState<File[]>([])
   const [category, setCategory] = useState('')
+  const [photoGroup, setPhotoGroup] = useState('Completed')
   const [loading, setLoading] = useState(false)
 
   async function createWatermarkedImage(
@@ -136,12 +137,13 @@ export default function PhotoUploadForm({
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            job_id: jobId,
-            file_url: publicUrlData.publicUrl,
-            original_file_url: publicUrlData.publicUrl,
-            category,
-          }),
+         body: JSON.stringify({
+  job_id: jobId,
+  file_url: publicUrlData.publicUrl,
+  original_file_url: publicUrlData.publicUrl,
+  category,
+  photo_group: photoGroup,
+}),
         })
 
         const result = await response.json()
@@ -155,6 +157,7 @@ export default function PhotoUploadForm({
 
       setFiles([])
       setCategory('')
+      setPhotoGroup('Completed')
       setLoading(false)
       setIsOpen(false)
 
@@ -194,11 +197,26 @@ export default function PhotoUploadForm({
                 ×
               </button>
             </div>
+<div>
+  <label className="block text-sm font-bold text-slate-700 mb-2">
+    Upload Group
+  </label>
 
+  <select
+    value={photoGroup}
+    onChange={(e) => setPhotoGroup(e.target.value)}
+    className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white"
+  >
+    <option value="Before">Before</option>
+    <option value="During">During</option>
+    <option value="Completed">Completed</option>
+    <option value="Additional">Additional</option>
+  </select>
+</div>
             <div className="grid gap-4">
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">
-                  Photo Category
+                  Photo Description
                 </label>
 
                 <input

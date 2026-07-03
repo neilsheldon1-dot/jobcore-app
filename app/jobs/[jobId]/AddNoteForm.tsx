@@ -2,13 +2,10 @@
 
 import { useState } from 'react'
 
-export default function AddNoteForm({
-  jobId,
-}: {
-  jobId: string
-}) {
+export default function AddNoteForm({ jobId }: { jobId: string }) {
   const [isOpen, setIsOpen] = useState(false)
   const [content, setContent] = useState('')
+  const [internalOnly, setInternalOnly] = useState(false)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -21,9 +18,10 @@ export default function AddNoteForm({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-  job_id: jobId,
-  content,
-}),
+        job_id: jobId,
+        content,
+        internal_only: internalOnly,
+      }),
     })
 
     const result = await response.json()
@@ -35,6 +33,7 @@ export default function AddNoteForm({
     }
 
     setContent('')
+    setInternalOnly(false)
     setLoading(false)
     setIsOpen(false)
 
@@ -72,7 +71,43 @@ export default function AddNoteForm({
             </div>
 
             <div className="grid gap-4">
-              
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">
+                  Note visibility
+                </label>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInternalOnly(false)}
+                    className={`border rounded-xl px-4 py-3 text-left transition ${
+                      !internalOnly
+                        ? 'bg-blue-50 border-blue-300 text-blue-800'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <p className="text-sm font-bold">Everyone</p>
+                    <p className="text-xs">
+                      Can be used in job packs
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setInternalOnly(true)}
+                    className={`border rounded-xl px-4 py-3 text-left transition ${
+                      internalOnly
+                        ? 'bg-amber-50 border-amber-300 text-amber-800'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <p className="text-sm font-bold">Internal only</p>
+                    <p className="text-xs">
+                      Office use only
+                    </p>
+                  </button>
+                </div>
+              </div>
 
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">
