@@ -266,8 +266,8 @@ export async function POST(req: Request) {
   const document = await req.json()
 
   const pdfBuffer = await pdf(
-    React.createElement(CompletionPdf, { document })
-  ).toBuffer()
+  CompletionPdf({ document }) as any
+).toBuffer()
 
   return new NextResponse(pdfBuffer, {
     headers: {
