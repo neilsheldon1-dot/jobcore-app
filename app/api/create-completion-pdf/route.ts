@@ -143,8 +143,8 @@ function CompletionPdf({ document }: { document: any }) {
               'The following photos support the completed works described above.'
             ),
 
-            ...Object.entries(groupedPhotos).flatMap(
-              ([groupName, photos]: [string, any[]]) => [
+            ...Object.entries(groupedPhotos as Record<string, any[]>).flatMap(
+  ([groupName, photos]) => [
                 React.createElement(
                   Text,
                   {
