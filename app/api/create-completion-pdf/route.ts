@@ -265,11 +265,13 @@ function CompletionPdf({ document }: { document: any }) {
 export async function POST(req: Request) {
   const document = await req.json()
 
-  const pdfBuffer = await pdf(
-  CompletionPdf({ document }) as any
-).toBuffer()
+  const pdfBlob = await pdf(
+    CompletionPdf({ document }) as any
+  ).toBlob()
 
-  return new NextResponse(pdfBuffer, {
+  const buffer = Buffer.from(await pdfBlob.arrayBuffer())
+
+  return new NextResponse(buffer, {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': 'attachment; filename="completion-report.pdf"',
