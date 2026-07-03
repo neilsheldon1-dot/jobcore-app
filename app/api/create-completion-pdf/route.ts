@@ -132,15 +132,19 @@ function CompletionPdf({ document }: { document: any }) {
     document.photos?.length > 0
       ? [
           React.createElement(
-            View,
-            { key: 'photos', style: styles.section },
+  View,
+  {
+    key: 'photos',
+    style: styles.section,
+    break: true,
+  },
 
             React.createElement(Text, { style: styles.heading }, 'Photos'),
 
             React.createElement(
               Text,
               { style: styles.intro },
-              'The following photos support the completed works described above.'
+              'The following photographs record the completed works.'
             ),
 
             ...Object.entries(groupedPhotos as Record<string, any[]>).flatMap(
