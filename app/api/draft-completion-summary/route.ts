@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+
 
 export async function POST(req: Request) {
   try {
     const document = await req.json()
-
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
     const prompt = `
 You are writing a completion report for Rubber Roofs, a UK roofing contractor carrying out works for councils and housing associations.
 
