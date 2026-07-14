@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 
 export default function JobsInbox({
   jobs,
@@ -9,32 +9,86 @@ export default function JobsInbox({
   jobTypeLinks,
   workflowJobs,
   scaffoldRecords,
+  zoneLocations,
   currentStatus,
   enableSelection = false,
 }: any) {
-
   const [selectedJobs, setSelectedJobs] = useState<string[]>([])
   const [search, setSearch] = useState('')
 
-  const filteredJobs = jobs.filter((job: any) => {
-    const searchText = search.toLowerCase()
+  const locationOrder = new Map<
+  string,
+  {
+    areaName: string
+    areaOrder: number
+    locationOrder: number
+  }
+>(
+    (zoneLocations || []).map((location: any) => [
+      location.location_name,
+      {
+        areaName: location.area_zones?.name || 'Other',
+        areaOrder: location.area_zones?.sort_order ?? 999,
+        locationOrder: location.sort_order ?? 999,
+      },
+    ])
+  )
 
-    return [
-      job.job_number,
-      job.po_number,
-      job.address_line_1,
-      job.town,
-      job.postcode,
-      job.client,
-      job.description,
-      job.status,
-      job.job_type,
-    ]
-      .filter(Boolean)
-      .join(' ')
-      .toLowerCase()
-      .includes(searchText)
-  })
+  function getAreaName(zone: string) {
+    return locationOrder.get(zone)?.areaName || 'Other'
+  }
+
+  const filteredJobs = jobs
+    .filter((job: any) => {
+      const searchText = search.toLowerCase()
+
+      return [
+        job.job_number,
+        job.po_number,
+        job.address_line_1,
+        job.town,
+        job.postcode,
+        job.client,
+        job.description,
+        job.status,
+        job.job_type,
+        job.zone,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase()
+        .includes(searchText)
+    })
+    .sort((a: any, b: any) => {
+      const aZone = locationOrder.get(a.zone) || {
+        areaOrder: 999,
+        locationOrder: 999,
+      }
+
+      const bZone = locationOrder.get(b.zone) || {
+        areaOrder: 999,
+        locationOrder: 999,
+      }
+
+      return (
+        aZone.areaOrder - bZone.areaOrder ||
+        aZone.locationOrder - bZone.locationOrder ||
+        (a.address_line_1 || '').localeCompare(
+          b.address_line_1 || ''
+        )
+      )
+    })
+
+  const areaCounts = filteredJobs.reduce(
+    (counts: Record<string, number>, job: any) => {
+      const areaName = getAreaName(job.zone)
+
+      counts[areaName] = (counts[areaName] || 0) + 1
+
+      return counts
+    },
+    {}
+  )
 
   function getStatusColour(status: string) {
     switch (status) {
@@ -94,7 +148,7 @@ export default function JobsInbox({
       : jobType === 'Scheme'
       ? 'bg-yellow-100 text-yellow-800 border border-yellow-200'
       : jobType === 'General Building'
-? 'bg-green-200 text-green-700 border border-slate-200'
+      ? 'bg-green-200 text-green-700 border border-slate-200'
       : jobType === 'Slate / Tile Repair'
       ? 'bg-indigo-100 text-indigo-700 border border-indigo-200'
       : jobType === 'Roof Repair'
@@ -106,53 +160,55 @@ export default function JobsInbox({
       : jobType === 'Lead Work'
       ? 'bg-zinc-300 text-zinc-900 border border-zinc-500'
       : jobType === 'Survey / Inspection'
-? 'bg-pink-100 text-black border border-pink-200'
+      ? 'bg-pink-100 text-black border border-pink-200'
       : jobType === 'Pointing'
       ? 'bg-stone-400 text-white border border-stone-300'
       : jobType === 'Fascia / Soffit'
       ? 'bg-purple-900 text-white border border-stone-300'
       : 'bg-slate-100 text-slate-700 border border-slate-200'
   }
-function getScaffoldWorkflowStyle(statusName: string) {
-  switch (statusName) {
-    case 'Awaiting Quote':
-      return 'bg-amber-50 text-amber-800 border border-amber-300'
-    case 'Quote Received':
-      return 'bg-blue-50 text-blue-800 border border-blue-300'
-    case 'Awaiting Erection':
-      return 'bg-orange-50 text-orange-800 border border-orange-300'
-    case 'Scaffold Up':
-      return 'bg-green-50 text-green-800 border border-green-300'
-    case 'Needs Adapting':
-      return 'bg-red-50 text-red-800 border border-red-300'
-    case 'Awaiting Dismantle':
-      return 'bg-purple-50 text-purple-800 border border-purple-300'
-    case 'Scaffold Removed':
-      return 'bg-slate-100 text-slate-700 border border-slate-300'
-    default:
-      return 'bg-slate-100 text-slate-700 border border-slate-200'
-  }
-}
 
-function getAsbestosWorkflowStyle(statusName: string) {
-  switch (statusName) {
-    case 'Report Requested':
-      return 'bg-amber-50 text-amber-800 border border-amber-300'
-    case 'Inspection Required':
-      return 'bg-orange-50 text-orange-800 border border-orange-300'
-    case 'Removal Required':
-      return 'bg-red-50 text-red-800 border border-red-300'
-    case 'Safe To Work':
-      return 'bg-green-50 text-green-800 border border-green-300'
-    default:
-      return 'bg-slate-100 text-slate-700 border border-slate-200'
+  function getScaffoldWorkflowStyle(statusName: string) {
+    switch (statusName) {
+      case 'Awaiting Quote':
+        return 'bg-amber-50 text-amber-800 border border-amber-300'
+      case 'Quote Received':
+        return 'bg-blue-50 text-blue-800 border border-blue-300'
+      case 'Awaiting Erection':
+        return 'bg-orange-50 text-orange-800 border border-orange-300'
+      case 'Scaffold Up':
+        return 'bg-green-50 text-green-800 border border-green-300'
+      case 'Needs Adapting':
+        return 'bg-red-50 text-red-800 border border-red-300'
+      case 'Awaiting Dismantle':
+        return 'bg-purple-50 text-purple-800 border border-purple-300'
+      case 'Scaffold Removed':
+        return 'bg-slate-100 text-slate-700 border border-slate-300'
+      default:
+        return 'bg-slate-100 text-slate-700 border border-slate-200'
+    }
   }
-}
+
+  function getAsbestosWorkflowStyle(statusName: string) {
+    switch (statusName) {
+      case 'Report Requested':
+        return 'bg-amber-50 text-amber-800 border border-amber-300'
+      case 'Inspection Required':
+        return 'bg-orange-50 text-orange-800 border border-orange-300'
+      case 'Removal Required':
+        return 'bg-red-50 text-red-800 border border-red-300'
+      case 'Safe To Work':
+        return 'bg-green-50 text-green-800 border border-green-300'
+      default:
+        return 'bg-slate-100 text-slate-700 border border-slate-200'
+    }
+  }
+
   function toggleJob(jobId: string) {
-    setSelectedJobs((prev) =>
-      prev.includes(jobId)
-        ? prev.filter((id) => id !== jobId)
-        : [...prev, jobId]
+    setSelectedJobs((previous) =>
+      previous.includes(jobId)
+        ? previous.filter((id) => id !== jobId)
+        : [...previous, jobId]
     )
   }
 
@@ -160,33 +216,56 @@ function getAsbestosWorkflowStyle(statusName: string) {
     if (selectedJobs.length === filteredJobs.length) {
       setSelectedJobs([])
     } else {
-      setSelectedJobs(filteredJobs.map((job: any) => job.job_id))
+      setSelectedJobs(
+        filteredJobs.map((job: any) => job.job_id)
+      )
     }
   }
 
   function getScaffoldWorkflowName(jobId: string) {
-  const record = scaffoldRecords?.find(
-  (r: any) => r.job_id === jobId
-)
-  if (!record) return null
+    const record = scaffoldRecords?.find(
+      (item: any) => item.job_id === jobId
+    )
 
-  if (record.dismantle_requested_date && !record.dismantled_date)
-    return 'Awaiting Dismantle'
+    if (!record) return null
 
-  if (record.erected_date && !record.dismantle_requested_date)
-    return 'Scaffold Up'
+    if (
+      record.dismantle_requested_date &&
+      !record.dismantled_date
+    ) {
+      return 'Awaiting Dismantle'
+    }
 
-  if (record.erection_requested_date && !record.erected_date)
-    return 'Awaiting Erection'
+    if (
+      record.erected_date &&
+      !record.dismantle_requested_date
+    ) {
+      return 'Scaffold Up'
+    }
 
-  if (record.quote_received_date && !record.erection_requested_date)
-    return 'Quote Received'
+    if (
+      record.erection_requested_date &&
+      !record.erected_date
+    ) {
+      return 'Awaiting Erection'
+    }
 
-  if (record.quote_requested_date && !record.quote_received_date)
-    return 'Awaiting Quote'
+    if (
+      record.quote_received_date &&
+      !record.erection_requested_date
+    ) {
+      return 'Quote Received'
+    }
 
-  return null
-}
+    if (
+      record.quote_requested_date &&
+      !record.quote_received_date
+    ) {
+      return 'Awaiting Quote'
+    }
+
+    return null
+  }
 
   function printSelected() {
     const printUrl = `/jobs/print?ids=${selectedJobs.join(',')}`
@@ -194,59 +273,57 @@ function getAsbestosWorkflowStyle(statusName: string) {
   }
 
   async function createApprovalChaseDraft() {
-  const selectedAddresses = filteredJobs
-    .filter((job: any) => selectedJobs.includes(job.job_id))
-    .map((job: any) => {
-  const quoteNumber = job.quote_number
-    ? `Quote ${job.quote_number}`
-    : null
+    const selectedAddresses = filteredJobs
+      .filter((job: any) =>
+        selectedJobs.includes(job.job_id)
+      )
+      .map((job: any) => {
+        const quoteNumber = job.quote_number
+          ? `Quote ${job.quote_number}`
+          : null
 
-  const jobPoNumber = [job.job_number, job.po_number]
-    .filter(Boolean)
-    .join(' / ')
+        const jobPoNumber = [
+          job.job_number,
+          job.po_number,
+        ]
+          .filter(Boolean)
+          .join(' / ')
 
-  const reference = [quoteNumber, jobPoNumber]
-    .filter(Boolean)
-    .join(' | ')
+        const reference = [
+          quoteNumber,
+          jobPoNumber,
+        ]
+          .filter(Boolean)
+          .join(' | ')
 
-  const address = `${job.address_line_1}${job.town ? `, ${job.town}` : ''}${
-    job.postcode ? `, ${job.postcode}` : ''
-  }`
+        const address = `${job.address_line_1}${
+          job.town ? `, ${job.town}` : ''
+        }${job.postcode ? `, ${job.postcode}` : ''}`
 
-  return `• ${reference ? `${reference} - ` : ''}${address}`
-})
-.join('\n')
-
-  const selectedClients = Array.from(
-  new Set(
-    filteredJobs
-      .filter((job: any) => selectedJobs.includes(job.job_id))
-      .map((job: any) => job.client)
-      .filter(Boolean)
-  )
-)
-
-const clientLabel =
-  selectedClients.length === 1
-    ? selectedClients[0]
-    : 'Multiple Clients'
+        return `• ${
+          reference ? `${reference} - ` : ''
+        }${address}`
+      })
+      .join('\n')
 
     const greeting =
-  new Date().getHours() < 12
-    ? 'Good morning'
-    : new Date().getHours() < 17
-    ? 'Good afternoon'
-    : 'Good evening'
+      new Date().getHours() < 12
+        ? 'Good morning'
+        : new Date().getHours() < 17
+        ? 'Good afternoon'
+        : 'Good evening'
 
-  const response = await fetch('/api/create-scaffold-email-draft', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      to: '',
-      subject: `Awaiting Approval Chase - ${selectedJobs.length} Jobs`,
-      message: `${greeting},
+    const response = await fetch(
+      '/api/create-scaffold-email-draft',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: '',
+          subject: `Awaiting Approval Chase - ${selectedJobs.length} Jobs`,
+          message: `${greeting},
 
 Please could you provide an update on the following jobs:
 
@@ -255,52 +332,57 @@ ${selectedAddresses}
 Many thanks
 
 Ian Jackson`,
-    }),
-  })
+        }),
+      }
+    )
 
-  const result = await response.json()
+    const result = await response.json()
 
-  if (result.success) {
-    alert('Gmail draft created successfully')
-  } else {
-    alert('Failed to create draft')
+    if (result.success) {
+      alert('Gmail draft created successfully')
+    } else {
+      alert('Failed to create draft')
+    }
   }
-}
 
   return (
     <>
       <div className="mb-6">
         <input
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(event) =>
+            setSearch(event.target.value)
+          }
           placeholder="Search address, postcode, client, description..."
           className="w-full border border-gray-300 rounded-2xl px-5 py-4 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       {enableSelection && selectedJobs.length > 0 && (
-  <div className="mb-4 bg-white border border-slate-200 rounded-2xl px-5 py-4 flex items-center justify-between">
-    <p className="text-sm font-bold text-slate-700">
-      {selectedJobs.length} selected
-    </p>
+        <div className="mb-4 bg-white border border-slate-200 rounded-2xl px-5 py-4 flex items-center justify-between">
+          <p className="text-sm font-bold text-slate-700">
+            {selectedJobs.length} selected
+          </p>
 
-    {currentStatus === 'Awaiting Approval' ? (
-  <button
-    onClick={createApprovalChaseDraft}
-    className="bg-orange-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-orange-700 transition"
-  >
-    Create Chase Draft
-  </button>
-) : (
-  <button
-    onClick={printSelected}
-    className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-blue-700 transition"
-  >
-    Print Selected
-  </button>
-)}
-  </div>
-)}
+          {currentStatus === 'Awaiting Approval' ? (
+            <button
+              type="button"
+              onClick={createApprovalChaseDraft}
+              className="bg-orange-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-orange-700 transition cursor-pointer"
+            >
+              Create Chase Draft
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={printSelected}
+              className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-blue-700 transition cursor-pointer"
+            >
+              Print Selected
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         {enableSelection && (
@@ -316,158 +398,236 @@ Ian Jackson`,
             />
 
             <p className="text-xs font-bold uppercase tracking-wide text-slate-500">
-              Select All
+              Select All ({filteredJobs.length})
             </p>
           </div>
         )}
 
-        <div className="divide-y">
-          {filteredJobs.map((job: any) => {
-            const jobBlockers =
-              blockerLinks?.filter(
-                (link: any) => link.job_id === job.job_id
-              ) || []
+        <div className="divide-y divide-slate-200">
+          {filteredJobs.map(
+            (job: any, index: number) => {
+              const jobBlockers =
+                blockerLinks?.filter(
+                  (link: any) =>
+                    link.job_id === job.job_id
+                ) || []
 
               const jobTypes =
-  jobTypeLinks?.filter(
-    (link: any) => link.job_id === job.job_id
-  ) || []
+                jobTypeLinks?.filter(
+                  (link: any) =>
+                    link.job_id === job.job_id
+                ) || []
 
-  const workflowJob =
-  workflowJobs?.find(
-    (workflow: any) => workflow.id === job.job_id
-  ) || null
+              const workflowJob =
+                workflowJobs?.find(
+                  (workflow: any) =>
+                    workflow.id === job.job_id
+                ) || null
 
-const scaffoldStatusName =
-  getScaffoldWorkflowName(job.job_id)
+              const scaffoldStatusName =
+                getScaffoldWorkflowName(job.job_id)
 
-const asbestosStatusName =
-  workflowJob?.asbestos_statuses?.name
+              const asbestosStatusName =
+                workflowJob?.asbestos_statuses?.name
 
+              const jobHasBlockers =
+                jobBlockers.length > 0
 
-            const jobHasBlockers = jobBlockers.length > 0
+              const areaName = getAreaName(job.zone)
 
-            return (
-              <div
-                key={job.job_id}
-                className={`flex items-center gap-4 px-5 py-3 transition ${
-                  job.urgent
-                    ? 'bg-red-50 hover:bg-red-100'
-                    : jobHasBlockers
-                    ? 'bg-amber-50 hover:bg-amber-100'
-                    : 'bg-white hover:bg-slate-50'
-                }`}
-              >
-                {enableSelection && (
-                  <input
-                    type="checkbox"
-                    checked={selectedJobs.includes(job.job_id)}
-                    onChange={() => toggleJob(job.job_id)}
-                    className="h-4 w-4 shrink-0"
-                  />
-                )}
+              const previousAreaName =
+                index > 0
+                  ? getAreaName(
+                      filteredJobs[index - 1].zone
+                    )
+                  : null
 
-                <Link
-                  href={`/jobs/${job.job_id}`}
-                  className="flex items-center justify-between gap-4 flex-1 min-w-0"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${getStatusColour(job.status)}`}
-                    >
-                      {getStatusLetter(job.status)}
-                    </div>
+              const showAreaHeading =
+                index === 0 ||
+                areaName !== previousAreaName
 
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 min-w-0">
-  <p className="font-semibold text-sm text-slate-900 truncate">
-    {job.address_line_1}
-  </p>
-
-  {job.client && (
-    <span className="bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0">
-      {job.client}
-    </span>
-  )}
-</div>
-
-                      <p className="text-xs text-slate-600 truncate">
-                        {job.description}
+              return (
+                <Fragment key={job.job_id}>
+                  {showAreaHeading && (
+                    <div className="bg-slate-100 border-y border-slate-300 px-5 py-2.5">
+                      <p className="text-xs font-black uppercase tracking-wide text-slate-700">
+                        {areaName} (
+                        {areaCounts[areaName] || 0})
                       </p>
                     </div>
-                  </div>
+                  )}
 
-                  <div className="flex flex-wrap justify-end gap-2 shrink-0">
-                    {jobTypes.length > 0 ? (
-  jobTypes.map((jobType: any) => (
-    <span
-      key={jobType.id}
-      className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getJobTypeStyle(
-        jobType.job_types?.name
-      )}`}
-    >
-      {jobType.job_types?.name}
-    </span>
-  ))
-) : (
-  <span
-    className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getJobTypeStyle(job.job_type)}`}
-  >
-    {job.job_type}
-  </span>
-)}
-
-                    {job.urgent && (
-                      <span className="bg-red-500 text-white px-2.5 py-0.5 rounded-full text-xs font-bold">
-                        URGENT
-                      </span>
+                  <div
+                    className={`flex items-center gap-4 px-5 py-3 transition ${
+                      job.urgent
+                        ? 'bg-red-50 hover:bg-red-100'
+                        : jobHasBlockers
+                        ? 'bg-amber-50 hover:bg-amber-100'
+                        : 'bg-white hover:bg-slate-50'
+                    }`}
+                  >
+                    {enableSelection && (
+                      <input
+                        type="checkbox"
+                        checked={selectedJobs.includes(
+                          job.job_id
+                        )}
+                        onChange={() =>
+                          toggleJob(job.job_id)
+                        }
+                        className="h-4 w-4 shrink-0"
+                      />
                     )}
 
-                    {jobBlockers.map((blocker: any, index: number) => {
-  const blockerName = blocker.blocker_types?.name
+                    <Link
+                      href={`/jobs/${job.job_id}`}
+                      className="flex items-center justify-between gap-4 flex-1 min-w-0"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0 ${getStatusColour(
+                            job.status
+                          )}`}
+                        >
+                          {getStatusLetter(job.status)}
+                        </div>
 
-  if (blockerName === 'Scaffold' && scaffoldStatusName) {
-    return (
-      <span
-        key={index}
-        className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getScaffoldWorkflowStyle(scaffoldStatusName)}`}
-      >
-        Scaffold: {scaffoldStatusName}
-      </span>
-    )
-  }
+                        <div className="min-w-0">
+                          <p className="font-semibold text-sm text-slate-900 truncate">
+                            {[
+                              job.address_line_1,
+                              job.town,
+                              job.postcode,
+                            ]
+                              .filter(Boolean)
+                              .join(', ')}
+                          </p>
 
-  if (blockerName === 'Asbestos' && asbestosStatusName) {
-    return (
-      <span
-        key={index}
-        className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getAsbestosWorkflowStyle(asbestosStatusName)}`}
-      >
-        Asbestos: {asbestosStatusName}
-      </span>
-    )
-  }
+                          <p className="text-xs text-slate-500 truncate mt-1">
+                            {job.description}
+                          </p>
+                        </div>
+                      </div>
 
-  return (
-    <span
-      key={index}
-      className="bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full text-xs font-bold"
-    >
-      {blockerName}
-    </span>
-  )
-  
-})}
-{asbestosStatusName === 'Safe To Work' && (
-  <span className="bg-green-50 text-green-800 border border-green-300 px-2.5 py-0.5 rounded-full text-xs font-bold">
-    Asbestos: Safe To Work
-  </span>
-)}
+                      <div className="flex flex-wrap justify-end gap-2 shrink-0">
+                        {job.zone && (
+                          <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                            {job.zone.replace(
+                              /^\d+\s*-\s*/,
+                              ''
+                            )}
+                          </span>
+                        )}
+
+                        {jobTypes.length > 0 ? (
+                          jobTypes.map(
+                            (jobType: any) => (
+                              <span
+                                key={jobType.id}
+                                className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getJobTypeStyle(
+                                  jobType.job_types?.name
+                                )}`}
+                              >
+                                {
+                                  jobType.job_types
+                                    ?.name
+                                }
+                              </span>
+                            )
+                          )
+                        ) : (
+                          <span
+                            className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getJobTypeStyle(
+                              job.job_type
+                            )}`}
+                          >
+                            {job.job_type}
+                          </span>
+                        )}
+
+                        {job.urgent && (
+                          <span className="bg-red-700 text-white border-2 border-red-900 px-3 py-1 rounded-full text-xs font-black tracking-wide print:bg-white print:text-black print:border-black">
+                            URGENT
+                          </span>
+                        )}
+
+                        {jobBlockers.map(
+                          (
+                            blocker: any,
+                            blockerIndex: number
+                          ) => {
+                            const blockerName =
+                              blocker.blocker_types
+                                ?.name
+
+                            if (
+                              blockerName ===
+                                'Scaffold' &&
+                              scaffoldStatusName
+                            ) {
+                              return (
+                                <span
+                                  key={
+                                    blockerIndex
+                                  }
+                                  className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getScaffoldWorkflowStyle(
+                                    scaffoldStatusName
+                                  )}`}
+                                >
+                                  Scaffold:{' '}
+                                  {
+                                    scaffoldStatusName
+                                  }
+                                </span>
+                              )
+                            }
+
+                            if (
+                              blockerName ===
+                                'Asbestos' &&
+                              asbestosStatusName
+                            ) {
+                              return (
+                                <span
+                                  key={
+                                    blockerIndex
+                                  }
+                                  className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${getAsbestosWorkflowStyle(
+                                    asbestosStatusName
+                                  )}`}
+                                >
+                                  Asbestos:{' '}
+                                  {
+                                    asbestosStatusName
+                                  }
+                                </span>
+                              )
+                            }
+
+                            return (
+                              <span
+                                key={blockerIndex}
+                                className="bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-0.5 rounded-full text-xs font-bold"
+                              >
+                                {blockerName}
+                              </span>
+                            )
+                          }
+                        )}
+
+                        {asbestosStatusName ===
+                          'Safe To Work' && (
+                          <span className="bg-green-50 text-green-800 border border-green-300 px-2.5 py-0.5 rounded-full text-xs font-bold">
+                            Asbestos: Safe To Work
+                          </span>
+                        )}
+                      </div>
+                    </Link>
                   </div>
-                </Link>
-              </div>
-            )
-          })}
+                </Fragment>
+              )
+            }
+          )}
         </div>
       </div>
     </>

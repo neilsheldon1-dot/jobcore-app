@@ -214,7 +214,16 @@ if (params.asbestosStatus) {
         return hasBlockers
       }) || []
   }
-
+const { data: zoneLocations } = await supabase
+  .from('zone_locations')
+  .select(`
+    location_name,
+    sort_order,
+    area_zones (
+      name,
+      sort_order
+    )
+  `)
   return (
     <main className="min-h-screen bg-slate-100">
       <AppHeader active="jobs" />
@@ -287,6 +296,7 @@ if (params.asbestosStatus) {
   jobTypeLinks={jobTypeLinks || []}
   workflowJobs={workflowJobs || []}
   scaffoldRecords={scaffoldRecords || []}
+  zoneLocations={zoneLocations || []}
   currentStatus={params.status || null}
   enableSelection={
     params.status === 'Ticket' ||
