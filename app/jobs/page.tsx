@@ -298,10 +298,7 @@ const { data: zoneLocations } = await supabase
   scaffoldRecords={scaffoldRecords || []}
   zoneLocations={zoneLocations || []}
   currentStatus={params.status || null}
-  enableSelection={
-    params.status === 'Ticket' ||
-    params.status === 'Awaiting Approval'
-  }
+  enableSelection={true}
 />
       </div>
     </main>

@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { Fragment, useState } from 'react'
+import BulkActionsBar from '@/components/bulk-actions/BulkActionsBar'
 
 export default function JobsInbox({
   jobs,
@@ -15,6 +16,8 @@ export default function JobsInbox({
 }: any) {
   const [selectedJobs, setSelectedJobs] = useState<string[]>([])
   const [search, setSearch] = useState('')
+  const [bulkStatus, setBulkStatus] = useState('')
+  const [bulkUpdating, setBulkUpdating] = useState(false)
 
   const locationOrder = new Map<
   string,
@@ -39,45 +42,126 @@ export default function JobsInbox({
   }
 
   const filteredJobs = jobs
-    .filter((job: any) => {
-      const searchText = search.toLowerCase()
+  .filter((job: any) => {
+    const searchText = search.toLowerCase()
 
-      return [
-        job.job_number,
-        job.po_number,
-        job.address_line_1,
-        job.town,
-        job.postcode,
-        job.client,
-        job.description,
-        job.status,
-        job.job_type,
-        job.zone,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase()
-        .includes(searchText)
-    })
-    .sort((a: any, b: any) => {
-      const aZone = locationOrder.get(a.zone) || {
-        areaOrder: 999,
-        locationOrder: 999,
-      }
+    return [
+      job.job_number,
+      job.po_number,
+      job.address_line_1,
+      job.town,
+      job.postcode,
+      job.client,
+      job.description,
+      job.status,
+      job.job_type,
+      job.zone,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
+      .includes(searchText)
+  })
+  .sort((a: any, b: any) => {
+    const aZone = locationOrder.get(a.zone) || {
+      areaOrder: 999,
+      locationOrder: 999,
+    }
 
-      const bZone = locationOrder.get(b.zone) || {
-        areaOrder: 999,
-        locationOrder: 999,
-      }
+    const bZone = locationOrder.get(b.zone) || {
+      areaOrder: 999,
+      locationOrder: 999,
+    }
+
+    return (
+      aZone.areaOrder - bZone.areaOrder ||
+      aZone.locationOrder - bZone.locationOrder ||
+      (a.address_line_1 || '').localeCompare(
+        b.address_line_1 || ''
+      )
+    )
+  })
+  const selectedJobDetails = filteredJobs.filter(
+    (job: any) => selectedJobs.includes(job.job_id)
+  )
+
+  const canCreateApprovalChase =
+    selectedJobDetails.length > 0 &&
+    selectedJobDetails.every(
+      (job: any) => job.status === 'Awaiting Approval'
+    )
+
+  const canChaseScaffoldQuotes =
+    selectedJobDetails.length > 0 &&
+    selectedJobDetails.every((job: any) => {
+      const scaffoldRecord = scaffoldRecords?.find(
+        (record: any) => record.job_id === job.job_id
+      )
 
       return (
-        aZone.areaOrder - bZone.areaOrder ||
-        aZone.locationOrder - bZone.locationOrder ||
-        (a.address_line_1 || '').localeCompare(
-          b.address_line_1 || ''
-        )
+        scaffoldRecord?.quote_requested_date &&
+        !scaffoldRecord?.quote_received_date
       )
     })
+
+  
+async function applyBulkStatus() {
+  if (!bulkStatus) {
+    alert('Please choose an action')
+    return
+  }
+
+  if (selectedJobs.length === 0) {
+    alert('Please select at least one job')
+    return
+  }
+
+  if (bulkStatus === 'CHASE_APPROVALS') {
+    await createApprovalChaseDraft()
+    return
+  }
+
+  if (bulkStatus === 'CHASE_SCAFFOLD_QUOTES') {
+    await createScaffoldQuoteChaseDraft()
+    return
+  }
+
+  
+
+  setBulkUpdating(true)
+
+  try {
+    const response = await fetch('/api/bulk-update-status', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        job_ids: selectedJobs,
+        status: bulkStatus,
+      }),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      alert(
+        result.error?.message ||
+          result.error ||
+          'Failed to update selected jobs'
+      )
+      return
+    }
+
+    setSelectedJobs([])
+    setBulkStatus('')
+    window.location.reload()
+  } catch (error: any) {
+    alert(error.message || 'Failed to update selected jobs')
+  } finally {
+    setBulkUpdating(false)
+  }
+}
 
   const areaCounts = filteredJobs.reduce(
     (counts: Record<string, number>, job: any) => {
@@ -344,7 +428,111 @@ Ian Jackson`,
       alert('Failed to create draft')
     }
   }
+async function createScaffoldQuoteChaseDraft() {
+  const selectedJobDetails = filteredJobs.filter((job: any) =>
+    selectedJobs.includes(job.job_id)
+  )
 
+  const outstandingJobs = selectedJobDetails.filter((job: any) => {
+    const scaffoldRecord = scaffoldRecords?.find(
+      (record: any) => record.job_id === job.job_id
+    )
+
+    return (
+      scaffoldRecord?.quote_requested_date &&
+      !scaffoldRecord?.quote_received_date
+    )
+  })
+
+  if (outstandingJobs.length === 0) {
+    alert(
+      'None of the selected jobs have an outstanding scaffold quotation'
+    )
+    return
+  }
+
+  
+
+  const greeting =
+    new Date().getHours() < 12
+      ? 'Good morning'
+      : new Date().getHours() < 17
+      ? 'Good afternoon'
+      : 'Good evening'
+
+  const jobList = outstandingJobs
+    .map((job: any) => {
+      const address = [
+        job.address_line_1,
+        job.town,
+        job.postcode,
+      ]
+        .filter(Boolean)
+        .join(', ')
+
+      const reference = [
+        job.job_number,
+        job.po_number,
+      ]
+        .filter(Boolean)
+        .join(' / ')
+
+      return `• ${reference ? `${reference} - ` : ''}${address}
+
+Works required:
+${job.description || 'No description recorded'}`
+    })
+    .join('\n\n')
+
+  setBulkUpdating(true)
+
+  try {
+    const response = await fetch(
+      '/api/create-scaffold-email-draft',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: '',
+          subject: `Outstanding scaffold quotations - ${outstandingJobs.length} jobs`,
+          message: `${greeting},
+
+Please could you provide an update on the following outstanding scaffold quotations:
+
+${jobList}
+
+Many thanks
+
+Neil Sheldon`,
+        }),
+      }
+    )
+
+    const result = await response.json()
+
+    if (!response.ok || !result.success) {
+      alert(
+        result.error ||
+          'Failed to create scaffold quote chase draft'
+      )
+      return
+    }
+
+    alert('Scaffold quote chase draft created successfully')
+
+    setSelectedJobs([])
+    setBulkStatus('')
+  } catch (error: any) {
+    alert(
+      error.message ||
+        'Failed to create scaffold quote chase draft'
+    )
+  } finally {
+    setBulkUpdating(false)
+  }
+}
   return (
     <>
       <div className="mb-6">
@@ -358,31 +546,19 @@ Ian Jackson`,
         />
       </div>
 
-      {enableSelection && selectedJobs.length > 0 && (
-        <div className="mb-4 bg-white border border-slate-200 rounded-2xl px-5 py-4 flex items-center justify-between">
-          <p className="text-sm font-bold text-slate-700">
-            {selectedJobs.length} selected
-          </p>
-
-          {currentStatus === 'Awaiting Approval' ? (
-            <button
-              type="button"
-              onClick={createApprovalChaseDraft}
-              className="bg-orange-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-orange-700 transition cursor-pointer"
-            >
-              Create Chase Draft
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={printSelected}
-              className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-blue-700 transition cursor-pointer"
-            >
-              Print Selected
-            </button>
-          )}
-        </div>
-      )}
+      {enableSelection && (
+  <BulkActionsBar
+    selectedCount={selectedJobs.length}
+    currentStatus={currentStatus}
+    bulkStatus={bulkStatus}
+    bulkUpdating={bulkUpdating}
+    canCreateApprovalChase={canCreateApprovalChase}
+    canChaseScaffoldQuotes={canChaseScaffoldQuotes}
+    onBulkStatusChange={setBulkStatus}
+    onApply={applyBulkStatus}
+    onPrintSelected={printSelected}
+  />
+)}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
         {enableSelection && (
