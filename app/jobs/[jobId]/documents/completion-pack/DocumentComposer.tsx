@@ -428,7 +428,7 @@ link.download = `${
 
         {showSummaryModal && (
           <SummaryEditorModal
-          reportType={reportType}
+          
             draftSummary={draftSummary}
             draftingSummary={draftingSummary}
             onChange={setDraftSummary}
