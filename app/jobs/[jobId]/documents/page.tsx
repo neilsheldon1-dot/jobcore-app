@@ -77,6 +77,13 @@ export default async function DocumentsPage({
         />
 
         <FeatureCard
+          icon="🔎"
+          title="Inspection Report"
+          description="Create an inspection report with findings, notes and photographic evidence."
+          href={`/jobs/${jobId}/documents/inspection-report`}
+        />
+        
+        <FeatureCard
           icon="📋"
           title="Handover Pack"
           description="Produce a handover pack for completed works."

@@ -2,7 +2,9 @@
 
 import Link from 'next/link'
 import { Fragment, useState } from 'react'
-import BulkActionsBar from '@/components/bulk-actions/BulkActionsBar'
+import BulkActionsBar, {
+  type BulkAction,
+} from '@/components/bulk-actions/BulkActionsBar'
 
 export default function JobsInbox({
   jobs,
@@ -103,7 +105,86 @@ export default function JobsInbox({
         !scaffoldRecord?.quote_received_date
       )
     })
+  const availableActions: BulkAction[] = [
+    ...(currentStatus !== 'Allocated'
+      ? [
+          {
+            value: 'Allocated',
+            label: 'Move to Allocated',
+            group: 'Change Status',
+          },
+        ]
+      : []),
 
+    ...(currentStatus !== 'Ready'
+      ? [
+          {
+            value: 'Ready',
+            label: 'Move to Ready',
+            group: 'Change Status',
+          },
+        ]
+      : []),
+
+    ...(currentStatus !== 'Needs Invoicing'
+      ? [
+          {
+            value: 'Needs Invoicing',
+            label: 'Move to Needs Invoicing',
+            group: 'Change Status',
+          },
+        ]
+      : []),
+
+    ...(currentStatus !== 'Complete'
+      ? [
+          {
+            value: 'Complete',
+            label: 'Move to Complete',
+            group: 'Change Status',
+          },
+        ]
+      : []),
+
+    ...(canCreateApprovalChase
+      ? [
+          {
+            value: 'CHASE_APPROVALS',
+            label: 'Create Approval Chase Draft',
+            group: 'Communication',
+          },
+        ]
+      : []),
+
+    ...(canChaseScaffoldQuotes
+      ? [
+          {
+            value: 'CHASE_SCAFFOLD_QUOTES',
+            label: 'Chase Scaffold Quotes',
+            group: 'Communication',
+          },
+        ]
+      : []),
+    ...(selectedJobs.length === 1
+      ? [
+          {
+            value: 'EDIT_JOB',
+            label: 'Edit Job',
+            group: 'Job',
+          },
+          {
+            value: 'OPEN_COMPLETION_PACK',
+            label: 'Open Completion Pack',
+            group: 'Documents',
+          },
+        ]
+      : []),
+    {
+      value: 'PRINT_SELECTED',
+      label: 'Print Selected',
+      group: 'Documents',
+    },
+  ]
   
 async function applyBulkStatus() {
   if (!bulkStatus) {
@@ -126,8 +207,19 @@ async function applyBulkStatus() {
     return
   }
 
-  
+    if (bulkStatus === 'PRINT_SELECTED') {
+    printSelected()
+    return
+  }
+    if (bulkStatus === 'EDIT_JOB') {
+      window.location.href = `/jobs/${selectedJobs[0]}/edit`
+      return
+    }
 
+    if (bulkStatus === 'OPEN_COMPLETION_PACK') {
+      window.location.href = `/jobs/${selectedJobs[0]}/documents/completion-pack`
+      return
+    }
   setBulkUpdating(true)
 
   try {
@@ -549,14 +641,11 @@ Neil Sheldon`,
       {enableSelection && (
   <BulkActionsBar
     selectedCount={selectedJobs.length}
-    currentStatus={currentStatus}
-    bulkStatus={bulkStatus}
-    bulkUpdating={bulkUpdating}
-    canCreateApprovalChase={canCreateApprovalChase}
-    canChaseScaffoldQuotes={canChaseScaffoldQuotes}
-    onBulkStatusChange={setBulkStatus}
+    selectedAction={bulkStatus}
+    updating={bulkUpdating}
+    actions={availableActions}
+    onActionChange={setBulkStatus}
     onApply={applyBulkStatus}
-    onPrintSelected={printSelected}
   />
 )}
 

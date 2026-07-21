@@ -5,6 +5,20 @@ type PreviewPanelProps = {
 export default function PreviewPanel({ document }: PreviewPanelProps) {
   const hasSummary = !!document.summary
 
+  const isInspection =
+    document.reportType === 'inspection'
+
+  const reportTitle = isInspection
+    ? 'Inspection Report'
+    : 'Completion Report'
+
+  const summaryHeading = isInspection
+    ? 'Inspection Findings'
+    : 'Works Completed'
+
+  const emptySummaryText = isInspection
+    ? 'Draft an inspection summary to populate this section.'
+    : 'Draft a completion summary to populate this section.'
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
       <div className="border-b border-slate-200 bg-slate-50 px-5 py-4 flex items-center justify-between">
@@ -14,7 +28,7 @@ export default function PreviewPanel({ document }: PreviewPanelProps) {
           </p>
 
           <h2 className="text-lg font-bold text-slate-900 mt-1">
-            Completion Report
+            {reportTitle}
           </h2>
         </div>
 
@@ -33,7 +47,7 @@ export default function PreviewPanel({ document }: PreviewPanelProps) {
         <div className="border border-slate-200 rounded-xl bg-white text-sm text-slate-800 overflow-hidden">
           <div className="p-5 border-b border-slate-200">
             <h1 className="text-xl font-black text-slate-900 uppercase tracking-wide">
-              Completion Report
+              {reportTitle}
             </h1>
 
             <div className="mt-4 text-sm text-slate-700">
@@ -62,7 +76,7 @@ export default function PreviewPanel({ document }: PreviewPanelProps) {
           <div className="p-5 space-y-6">
             <section>
               <h2 className="text-sm font-black text-slate-900 uppercase tracking-wide mb-2">
-                Works Completed
+                {summaryHeading}
               </h2>
 
               {document.summary ? (
@@ -71,7 +85,7 @@ export default function PreviewPanel({ document }: PreviewPanelProps) {
                 </p>
               ) : (
                 <p className="text-slate-400 italic">
-                  Draft a completion summary to populate this section.
+                  {emptySummaryText}
                 </p>
               )}
             </section>

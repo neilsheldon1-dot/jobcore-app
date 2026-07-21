@@ -222,7 +222,7 @@ export default function PhotoUploadForm({
                 <input
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  placeholder="Photo description or category"
+                  placeholder="Optional description, e.g. rear verge or finished repair"
                   className="w-full border border-gray-300 rounded-xl px-4 py-3"
                 />
               </div>

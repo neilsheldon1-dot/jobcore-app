@@ -1,5 +1,6 @@
 type ReportActionsPanelProps = {
-  draftingSummary: boolean
+  reportType?: 'completion' | 'inspection'
+    draftingSummary: boolean
   onDraftSummary: () => void
   onCreatePdf: () => void
   report: any
@@ -7,6 +8,7 @@ type ReportActionsPanelProps = {
 }
 
 export default function ReportActionsPanel({
+  reportType = 'completion',
   draftingSummary,
   onDraftSummary,
   onCreatePdf,
@@ -15,6 +17,23 @@ export default function ReportActionsPanel({
 }: ReportActionsPanelProps) {
 
   const hasReport = !!report?.summary
+    const isInspection = reportType === 'inspection'
+
+  const creatingLabel = isInspection
+    ? 'Creating inspection report...'
+    : 'Creating completion report...'
+
+  const createLabel = isInspection
+    ? 'Create Inspection Report'
+    : 'Create Completion Report'
+
+  const updateLabel = isInspection
+    ? 'Update Inspection Report'
+    : 'Update Completion Report'
+
+  const pdfLabel = isInspection
+    ? 'Create Inspection PDF'
+    : 'Create Completion PDF'
 
   const statusLabel = hasUnsavedChanges
   ? 'Unsaved Changes'
@@ -45,8 +64,10 @@ export default function ReportActionsPanel({
 
         <p className="text-xs text-slate-500 mt-2">
           {hasReport
-            ? 'This report has been saved to the job.'
-            : 'Create and save a report before exporting a PDF.'}
+  ? `This ${isInspection ? 'inspection' : 'completion'} report has been saved to the job.`
+  : `Create and save the ${
+      isInspection ? 'inspection' : 'completion'
+    } report before exporting a PDF.`}
         </p>
        {hasReport && (
   <p className="text-xs text-slate-400 mt-2">
@@ -65,10 +86,10 @@ export default function ReportActionsPanel({
           className="w-full bg-purple-600 text-white px-4 py-3 rounded-xl text-sm font-bold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50"
         >
           {draftingSummary
-            ? 'Creating report...'
-            : hasReport
-              ? 'Update Report'
-              : 'Create Report'}
+  ? creatingLabel
+  : hasReport
+    ? updateLabel
+    : createLabel}
         </button>
 
         <button
@@ -77,7 +98,7 @@ export default function ReportActionsPanel({
           disabled={!hasReport}
           className="w-full mt-3 bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-slate-900 transition cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
         >
-          Create PDF
+          {pdfLabel}
         </button>
 
         <button

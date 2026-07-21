@@ -1,115 +1,90 @@
 'use client'
 
+export type BulkAction = {
+  value: string
+  label: string
+  group: string
+}
+
 type BulkActionsBarProps = {
   selectedCount: number
-  currentStatus?: string
-  bulkStatus: string
-  bulkUpdating: boolean
-  canCreateApprovalChase: boolean
-  canChaseScaffoldQuotes: boolean
-  onBulkStatusChange: (value: string) => void
+  selectedAction: string
+  updating: boolean
+  actions: BulkAction[]
+  onActionChange: (value: string) => void
   onApply: () => void
-  onPrintSelected: () => void
 }
 
 export default function BulkActionsBar({
   selectedCount,
-  currentStatus,
-  bulkStatus,
-  bulkUpdating,
-  canCreateApprovalChase,
-  canChaseScaffoldQuotes,
-  onBulkStatusChange,
+  selectedAction,
+  updating,
+  actions,
+  onActionChange,
   onApply,
-  onPrintSelected,
 }: BulkActionsBarProps) {
   if (selectedCount === 0) return null
 
+  const actionGroups = actions.reduce(
+    (
+      groups: Record<string, BulkAction[]>,
+      action
+    ) => {
+      if (!groups[action.group]) {
+        groups[action.group] = []
+      }
+
+      groups[action.group].push(action)
+
+      return groups
+    },
+    {}
+  )
+
   return (
-    <div className="mb-4 bg-white border border-slate-200 rounded-2xl px-5 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-      <p className="text-sm font-bold text-slate-700">
-        {selectedCount}{' '}
-        {selectedCount === 1
-          ? 'Job Selected'
-          : 'Jobs Selected'}
+    <div className="mb-4 bg-blue-600 border border-white rounded-2xl px-5 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 shadow-lg transition-all duration-300">
+      <p className="text-sm font-bold text-white">
+        ✓ {selectedCount}{' '} 
+{selectedCount === 1 ? 'job' : 'jobs'} Selected
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
         <select
-          value={bulkStatus}
+          value={selectedAction}
           onChange={(event) =>
-            onBulkStatusChange(event.target.value)
+            onActionChange(event.target.value)
           }
-          className="w-64 border border-slate-300 rounded-xl px-4 py-2 text-sm font-semibold bg-white"
+          className="w-64 border border-slate-300 rounded-xl px-4 py-2 text-sm font-semibold bg-white shadow-sm"
         >
           <option value="">Choose Action...</option>
 
-<option value="" disabled>
-  ── Change Status ──
-</option>
-
-{currentStatus !== 'Allocated' && (
-  <option value="Allocated">
-    Move to Allocated
-  </option>
-)}
-
-{currentStatus !== 'Ready' && (
-  <option value="Ready">
-    Move to Ready
-  </option>
-)}
-
-{currentStatus !== 'Needs Invoicing' && (
-  <option value="Needs Invoicing">
-    Move to Needs Invoicing
-  </option>
-)}
-
-{currentStatus !== 'Complete' && (
-  <option value="Complete">
-    Move to Complete
-  </option>
-)}
-
-{(canCreateApprovalChase ||
-  canChaseScaffoldQuotes) && (
-  <option value="" disabled>
-    ── Communication ──
-  </option>
-)}
-
-{canCreateApprovalChase && (
-  <option value="CHASE_APPROVALS">
-    Create Approval Chase Draft
-  </option>
-)}
-
-{canChaseScaffoldQuotes && (
-  <option value="CHASE_SCAFFOLD_QUOTES">
-    Chase Scaffold Quotes
-  </option>
-)}
-
+          {Object.entries(actionGroups).map(
+            ([groupName, groupActions]) => (
+              <optgroup
+                key={groupName}
+                label={groupName}
+              >
+                {groupActions.map((action) => (
+                  <option
+                    key={action.value}
+                    value={action.value}
+                  >
+                    {action.label}
+                  </option>
+                ))}
+              </optgroup>
+            )
+          )}
         </select>
 
         <button
           type="button"
           onClick={onApply}
-          disabled={!bulkStatus || bulkUpdating}
-          className="bg-slate-800 text-white px-5 py-2 rounded-xl font-bold hover:bg-slate-900 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          disabled={!selectedAction || updating}
+         className="bg-white text-black px-4 py-2 rounded-xl font-bold hover:bg-slate-100 transition disabled:bg-white disabled:text-black disabled:opacity-100 disabled:cursor-not-allowed cursor-pointer shadow-sm"
         >
-          {bulkUpdating ? 'Updating...' : 'Apply'}
+          {updating ? 'Working...' : 'Apply'}
         </button>
-
-        <button
-  type="button"
-  onClick={onPrintSelected}
-  disabled={bulkUpdating}
-  className="bg-blue-600 text-white px-5 py-2 rounded-xl font-bold hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
->
-  Print Selected
-</button>
       </div>
     </div>
   )

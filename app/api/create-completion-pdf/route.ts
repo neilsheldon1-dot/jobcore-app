@@ -113,6 +113,23 @@ const styles = StyleSheet.create({
 })
 
 function CompletionPdf({ document }: { document: any }) {
+      const isInspection = document.reportType === 'inspection'
+
+  const reportTitle = isInspection
+    ? 'Inspection Report'
+    : 'Completion Report'
+
+  const summaryHeading = isInspection
+    ? 'Inspection Findings'
+    : 'Summary of Works'
+
+  const emptySummaryText = isInspection
+    ? 'No inspection summary added.'
+    : 'No completion summary added.'
+
+  const photoIntro = isInspection
+    ? 'The following photographs record the inspection findings.'
+    : 'The following photographs record the completed works.'
   const groupedPhotos = (document.photos || []).reduce(
     (groups: Record<string, any[]>, photo: any) => {
       const group = photo.photo_group || 'Photos'
@@ -144,7 +161,7 @@ function CompletionPdf({ document }: { document: any }) {
             React.createElement(
               Text,
               { style: styles.intro },
-              'The following photographs record the completed works.'
+              photoIntro
             ),
 
             ...Object.entries(groupedPhotos as Record<string, any[]>).flatMap(
@@ -198,7 +215,7 @@ function CompletionPdf({ document }: { document: any }) {
       { size: 'A4', style: styles.page },
 
       React.createElement(Text, { style: styles.brand }, 'Rubber Roofs'),
-      React.createElement(Text, { style: styles.title }, 'Completion Report'),
+      React.createElement(Text, { style: styles.title }, reportTitle),
 
       React.createElement(View, { style: styles.divider }),
 
@@ -238,11 +255,11 @@ function CompletionPdf({ document }: { document: any }) {
       React.createElement(
         View,
         { style: styles.summaryPanel },
-        React.createElement(Text, { style: styles.heading }, 'Summary of Works'),
+        React.createElement(Text, { style: styles.heading }, summaryHeading),
         React.createElement(
           Text,
           { style: styles.text },
-          document.summary || 'No completion summary added.'
+          document.summary || emptySummaryText
         )
       ),
 
@@ -268,6 +285,10 @@ function CompletionPdf({ document }: { document: any }) {
 
 export async function POST(req: Request) {
   const document = await req.json()
+    const filename =
+    document.reportType === 'inspection'
+      ? 'inspection-report.pdf'
+      : 'completion-report.pdf'
 
   const pdfBlob = await pdf(
     CompletionPdf({ document }) as any
@@ -278,7 +299,7 @@ export async function POST(req: Request) {
   return new NextResponse(buffer, {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': 'attachment; filename="completion-report.pdf"',
+      'Content-Disposition': `attachment; filename="${filename}"`,
     },
   })
 }

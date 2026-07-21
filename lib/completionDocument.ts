@@ -1,4 +1,5 @@
 export function buildCompletionDocument({
+  reportType = 'completion',
   job,
   notes,
   photos,
@@ -27,6 +28,8 @@ export function buildCompletionDocument({
 })
 
   return {
+    reportType,
+    
     property: {
       address: [
         job.address_line_1,

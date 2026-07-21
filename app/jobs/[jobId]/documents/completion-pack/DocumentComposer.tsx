@@ -10,6 +10,7 @@ import BuilderSettingRow from '@/components/BuilderSettingRow'
 import NoteSelectorModal from '@/components/NoteSelectorModal'
 
 type DocumentComposerProps = {
+  reportType?: 'completion' | 'inspection'
   job: any
   notes: any[]
   photos: any[]
@@ -19,6 +20,7 @@ type DocumentComposerProps = {
 }
 
 export default function DocumentComposer({
+  reportType = 'completion',
   job,
   notes,
   photos,
@@ -26,6 +28,11 @@ export default function DocumentComposer({
   asbestosRecord,
   completionReport,
 }: DocumentComposerProps) {
+  const isInspection = reportType === 'inspection'
+
+  const reportName = isInspection
+    ? 'inspection report'
+    : 'completion report'
   const generalNotes = notes.filter((note) => !note.internal_only)
   const internalNotes = notes.filter((note) => note.internal_only)
 
@@ -60,9 +67,10 @@ const [selectedInternalNoteIds, setSelectedInternalNoteIds] = useState(
   internalNotes.map((note) => note.id)
 )
   const completionDocument = buildCompletionDocument({
-    job,
-    notes,
-    photos,
+  reportType,
+  job,
+  notes,
+  photos,
     scaffoldRecord,
     asbestosRecord,
     options: {
@@ -201,7 +209,11 @@ async function createPdf() {
     .replace(/[^a-zA-Z0-9-]/g, '')
     .toLowerCase() || 'job'
 
-link.download = `completion-report-${safeAddress}.pdf`
+link.download = `${
+  isInspection
+    ? 'inspection-report'
+    : 'completion-report'
+}-${safeAddress}.pdf`
   link.click()
 
   window.URL.revokeObjectURL(url)
@@ -211,12 +223,14 @@ link.download = `completion-report-${safeAddress}.pdf`
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5">
         <h2 className="text-lg font-bold text-slate-900 mb-1">
-          Create Report
-        </h2>
+  {isInspection
+    ? 'Create Inspection Report'
+    : 'Create Completion Report'}
+</h2>
 
-        <p className="text-sm text-slate-500 mb-5">
-          Choose what to include in the completion report.
-        </p>
+<p className="text-sm text-slate-500 mb-5">
+  Choose what to include in the {reportName}.
+</p>
 
         <div className="grid gap-3">
           <p className="text-xs uppercase font-bold text-slate-400 mt-2">
@@ -366,6 +380,7 @@ link.download = `completion-report-${safeAddress}.pdf`
         <PreviewPanel document={completionDocument} />
 
         <ReportActionsPanel
+        reportType={reportType}
   draftingSummary={draftingSummary}
   onDraftSummary={() => draftCompletionSummary(false)}
   onCreatePdf={createPdf}
@@ -413,6 +428,7 @@ link.download = `completion-report-${safeAddress}.pdf`
 
         {showSummaryModal && (
           <SummaryEditorModal
+          reportType={reportType}
             draftSummary={draftSummary}
             draftingSummary={draftingSummary}
             onChange={setDraftSummary}
