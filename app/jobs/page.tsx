@@ -17,6 +17,7 @@ type SearchParams = Promise<{
   asbestosStatus?: string
   scaffoldPipeline?: string
   client?: string
+  onHold?: string
 }>
 
 export default async function JobsPage({
@@ -33,13 +34,32 @@ export default async function JobsPage({
     .order('sort_order', { ascending: true })
     .order('created_at', { ascending: false })
 
+  /*
+   * On Hold inbox:
+   * Show only jobs marked as held.
+   */
+  if (params.onHold === 'true') {
+    query = query.eq('is_on_hold', true)
+  }
+
+  /*
+   * Normal operational inboxes:
+   * Hide jobs marked as held.
+   *
+   * Search is deliberately excluded from this rule so held jobs
+   * can still be found through the normal job search.
+   */
+  if (params.onHold !== 'true' && !params.search) {
+    query = query.eq('is_on_hold', false)
+  }
+
   if (params.status) {
     query = query.eq('status', params.status)
   }
 
   if (params.client) {
-  query = query.eq('client', params.client)
-}
+    query = query.eq('client', params.client)
+  }
 
   if (params.urgent === 'true') {
     query = query.eq('urgent', true)
@@ -53,88 +73,125 @@ export default async function JobsPage({
 
   let { data: jobs } = await query
 
- const liveJobIds = jobs?.map((job: any) => job.job_id) || []
+  const liveJobIds =
+    jobs?.map((job: any) => job.job_id) || []
 
-const { data: workflowJobs } = await supabase
-  .from('jobs')
-  .select(`
-    id,
-    scaffold_status_id,
-    asbestos_status_id,
-    scaffold_statuses (
-      name
-    ),
-    asbestos_statuses (
-      name
+  const { data: workflowJobs } = await supabase
+    .from('jobs')
+    .select(`
+      id,
+      scaffold_status_id,
+      asbestos_status_id,
+      scaffold_statuses (
+        name
+      ),
+      asbestos_statuses (
+        name
+      )
+    `)
+    .in('id', liveJobIds)
+
+  if (params.scaffoldStatus) {
+    const scaffoldStatusId = Number(params.scaffoldStatus)
+
+    const matchingJobIds =
+      workflowJobs
+        ?.filter(
+          (job: any) =>
+            job.scaffold_status_id === scaffoldStatusId
+        )
+        .map((job: any) => job.id) || []
+
+    jobs =
+      jobs?.filter((job: any) =>
+        matchingJobIds.includes(job.job_id)
+      ) || []
+  }
+
+  const { data: scaffoldRecords } = await supabase
+    .from('scaffold_records')
+    .select('*')
+    .in('job_id', liveJobIds)
+
+  if (params.scaffoldPipeline) {
+    const matchingJobIds =
+      scaffoldRecords
+        ?.filter((record: any) => {
+          if (
+            params.scaffoldPipeline === 'Awaiting Quote'
+          ) {
+            return (
+              record.quote_requested_date &&
+              !record.quote_received_date
+            )
+          }
+
+          if (
+            params.scaffoldPipeline === 'Quote Received'
+          ) {
+            return (
+              record.quote_received_date &&
+              !record.erection_requested_date
+            )
+          }
+
+          if (
+            params.scaffoldPipeline ===
+            'Awaiting Erection'
+          ) {
+            return (
+              record.erection_requested_date &&
+              !record.erected_date
+            )
+          }
+
+          if (
+            params.scaffoldPipeline === 'Scaffold Up'
+          ) {
+            return (
+              record.erected_date &&
+              !record.dismantle_requested_date
+            )
+          }
+
+          if (
+            params.scaffoldPipeline ===
+            'Awaiting Dismantle'
+          ) {
+            return (
+              record.dismantle_requested_date &&
+              !record.dismantled_date
+            )
+          }
+
+          return false
+        })
+        .map((record: any) => record.job_id) || []
+
+    jobs =
+      jobs?.filter((job: any) =>
+        matchingJobIds.includes(job.job_id)
+      ) || []
+  }
+
+  if (params.asbestosStatus) {
+    const asbestosStatusId = Number(
+      params.asbestosStatus
     )
-  `)
-  .in('id', liveJobIds)
 
-if (params.scaffoldStatus) {
-  const scaffoldStatusId = Number(params.scaffoldStatus)
+    const matchingJobIds =
+      workflowJobs
+        ?.filter(
+          (job: any) =>
+            job.asbestos_status_id === asbestosStatusId
+        )
+        .map((job: any) => job.id) || []
 
-  const matchingJobIds =
-    workflowJobs
-      ?.filter((job: any) => job.scaffold_status_id === scaffoldStatusId)
-      .map((job: any) => job.id) || []
-
-  jobs =
-    jobs?.filter((job: any) =>
-      matchingJobIds.includes(job.job_id)
-    ) || []
-}
-const { data: scaffoldRecords } = await supabase
-  .from('scaffold_records')
-  .select('*')
-  .in('job_id', liveJobIds)
-
-if (params.scaffoldPipeline) {
-  const matchingJobIds =
-    scaffoldRecords
-      ?.filter((record: any) => {
-        if (params.scaffoldPipeline === 'Awaiting Quote') {
-          return record.quote_requested_date && !record.quote_received_date
-        }
-
-        if (params.scaffoldPipeline === 'Quote Received') {
-          return record.quote_received_date && !record.erection_requested_date
-        }
-
-        if (params.scaffoldPipeline === 'Awaiting Erection') {
-          return record.erection_requested_date && !record.erected_date
-        }
-
-        if (params.scaffoldPipeline === 'Scaffold Up') {
-          return record.erected_date && !record.dismantle_requested_date
-        }
-
-        if (params.scaffoldPipeline === 'Awaiting Dismantle') {
-          return record.dismantle_requested_date && !record.dismantled_date
-        }
-
-        return false
-      })
-      .map((record: any) => record.job_id) || []
-
-  jobs =
-    jobs?.filter((job: any) =>
-      matchingJobIds.includes(job.job_id)
-    ) || []
-}
-
-if (params.asbestosStatus) {
-  const asbestosStatusId = Number(params.asbestosStatus)
-
-  const matchingJobIds =
-    workflowJobs
-      ?.filter((job: any) => job.asbestos_status_id === asbestosStatusId)
-      .map((job: any) => job.id) || []
-
-  jobs =
-    jobs?.filter((job: any) =>
-      matchingJobIds.includes(job.job_id)
-    ) || []
-}
+    jobs =
+      jobs?.filter((job: any) =>
+        matchingJobIds.includes(job.job_id)
+      ) || []
+  }
 
   const { data: blockerLinks } = await supabase
     .from('job_blocker_links')
@@ -144,8 +201,6 @@ if (params.asbestosStatus) {
         name
       )
     `)
-
-
 
   const { data: jobTypeLinks } = await supabase
     .from('job_type_links')
@@ -174,7 +229,8 @@ if (params.asbestosStatus) {
   }
 
   if (params.blocker) {
-    const selectedBlocker = params.blocker.toLowerCase()
+    const selectedBlocker =
+      params.blocker.toLowerCase()
 
     const blockedJobIds =
       blockerLinks
@@ -193,37 +249,64 @@ if (params.asbestosStatus) {
   }
 
   if (params.ready === 'true') {
-  jobs =
-    jobs?.filter((job: any) => {
-      const hasBlocker = blockerLinks?.some(
-        (blocker: any) => blocker.job_id === job.job_id
-      )
+    jobs =
+      jobs?.filter((job: any) => {
+        const hasBlocker = blockerLinks?.some(
+          (blocker: any) =>
+            blocker.job_id === job.job_id
+        )
 
-      return job.status === 'Ready' && !hasBlocker
-    }) || []
-}
+        return job.status === 'Ready' && !hasBlocker
+      }) || []
+  }
 
   if (params.blocked === 'true') {
     jobs =
       jobs?.filter((job: any) => {
         const hasBlockers =
           blockerLinks?.some(
-            (link: any) => link.job_id === job.job_id
+            (link: any) =>
+              link.job_id === job.job_id
           ) ?? false
 
         return hasBlockers
       }) || []
   }
-const { data: zoneLocations } = await supabase
-  .from('zone_locations')
-  .select(`
-    location_name,
-    sort_order,
-    area_zones (
-      name,
-      sort_order
-    )
-  `)
+
+  const { data: zoneLocations } = await supabase
+    .from('zone_locations')
+    .select(`
+      location_name,
+      sort_order,
+      area_zones (
+        name,
+        sort_order
+      )
+    `)
+
+  const isOnHoldInbox = params.onHold === 'true'
+  const isSearchResults = Boolean(params.search)
+
+  const pageTitle = isOnHoldInbox
+    ? 'On Hold'
+    : isSearchResults
+      ? 'Search Results'
+      : 'Live Jobs'
+
+  const pageDescription = isOnHoldInbox
+    ? 'Jobs intentionally paused and removed from operational inboxes'
+    : isSearchResults
+      ? `Jobs matching “${params.search}”`
+      : 'Current operational inbox for active works'
+
+  const showFilterHeading =
+    params.status ||
+    params.type ||
+    params.blocked === 'true' ||
+    params.ready === 'true' ||
+    params.blocker ||
+    params.onHold === 'true'
+
   return (
     <main className="min-h-screen bg-slate-100">
       <AppHeader active="jobs" />
@@ -231,75 +314,87 @@ const { data: zoneLocations } = await supabase
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-6 py-6">
           <h1 className="text-2xl font-bold text-slate-900">
-            Live Jobs
+            {pageTitle}
           </h1>
 
           <p className="text-sm text-slate-500">
-            Current operational inbox for active works
+            {pageDescription}
           </p>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {(params.status ||
-          params.type ||
-          params.blocked === 'true' ||
-          params.ready === 'true' ||
-          params.blocker) && (
+        {showFilterHeading && (
           <div className="mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 px-6 py-4">
             <h2 className="text-lg font-bold text-slate-900">
-              {params.status ||
-                (params.type ? `Job Type: ${params.type}` : '') ||
-                (params.blocker ? `Waiting On: ${params.blocker}` : '') ||
-                (params.blocked === 'true' ? 'Waiting On' : '') ||
-                (params.ready === 'true' ? 'Ready Jobs' : '')}
+              {params.onHold === 'true'
+                ? 'Jobs On Hold'
+                : params.status ||
+                  (params.type
+                    ? `Job Type: ${params.type}`
+                    : '') ||
+                  (params.blocker
+                    ? `Waiting On: ${params.blocker}`
+                    : '') ||
+                  (params.blocked === 'true'
+                    ? 'Waiting On'
+                    : '') ||
+                  (params.ready === 'true'
+                    ? 'Ready Jobs'
+                    : '')}
             </h2>
           </div>
         )}
-{params.status === 'Awaiting Approval' && (
-  <div className="mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 px-6 py-4">
-    <p className="text-xs uppercase font-bold text-slate-400 mb-3">
-      Filter Awaiting Approval by Client
-    </p>
 
-    <div className="flex flex-wrap gap-2">
-      <Link
-        href="/jobs?status=Awaiting%20Approval"
-        className={`px-4 py-2 rounded-xl text-sm font-bold border transition ${
-          !params.client
-            ? 'bg-blue-600 text-white border-blue-600'
-            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-        }`}
-      >
-        All
-      </Link>
+        {params.status === 'Awaiting Approval' && (
+          <div className="mb-6 bg-white rounded-2xl shadow-sm border border-gray-200 px-6 py-4">
+            <p className="text-xs uppercase font-bold text-slate-400 mb-3">
+              Filter Awaiting Approval by Client
+            </p>
 
-      {['Denbighshire', 'Cartrefi', 'Creating Enterprise'].map((client) => (
-        <Link
-          key={client}
-          href={`/jobs?status=Awaiting%20Approval&client=${encodeURIComponent(client)}`}
-          className={`px-4 py-2 rounded-xl text-sm font-bold border transition ${
-            params.client === client
-              ? 'bg-blue-600 text-white border-blue-600'
-              : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
-          }`}
-        >
-          {client}
-        </Link>
-      ))}
-    </div>
-  </div>
-)}
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/jobs?status=Awaiting%20Approval"
+                className={`px-4 py-2 rounded-xl text-sm font-bold border transition ${
+                  !params.client
+                    ? 'bg-blue-600 text-white border-blue-600'
+                    : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                All
+              </Link>
+
+              {[
+                'Denbighshire',
+                'Cartrefi',
+                'Creating Enterprise',
+              ].map((client) => (
+                <Link
+                  key={client}
+                  href={`/jobs?status=Awaiting%20Approval&client=${encodeURIComponent(client)}`}
+                  className={`px-4 py-2 rounded-xl text-sm font-bold border transition ${
+                    params.client === client
+                      ? 'bg-blue-600 text-white border-blue-600'
+                      : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  {client}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         <JobsInbox
-  jobs={jobs || []}
-  blockerLinks={blockerLinks || []}
-  jobTypeLinks={jobTypeLinks || []}
-  workflowJobs={workflowJobs || []}
-  scaffoldRecords={scaffoldRecords || []}
-  zoneLocations={zoneLocations || []}
-  currentStatus={params.status || null}
-  enableSelection={true}
-/>
+          jobs={jobs || []}
+          blockerLinks={blockerLinks || []}
+          jobTypeLinks={jobTypeLinks || []}
+          workflowJobs={workflowJobs || []}
+          scaffoldRecords={scaffoldRecords || []}
+          zoneLocations={zoneLocations || []}
+          currentStatus={params.status || null}
+          enableSelection={true}
+        />
       </div>
     </main>
   )

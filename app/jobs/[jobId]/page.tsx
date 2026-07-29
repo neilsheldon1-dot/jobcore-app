@@ -1,6 +1,7 @@
 import AppHeader from '../../../components/AppHeader'
 import EditJobDetailsForm from './EditJobDetailsForm'
 import UrgentButtons from './UrgentButtons'
+import OnHoldButton from './OnHoldButton'
 import Link from 'next/link'
 import PhotoGallery from './PhotoGallery'
 import AddNoteForm from './AddNoteForm'
@@ -205,7 +206,17 @@ const showAsbestosWorkflow =
 >
   Create Documents →
 </Link>
-          <UrgentButtons jobId={jobId} urgent={job.urgent} />
+          <div className="flex items-center gap-3">
+  <OnHoldButton
+    jobId={jobId}
+    isOnHold={job.is_on_hold}
+  />
+
+  <UrgentButtons
+    jobId={jobId}
+    urgent={job.urgent}
+  />
+</div>
         </div>
       </div>
 

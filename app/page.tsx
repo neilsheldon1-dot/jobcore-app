@@ -8,10 +8,16 @@ export const dynamic = 'force-dynamic'
 
 export default async function Home() {
   const { data: jobs } = await supabase
-    .from('jobs_view')
-    .select('*')
-    .neq('status', 'Complete')
-    .order('sort_order', { ascending: true })
+  .from('jobs_view')
+  .select('*')
+  .neq('status', 'Complete')
+  .eq('is_on_hold', false)
+  .order('sort_order', { ascending: true })
+
+  const { count: onHoldCount } = await supabase
+  .from('jobs')
+  .select('*', { count: 'exact', head: true })
+  .eq('is_on_hold', true)
 
   const { data: blockerLinks } = await supabase
     .from('job_blocker_links')
@@ -170,6 +176,8 @@ allocated_jobs:
     urgent_jobs:
       jobs?.filter((job) => job.urgent === true).length ?? 0,
 
+    on_hold: onHoldCount ?? 0,
+
     needs_quote:
       jobs?.filter((job) => job.status === 'Needs Quoting').length ?? 0,
 
@@ -256,7 +264,19 @@ allocated_jobs:
         <WidgetRow href="/jobs?urgent=true" label="Jobs Marked Urgent" value={stats.urgent_jobs} accent="border-l-red-500" />
         <WidgetRow href="/jobs?status=Needs%20Quoting" label="Needs Quoting" value={stats.needs_quote} accent="border-l-purple-500" />
         <WidgetRow href="/jobs?status=Awaiting%20Approval" label="Awaiting Approval" value={stats.awaiting_approval} accent="border-l-orange-500" />
-        <WidgetRow href="/jobs?status=Needs%20Invoicing" label="Needs Invoicing" value={stats.needs_invoicing} accent="border-l-blue-900" />
+        <WidgetRow
+  href="/jobs?status=Needs%20Invoicing"
+  label="Needs Invoicing"
+  value={stats.needs_invoicing}
+  accent="border-l-blue-900"
+/>
+
+<WidgetRow
+  href="/jobs?onHold=true"
+  label="On Hold"
+  value={stats.on_hold}
+  accent="border-l-amber-500"
+/>
       </div>
     </section>
 
