@@ -16,18 +16,24 @@ export type Assignee = {
 type BulkActionsBarProps = {
   selectedCount: number
   selectedAction: string
+  selectedAssignee: string
+  assignees: Assignee[]
   updating: boolean
   actions: BulkAction[]
   onActionChange: (value: string) => void
+  onAssigneeChange: (value: string) => void
   onApply: () => void
 }
 
 export default function BulkActionsBar({
   selectedCount,
   selectedAction,
+  selectedAssignee,
+  assignees,
   updating,
   actions,
   onActionChange,
+  onAssigneeChange,
   onApply,
 }: BulkActionsBarProps) {
   if (selectedCount === 0) return null
@@ -57,7 +63,7 @@ export default function BulkActionsBar({
     (requiresAssignee && !selectedAssignee)
 
   return (
-    <div className="mb-4 bg-blue-600 border border-white rounded-2xl px-5 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 shadow-lg transition-all duration-300">
+    <div className="mb-4 flex flex-col gap-4 rounded-2xl border border-white bg-blue-600 px-5 py-4 shadow-lg transition-all duration-300 lg:flex-row lg:items-center lg:justify-between">
       <p className="text-sm font-bold text-white">
         ✓ {selectedCount}{' '}
         {selectedCount === 1 ? 'job' : 'jobs'} Selected
@@ -69,7 +75,7 @@ export default function BulkActionsBar({
           onChange={(event) =>
             onActionChange(event.target.value)
           }
-          className="w-64 border border-slate-300 rounded-xl px-4 py-2 text-sm font-semibold bg-white shadow-sm"
+          className="w-64 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold shadow-sm"
         >
           <option value="">Choose Action...</option>
 
@@ -92,13 +98,42 @@ export default function BulkActionsBar({
           )}
         </select>
 
-        
+        {requiresAssignee && (
+          <select
+            value={selectedAssignee}
+            onChange={(event) =>
+              onAssigneeChange(event.target.value)
+            }
+            className="w-64 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold shadow-sm"
+          >
+            <option value="">
+              Choose Assignee...
+            </option>
+
+            {assignees.map((assignee) => {
+              const name =
+                assignee.display_name ||
+                assignee.full_name ||
+                assignee.email ||
+                'Unnamed user'
+
+              return (
+                <option
+                  key={assignee.id}
+                  value={assignee.id}
+                >
+                  {name}
+                </option>
+              )
+            })}
+          </select>
+        )}
 
         <button
           type="button"
           onClick={onApply}
           disabled={applyDisabled}
-          className="bg-white text-black px-4 py-2 rounded-xl font-bold hover:bg-slate-100 transition disabled:bg-white disabled:text-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+          className="cursor-pointer rounded-xl bg-white px-4 py-2 font-bold text-black shadow-sm transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {updating ? 'Working...' : 'Apply'}
         </button>
