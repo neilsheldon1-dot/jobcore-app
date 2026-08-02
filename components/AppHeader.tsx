@@ -11,7 +11,13 @@ import { createClient } from '../app/utils/supabase/server'
 import { Search } from 'lucide-react'
 
 type AppHeaderProps = {
-  active?: 'home' | 'jobs' | 'properties' | 'archive' | 'rams'
+  active?:
+  | 'home'
+  | 'jobs'
+  | 'my-jobs'
+  | 'properties'
+  | 'archive'
+  | 'rams'
 }
 
 export default async function AppHeader({ active }: AppHeaderProps) {
