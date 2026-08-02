@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import FitterHeader from '../../components/FitterHeader'
+import FitterHeader from '../../../components/FitterHeader'
 import { createClient } from '../../utils/supabase/server'
 import { supabaseAdmin } from '../../../lib/supabaseAdmin'
 import JobStartPanel from './JobStartPanel'
