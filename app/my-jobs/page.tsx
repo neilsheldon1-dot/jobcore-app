@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import FitterHeader from '../../components/FitterHeader'
+import AppHeader from '../../components/AppHeader'
 import { createClient } from '../utils/supabase/server'
 import { supabaseAdmin } from '../../lib/supabaseAdmin'
 
