@@ -6,7 +6,7 @@ import { createClient } from '../utils/supabase/client'
 
 export default function LoginForm() {
   const supabase = createClient()
-  const router = useRouter()
+  
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -32,8 +32,7 @@ export default function LoginForm() {
       return
     }
 
-    router.push('/')
-    router.refresh()
+    window.location.assign('/')
   }
 
   return (

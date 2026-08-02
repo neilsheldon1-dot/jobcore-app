@@ -1,6 +1,7 @@
 import AppHeader from '../../components/AppHeader'
 import { supabase } from '../../lib/supabase'
 import JobsInbox from './JobsInbox'
+import { supabaseAdmin } from '../../lib/supabaseAdmin'
 import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,7 @@ type SearchParams = Promise<{
   scaffoldPipeline?: string
   client?: string
   onHold?: string
+  operative?: string
 }>
 
 export default async function JobsPage({
@@ -283,6 +285,23 @@ export default async function JobsPage({
         sort_order
       )
     `)
+    
+const {
+  data: operatives,
+  error: operativesError,
+} = await supabaseAdmin
+  .from('profiles')
+  .select('id, display_name, full_name, email, role')
+  .order('full_name', { ascending: true })
+
+
+
+if (operativesError) {
+  console.error(
+    'Failed to load assignees:',
+    operativesError
+  )
+}
 
   const isOnHoldInbox = params.onHold === 'true'
   const isSearchResults = Boolean(params.search)
@@ -385,16 +404,18 @@ export default async function JobsPage({
           </div>
         )}
 
-        <JobsInbox
-          jobs={jobs || []}
-          blockerLinks={blockerLinks || []}
-          jobTypeLinks={jobTypeLinks || []}
-          workflowJobs={workflowJobs || []}
-          scaffoldRecords={scaffoldRecords || []}
-          zoneLocations={zoneLocations || []}
-          currentStatus={params.status || null}
-          enableSelection={true}
-        />
+       <JobsInbox
+  jobs={jobs || []}
+  blockerLinks={blockerLinks || []}
+  jobTypeLinks={jobTypeLinks || []}
+  workflowJobs={workflowJobs || []}
+  scaffoldRecords={scaffoldRecords || []}
+  zoneLocations={zoneLocations || []}
+  operatives={operatives || []}
+  currentStatus={params.status || null}
+  initialOperativeFilter={params.operative || 'ALL'}
+  enableSelection={true}
+/>
       </div>
     </main>
   )

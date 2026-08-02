@@ -12,115 +12,155 @@ export default function PhotoGallery({
   jobId: string
   jobAddress: string
 }) {
-  const [selectedPhoto, setSelectedPhoto] = useState<any | null>(null)
-async function deletePhoto(photo: any) {
-  const confirmed = window.confirm('Delete this photo?')
+  const [selectedPhoto, setSelectedPhoto] =
+    useState<any | null>(null)
 
-  if (!confirmed) return
+  async function deletePhoto(photo: any) {
+    const confirmed = window.confirm(
+      'Delete this photo?'
+    )
 
-  const filePath = photo.file_url.split('/job-photos/')[1]
+    if (!confirmed) return
 
-  if (filePath) {
-    await fetch('/api/delete-photo-storage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ filePath }),
-    })
+    const filePath =
+      photo.file_url.split('/job-photos/')[1]
+
+    if (filePath) {
+      await fetch('/api/delete-photo-storage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ filePath }),
+      })
+    }
+
+    const response = await fetch(
+      '/api/delete-photo',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          photoId: photo.id,
+        }),
+      }
+    )
+
+    if (!response.ok) {
+      alert('Could not delete photo')
+      return
+    }
+
+    window.location.reload()
   }
 
-  const response = await fetch('/api/delete-photo', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ photoId: photo.id }),
-  })
-
-  if (!response.ok) {
-    alert('Could not delete photo')
-    return
-  }
-
-  window.location.reload()
-}
   return (
     <>
       <div>
-
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-900">
             Job Photos
           </h2>
 
-          <PhotoUploadForm jobId={jobId} jobAddress={jobAddress} />
+          <PhotoUploadForm
+            jobId={jobId}
+            jobAddress={jobAddress}
+          />
         </div>
 
         {photos && photos.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
             {photos.map((photo) => (
               <div
-  key={photo.id}
-  onClick={() => setSelectedPhoto(photo)}
-  className="group relative border border-gray-200 rounded-2xl overflow-hidden bg-slate-50 text-left hover:shadow-md transition cursor-pointer"
->
+                key={photo.id}
+                onClick={() =>
+                  setSelectedPhoto(photo)
+                }
+                className="group relative cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-slate-50 text-left transition hover:shadow-md"
+              >
                 <button
-  type="button"
-  onClick={(e) => {
-    e.stopPropagation()
-    deletePhoto(photo)
-  }}
-  className="absolute top-2 right-2 z-10 bg-white text-red-600 border border-gray-200 w-8 h-8 rounded-full text-sm font-bold shadow hover:bg-red-50 transition cursor-pointer flex items-center justify-center"
->
-  🗑
-</button>
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    deletePhoto(photo)
+                  }}
+                  className="absolute right-2 top-2 z-10 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-gray-200 bg-white text-sm font-bold text-red-600 shadow transition hover:bg-red-50"
+                >
+                  🗑
+                </button>
+
                 <img
                   src={photo.file_url}
-                  alt="Job Photo"
-                  className="w-full h-40 object-cover group-hover:scale-[1.02] transition"
+                  alt={
+                    photo.category ||
+                    photo.photo_group ||
+                    'Job Photo'
+                  }
+                  className="h-40 w-full object-cover transition group-hover:scale-[1.02]"
                 />
 
                 <div className="p-3">
-                  <p className="text-xs uppercase font-bold text-slate-500">
-                    {photo.category}
+                  <p className="text-xs font-bold uppercase text-slate-500">
+                    {photo.photo_group ||
+                      'Additional'}
                   </p>
 
-                  <p className="text-xs text-slate-400 mt-1">
-                    {new Date(photo.created_at).toLocaleDateString('en-GB')}
+                  {photo.category && (
+                    <p className="mt-1 text-sm text-slate-700">
+                      {photo.category}
+                    </p>
+                  )}
+
+                  <p className="mt-1 text-xs text-slate-400">
+                    {new Date(
+                      photo.created_at
+                    ).toLocaleDateString('en-GB')}
                   </p>
-                  <p className="text-xs text-slate-400 mt-1">
-  Added by {photo.uploaded_by || 'Unknown'}
-</p>
+
+                  <p className="mt-1 text-xs text-slate-400">
+                    Added by{' '}
+                    {photo.uploaded_by || 'Unknown'}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="border border-dashed border-gray-300 rounded-2xl p-8 text-center bg-slate-50">
+          <div className="rounded-2xl border border-dashed border-gray-300 bg-slate-50 p-8 text-center">
             <p className="text-sm text-slate-500">
               No photos uploaded yet
             </p>
           </div>
         )}
-
       </div>
 
       {selectedPhoto && (
         <div
           onClick={() => setSelectedPhoto(null)}
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-3xl p-4 max-w-5xl w-full"
+            className="w-full max-w-5xl rounded-3xl bg-white p-4"
           >
             <img
               src={selectedPhoto.file_url}
-              alt="Expanded Job Photo"
-              className="w-full max-h-[80vh] object-contain rounded-2xl"
+              alt={
+                selectedPhoto.category ||
+                selectedPhoto.photo_group ||
+                'Expanded Job Photo'
+              }
+              className="max-h-[80vh] w-full rounded-2xl object-contain"
             />
 
-            <div className="flex justify-end mt-4">
+            <div className="mt-4 flex justify-end">
               <button
-                onClick={() => setSelectedPhoto(null)}
-                className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold"
+                onClick={() =>
+                  setSelectedPhoto(null)
+                }
+                className="rounded-xl bg-slate-900 px-6 py-3 font-bold text-white"
               >
                 Close
               </button>

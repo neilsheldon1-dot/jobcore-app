@@ -14,8 +14,11 @@ import ScaffoldStatusDropdown from './ScaffoldStatusDropdown'
 import AsbestosStatusDropdown from './AsbestosStatusDropdown'
 import ScaffoldRecordPanel from './ScaffoldRecordPanel'
 import AsbestosRecordPanel from './AsbestosRecordPanel'
+import TicketWorkflowPanel from './TicketWorkflowPanel'
 import EditDescriptionForm from './EditDescriptionForm'
 import CopyButton from '../../../components/CopyButton'
+import AssignedToDropdown from './AssignedToDropdown'
+import { supabaseAdmin } from '../../../lib/supabaseAdmin'
 export const dynamic = 'force-dynamic'
 import EditableNote from './EditableNote'
 
@@ -68,6 +71,11 @@ const loggedInName =
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
 
+    const { data: operatives } = await supabaseAdmin
+  .from('profiles')
+  .select('id, display_name, full_name, email')
+  .order('display_name', { ascending: true })
+
   const { data: scaffoldStatuses } = await supabase
     .from('scaffold_statuses')
     .select('*')
@@ -115,6 +123,25 @@ const loggedInName =
     (a.job_types?.name || '').localeCompare(b.job_types?.name || '')
   
   )
+
+  const { data: ticketWorkflowRecords } = await supabase
+  .from('job_rams')
+  .select(`
+  id,
+  status,
+  started_at,
+  accepted_at,
+  completed_at,
+  signed_by,
+  operative_id,
+  answers
+`)
+  .eq('job_id', jobId)
+  .eq('template_code', 'TICKET')
+  .order('created_at', { ascending: false })
+  .limit(1)
+
+const ticketWorkflow = ticketWorkflowRecords?.[0] || null
 
 const { data: scaffoldRecord } = await supabase
   .from('scaffold_records')
@@ -270,7 +297,13 @@ const showAsbestosWorkflow =
             </div>
 
             <div className="grid gap-5">
-              <div className="grid md:grid-cols-3 gap-6">
+              <div
+  className={`grid gap-6 ${
+    job.status === 'Allocated'
+      ? 'md:grid-cols-4'
+      : 'md:grid-cols-3'
+  }`}
+>
                 <div>
                   <p className="text-xs uppercase font-bold text-slate-400">
                     Status
@@ -282,6 +315,20 @@ const showAsbestosWorkflow =
                     jobStatuses={jobStatuses || []}
                   />
                 </div>
+
+                {job.status === 'Allocated' && (
+  <div>
+    <p className="text-xs uppercase font-bold text-slate-400">
+      Assigned To
+    </p>
+
+    <AssignedToDropdown
+      jobId={jobId}
+      currentAssignedUserId={job.assigned_user_id || null}
+      operatives={operatives || []}
+    />
+  </div>
+)}
 
                 <div>
                   <p className="text-xs uppercase font-bold text-slate-400">
@@ -355,43 +402,52 @@ const showAsbestosWorkflow =
             </div>
 
 {(showScaffoldWorkflow || showAsbestosWorkflow) && (
-                <div className="border-t border-slate-200 mt-3 pt-5 grid md:grid-cols-2 gap-6">
-                  {showScaffoldWorkflow && (
-                    <div>
-                      <p className="text-xs uppercase font-bold text-slate-400 mb-2">
-                        Scaffold Workflow / Record
-                      </p>
+  <div className="border-t border-slate-200 mt-3 pt-5 grid md:grid-cols-2 gap-6">
+    {showScaffoldWorkflow && (
+      <div>
+        <p className="text-xs uppercase font-bold text-slate-400 mb-2">
+          Scaffold Workflow / Record
+        </p>
 
-                      
-<ScaffoldRecordPanel
-  jobId={jobId}
-  scaffoldRecord={scaffoldRecord}
-  job={job}
-/>
-                      
-                    </div>
-                  )}
+        <ScaffoldRecordPanel
+          jobId={jobId}
+          scaffoldRecord={scaffoldRecord}
+          job={job}
+        />
+      </div>
+    )}
 
-                  {showAsbestosWorkflow && (
-  <div>
-    <p className="text-xs uppercase font-bold text-slate-400 mb-2">
-      Asbestos Workflow / Record
-  <br />
-    </p>
+    {showAsbestosWorkflow && (
+      <div>
+        <p className="text-xs uppercase font-bold text-slate-400 mb-2">
+          Asbestos Workflow / Record
+          <br />
+        </p>
 
-    <AsbestosRecordPanel
-  jobId={jobId}
-  asbestosRecord={asbestosRecord}
-  job={job}
-  currentStatusId={workflowJob?.asbestos_status_id || null}
-  statuses={asbestosStatuses || []}
-/>
+        <AsbestosRecordPanel
+          jobId={jobId}
+          asbestosRecord={asbestosRecord}
+          job={job}
+          currentStatusId={workflowJob?.asbestos_status_id || null}
+          statuses={asbestosStatuses || []}
+        />
+      </div>
+    )}
   </div>
 )}
-                </div>
-              )}
 
-            <div className="border-t border-slate-200 mt-6 pt-6">
+<div className="border-t border-slate-200 mt-6 pt-6">
+  <p className="text-xs uppercase font-bold text-slate-400 mb-2">
+    Ticket Workflow
+  </p>
+
+  <TicketWorkflowPanel
+    jobId={jobId}
+    record={ticketWorkflow}
+  />
+</div>
+
+<div className="border-t border-slate-200 mt-6 pt-6">
   <p className="text-xs uppercase font-bold text-slate-400 mb-2">
     Work Description
   </p>

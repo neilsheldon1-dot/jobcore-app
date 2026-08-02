@@ -7,19 +7,26 @@ import BulkActionsBar, {
 } from '@/components/bulk-actions/BulkActionsBar'
 
 export default function JobsInbox({
+
   jobs,
   blockerLinks,
   jobTypeLinks,
   workflowJobs,
   scaffoldRecords,
   zoneLocations,
+  operatives,
   currentStatus,
+  initialOperativeFilter = 'ALL',
   enableSelection = false,
 }: any) {
   const [selectedJobs, setSelectedJobs] = useState<string[]>([])
   const [search, setSearch] = useState('')
   const [bulkStatus, setBulkStatus] = useState('')
+  const [bulkAssignee, setBulkAssignee] = useState('')
   const [bulkUpdating, setBulkUpdating] = useState(false)
+
+  const [operativeFilter, setOperativeFilter] =
+  useState(initialOperativeFilter)
 
   const locationOrder = new Map<
   string,
@@ -47,7 +54,7 @@ export default function JobsInbox({
   .filter((job: any) => {
     const searchText = search.toLowerCase()
 
-    return [
+    const matchesSearch = [
       job.job_number,
       job.po_number,
       job.address_line_1,
@@ -58,11 +65,18 @@ export default function JobsInbox({
       job.status,
       job.job_type,
       job.zone,
+      job.assigned_to_name,
     ]
       .filter(Boolean)
       .join(' ')
       .toLowerCase()
       .includes(searchText)
+
+    const matchesOperative =
+      operativeFilter === 'ALL' ||
+      job.assigned_user_id === operativeFilter
+
+    return matchesSearch && matchesOperative
   })
   .sort((a: any, b: any) => {
     const aZone = locationOrder.get(a.zone) || {
@@ -83,6 +97,8 @@ export default function JobsInbox({
       )
     )
   })
+
+
   const selectedJobDetails = filteredJobs.filter(
     (job: any) => selectedJobs.includes(job.job_id)
   )
@@ -115,6 +131,15 @@ export default function JobsInbox({
           },
         ]
       : []),
+     ...(operatives || []).map((operative: any) => ({
+  value: `ASSIGN_TO:${operative.id}`,
+  label:
+    operative.display_name ||
+    operative.full_name ||
+    operative.email ||
+    'Unnamed',
+  group: 'Assign Job',
+})),
 
     ...(currentStatus !== 'Ready'
       ? [
@@ -196,7 +221,41 @@ async function applyBulkStatus() {
     alert('Please select at least one job')
     return
   }
+if (bulkStatus.startsWith('ASSIGN_TO:')) {
+  const assignedUserId = bulkStatus.replace('ASSIGN_TO:', '')
 
+  setBulkUpdating(true)
+
+  try {
+    const response = await fetch('/api/bulk-assign-jobs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        job_ids: selectedJobs,
+        assigned_user_id: assignedUserId,
+      }),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      alert(result.error || 'Failed to assign jobs')
+      return
+    }
+
+    setSelectedJobs([])
+    setBulkStatus('')
+    window.location.reload()
+    return
+  } catch (error: any) {
+    alert(error.message || 'Failed to assign jobs')
+    return
+  } finally {
+    setBulkUpdating(false)
+  }
+}
   if (bulkStatus === 'CHASE_APPROVALS') {
     await createApprovalChaseDraft()
     return
@@ -637,16 +696,56 @@ Neil Sheldon`,
           className="w-full border border-gray-300 rounded-2xl px-5 py-4 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
+{currentStatus === 'Allocated' && (
+  <div className="mb-5 flex flex-wrap gap-2">
+    <button
+      type="button"
+      onClick={() => setOperativeFilter('ALL')}
+      className={`px-4 py-2 rounded-xl text-sm font-bold border transition cursor-pointer ${
+        operativeFilter === 'ALL'
+          ? 'bg-blue-600 text-white border-blue-600'
+          : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+      }`}
+    >
+      All
+    </button>
 
+    {(operatives || []).map((operative: any) => {
+      const label =
+        operative.display_name ||
+        operative.full_name ||
+        operative.email ||
+        'Unnamed'
+
+      return (
+        <button
+          key={operative.id}
+          type="button"
+          onClick={() => setOperativeFilter(operative.id)}
+          className={`px-4 py-2 rounded-xl text-sm font-bold border transition cursor-pointer ${
+            operativeFilter === operative.id
+              ? 'bg-orange-500 text-white border-orange-600'
+              : 'bg-white text-slate-700 border-slate-300 hover:bg-orange-50'
+          }`}
+        >
+          {label}
+        </button>
+      )
+    })}
+  </div>
+)}
       {enableSelection && (
   <BulkActionsBar
-    selectedCount={selectedJobs.length}
-    selectedAction={bulkStatus}
-    updating={bulkUpdating}
-    actions={availableActions}
-    onActionChange={setBulkStatus}
-    onApply={applyBulkStatus}
-  />
+  selectedCount={selectedJobs.length}
+  selectedAction={bulkStatus}
+  selectedAssignee={bulkAssignee}
+  assignees={operatives || []}
+  updating={bulkUpdating}
+  actions={availableActions}
+  onActionChange={setBulkStatus}
+  onAssigneeChange={setBulkAssignee}
+  onApply={applyBulkStatus}
+/>
 )}
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
@@ -775,6 +874,12 @@ Neil Sheldon`,
                       </div>
 
                       <div className="flex flex-wrap justify-end gap-2 shrink-0">
+                       {job.assigned_to_name && (
+  <span className="bg-orange-500 text-white border border-transparent px-2.5 py-0.5 rounded-full text-xs font-bold">
+    👤 {job.assigned_to_name}
+  </span>
+)}
+                       
                         {job.zone && (
                           <span className="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded-full text-xs font-bold">
                             {job.zone.replace(

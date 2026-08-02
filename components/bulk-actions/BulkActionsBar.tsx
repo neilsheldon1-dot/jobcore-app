@@ -6,6 +6,13 @@ export type BulkAction = {
   group: string
 }
 
+export type Assignee = {
+  id: string
+  display_name: string | null
+  full_name: string | null
+  email: string | null
+}
+
 type BulkActionsBarProps = {
   selectedCount: number
   selectedAction: string
@@ -41,11 +48,19 @@ export default function BulkActionsBar({
     {}
   )
 
+  const requiresAssignee =
+    selectedAction === 'ALLOCATE_TO'
+
+  const applyDisabled =
+    !selectedAction ||
+    updating ||
+    (requiresAssignee && !selectedAssignee)
+
   return (
     <div className="mb-4 bg-blue-600 border border-white rounded-2xl px-5 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 shadow-lg transition-all duration-300">
       <p className="text-sm font-bold text-white">
-        ✓ {selectedCount}{' '} 
-{selectedCount === 1 ? 'job' : 'jobs'} Selected
+        ✓ {selectedCount}{' '}
+        {selectedCount === 1 ? 'job' : 'jobs'} Selected
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -77,11 +92,13 @@ export default function BulkActionsBar({
           )}
         </select>
 
+        
+
         <button
           type="button"
           onClick={onApply}
-          disabled={!selectedAction || updating}
-         className="bg-white text-black px-4 py-2 rounded-xl font-bold hover:bg-slate-100 transition disabled:bg-white disabled:text-black disabled:opacity-100 disabled:cursor-not-allowed cursor-pointer shadow-sm"
+          disabled={applyDisabled}
+          className="bg-white text-black px-4 py-2 rounded-xl font-bold hover:bg-slate-100 transition disabled:bg-white disabled:text-black disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-sm"
         >
           {updating ? 'Working...' : 'Apply'}
         </button>

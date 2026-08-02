@@ -2,6 +2,7 @@ import Image from 'next/image'
 import AppHeader from '../components/AppHeader'
 import Link from 'next/link'
 import { supabase } from '../lib/supabase'
+import { supabaseAdmin } from '../lib/supabaseAdmin'
 import DashboardSearch from './DashboardSearch'
 
 export const dynamic = 'force-dynamic'
@@ -33,6 +34,10 @@ export default async function Home() {
     .select('*')
     .eq('is_active', true)
     .order('name', { ascending: true })
+    const { data: operatives } = await supabaseAdmin
+  .from('profiles')
+  .select('id, display_name')
+  .order('display_name')
 
   const { data: jobTypeLinks } = await supabase
     .from('job_type_links')
@@ -143,6 +148,16 @@ function getAsbestosWorkflowCount(statusId: number) {
       count: getBlockerCount(blocker.name),
     }))
     .filter((blocker) => blocker.count > 0)
+const assignedSummary = (operatives || [])
+  .map((operative) => ({
+    ...operative,
+    count:
+      jobs?.filter(
+        (job: any) =>
+          job.assigned_user_id === operative.id
+      ).length ?? 0,
+  }))
+  .filter((operative) => operative.count > 0)
 
   const stats = {
     total_jobs: jobs?.length ?? 0,
@@ -350,6 +365,33 @@ allocated_jobs:
         <WidgetRow href="/jobs?status=Ticket" label="Tickets" value={stats.tickets} accent="border-l-pink-500" />
         <WidgetRow href="/jobs?ready=true" label="Ready Jobs" value={stats.ready_jobs} accent="border-l-green-500" />
 <WidgetRow href="/jobs?status=Allocated" label="Allocated Jobs" value={stats.allocated_jobs} accent="border-l-blue-500" />
+{assignedSummary.length > 0 && (
+  <div className="border-b border-slate-200 bg-orange-50/40 px-4 py-1">
+    <div className="flex flex-wrap items-center gap-y-2">
+      <span className="mr-4 text-[11px] font-black  tracking-widest text-slate-400">
+        Assigned
+      </span>
+
+      {assignedSummary.map((operative, index) => (
+        <Link
+          key={operative.id}
+          href={`/jobs?status=Allocated&operative=${operative.id}`}
+          className="inline-flex items-center text-xs font-semibold text-slate-700 hover:text-orange-600 cursor-pointer transition"
+        >
+          <span>{operative.display_name}</span>
+
+          <span className="ml-1 text-[10px] font-bold text-orange-700">
+            {operative.count}
+          </span>
+
+          {index < assignedSummary.length - 1 && (
+            <span className="mx-3 text-black">•</span>
+          )}
+        </Link>
+      ))}
+    </div>
+  </div>
+)}
 <WidgetRow href="/jobs?blocked=true" label="Blocked Jobs" value={stats.blocked_jobs} accent="border-l-red-600" />
       </div>
     </section>

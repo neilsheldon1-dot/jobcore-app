@@ -3,18 +3,62 @@
 import { useState } from 'react'
 import { supabase } from '../../../lib/supabase'
 
+type UploadedPhoto = {
+  id: string
+  job_id: string
+  file_url: string
+  original_file_url?: string | null
+  category?: string | null
+  photo_group?: string | null
+  created_at?: string
+  uploaded_by?: string | null
+}
+
+type PhotoUploadFormProps = {
+  jobId: string
+  jobAddress: string
+  defaultCategory?: string
+  defaultPhotoGroup?: string
+  lockCategory?: boolean
+  lockPhotoGroup?: boolean
+  buttonLabel?: string
+  modalTitle?: string
+  reloadOnComplete?: boolean
+  onUploadComplete?: (
+    uploadedPhotos: UploadedPhoto[]
+  ) => void | Promise<void>
+}
+
 export default function PhotoUploadForm({
   jobId,
   jobAddress,
-}: {
-  jobId: string
-  jobAddress: string
-}) {
+  defaultCategory = '',
+  defaultPhotoGroup = 'Completed',
+  lockCategory = false,
+  lockPhotoGroup = false,
+  buttonLabel = '+ Add New Photo',
+  modalTitle = 'Upload Photos',
+  reloadOnComplete = true,
+  onUploadComplete,
+}: PhotoUploadFormProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [files, setFiles] = useState<File[]>([])
-  const [category, setCategory] = useState('')
-  const [photoGroup, setPhotoGroup] = useState('Completed')
+  const [category, setCategory] = useState(defaultCategory)
+  const [photoGroup, setPhotoGroup] = useState(defaultPhotoGroup)
   const [loading, setLoading] = useState(false)
+
+  function resetForm() {
+    setFiles([])
+    setCategory(defaultCategory)
+    setPhotoGroup(defaultPhotoGroup)
+  }
+
+  function closeModal() {
+    if (loading) return
+
+    resetForm()
+    setIsOpen(false)
+  }
 
   async function createWatermarkedImage(
     file: File,
@@ -22,8 +66,11 @@ export default function PhotoUploadForm({
   ): Promise<Blob> {
     return new Promise((resolve, reject) => {
       const image = new Image()
+      const objectUrl = URL.createObjectURL(file)
 
       image.onload = () => {
+        URL.revokeObjectURL(objectUrl)
+
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
 
@@ -52,7 +99,8 @@ export default function PhotoUploadForm({
         const padding = Math.max(20, canvas.width * 0.02)
         const fontSize = Math.max(20, canvas.width * 0.025)
         const lineHeight = fontSize * 1.35
-        const stripHeight = lineHeight * watermarkText.length + padding * 1.5
+        const stripHeight =
+          lineHeight * watermarkText.length + padding * 1.5
         const stripTop = canvas.height - stripHeight
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0.65)'
@@ -73,7 +121,7 @@ export default function PhotoUploadForm({
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              reject(new Error('Could not create blob'))
+              reject(new Error('Could not create image'))
               return
             }
 
@@ -84,8 +132,12 @@ export default function PhotoUploadForm({
         )
       }
 
-      image.onerror = reject
-      image.src = URL.createObjectURL(file)
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        reject(new Error(`Could not read ${file.name}`))
+      }
+
+      image.src = objectUrl
     })
   }
 
@@ -98,6 +150,8 @@ export default function PhotoUploadForm({
     }
 
     setLoading(true)
+
+    const uploadedPhotos: UploadedPhoto[] = []
 
     try {
       for (const file of files) {
@@ -123,9 +177,7 @@ export default function PhotoUploadForm({
           .upload(filePath, watermarkedFile)
 
         if (uploadError) {
-          alert(uploadError.message)
-          setLoading(false)
-          return
+          throw new Error(uploadError.message)
         }
 
         const { data: publicUrlData } = supabase.storage
@@ -137,33 +189,49 @@ export default function PhotoUploadForm({
           headers: {
             'Content-Type': 'application/json',
           },
-         body: JSON.stringify({
-  job_id: jobId,
-  file_url: publicUrlData.publicUrl,
-  original_file_url: publicUrlData.publicUrl,
-  category,
-  photo_group: photoGroup,
-}),
+          body: JSON.stringify({
+            job_id: jobId,
+            file_url: publicUrlData.publicUrl,
+            original_file_url: publicUrlData.publicUrl,
+            category: category.trim(),
+            photo_group: photoGroup,
+          }),
         })
 
         const result = await response.json()
 
         if (!response.ok) {
-          alert(JSON.stringify(result.error, null, 2))
-          setLoading(false)
-          return
+          throw new Error(
+            typeof result.error === 'string'
+              ? result.error
+              : result.error?.message || 'Could not save photo'
+          )
         }
+
+        const insertedPhoto = result.data?.[0]
+
+        if (!insertedPhoto?.id) {
+          throw new Error(
+            'The photo was uploaded but no photo record was returned'
+          )
+        }
+
+        uploadedPhotos.push(insertedPhoto)
       }
 
-      setFiles([])
-      setCategory('')
-      setPhotoGroup('Completed')
-      setLoading(false)
+      if (onUploadComplete) {
+        await onUploadComplete(uploadedPhotos)
+      }
+
+      resetForm()
       setIsOpen(false)
 
-      window.location.reload()
+      if (reloadOnComplete) {
+        window.location.reload()
+      }
     } catch (error: any) {
       alert(error.message || 'Could not upload photo')
+    } finally {
       setLoading(false)
     }
   }
@@ -173,62 +241,93 @@ export default function PhotoUploadForm({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="bg-blue-500 text-white px-5 py-1 rounded-xl font-bold hover:bg-blue-700 transition cursor-pointer"
+        className="cursor-pointer rounded-xl bg-blue-500 px-5 py-2 font-bold text-white transition hover:bg-blue-700"
       >
-        + Add New Photo
+        {buttonLabel}
       </button>
 
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
           <form
             onSubmit={handleUpload}
-            className="bg-white rounded-2xl shadow-xl border border-gray-200 p-6 w-full max-w-xl"
+            className="w-full max-w-xl rounded-2xl border border-gray-200 bg-white p-6 shadow-xl"
           >
-            <div className="flex items-center justify-between mb-5">
+            <div className="mb-5 flex items-center justify-between">
               <h2 className="text-xl font-bold text-slate-900">
-                Upload Photos
+                {modalTitle}
               </h2>
 
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-slate-700 text-2xl leading-none cursor-pointer"
+                onClick={closeModal}
+                disabled={loading}
+                className="cursor-pointer text-2xl leading-none text-slate-400 hover:text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 ×
               </button>
             </div>
-<div>
-  <label className="block text-sm font-bold text-slate-700 mb-2">
-    Upload Group
-  </label>
 
-  <select
-    value={photoGroup}
-    onChange={(e) => setPhotoGroup(e.target.value)}
-    className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white"
-  >
-    <option value="Before">Before</option>
-    <option value="During">During</option>
-    <option value="Completed">Completed</option>
-    <option value="Additional">Additional</option>
-  </select>
-</div>
             <div className="grid gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
-                  Photo Description
+                <label className="mb-2 block text-sm font-bold text-slate-700">
+                  Upload Group
                 </label>
 
-                <input
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  placeholder="Optional description, e.g. rear verge or finished repair"
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3"
-                />
+                {lockPhotoGroup ? (
+                  <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3">
+                    <p className="font-bold text-blue-800">
+                      {photoGroup}
+                    </p>
+
+                    <p className="mt-1 text-xs text-blue-700">
+                      JobCore will organise these photographs automatically.
+                    </p>
+                  </div>
+                ) : (
+                  <select
+                    value={photoGroup}
+                    onChange={(e) =>
+                      setPhotoGroup(e.target.value)
+                    }
+                    className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3"
+                  >
+                    <option value="Before">Before</option>
+                    <option value="During">During</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Additional">Additional</option>
+                  </select>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
+                <label className="mb-2 block text-sm font-bold text-slate-700">
+                  Photo Description
+                </label>
+
+                {lockCategory ? (
+                  <div className="rounded-xl border border-gray-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+                    {category || 'No description required'}
+                  </div>
+                ) : (
+                  <input
+                    value={category}
+                    onChange={(e) =>
+                      setCategory(e.target.value)
+                    }
+                    placeholder="Optional, e.g. rear access blocked by shed"
+                    className="w-full rounded-xl border border-gray-300 px-4 py-3"
+                  />
+                )}
+
+                {!lockCategory && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    Optional. Only add a description where it helps explain the photograph.
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-bold text-slate-700">
                   Photos
                 </label>
 
@@ -236,15 +335,19 @@ export default function PhotoUploadForm({
                   type="file"
                   accept="image/*"
                   multiple
+                  disabled={loading}
                   onChange={(e) =>
-                    setFiles(Array.from(e.target.files || []))
+                    setFiles(
+                      Array.from(e.target.files || [])
+                    )
                   }
-                  className="w-full border border-gray-300 rounded-xl px-4 py-3"
+                  className="w-full rounded-xl border border-gray-300 px-4 py-3 disabled:opacity-50"
                 />
 
                 {files.length > 0 && (
-                  <p className="text-sm text-slate-500 mt-2">
-                    {files.length} photo{files.length === 1 ? '' : 's'} selected
+                  <p className="mt-2 text-sm text-slate-500">
+                    {files.length} photo
+                    {files.length === 1 ? '' : 's'} selected
                   </p>
                 )}
               </div>
@@ -252,8 +355,9 @@ export default function PhotoUploadForm({
               <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
-                  className="bg-slate-100 text-slate-700 px-5 py-3 rounded-xl font-bold hover:bg-slate-200 transition cursor-pointer"
+                  onClick={closeModal}
+                  disabled={loading}
+                  className="cursor-pointer rounded-xl bg-slate-100 px-5 py-3 font-bold text-slate-700 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Cancel
                 </button>
@@ -261,9 +365,11 @@ export default function PhotoUploadForm({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold hover:bg-blue-700 transition disabled:opacity-50 cursor-pointer"
+                  className="cursor-pointer rounded-xl bg-blue-600 px-5 py-3 font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  {loading ? 'Uploading...' : 'Upload Photos'}
+                  {loading
+                    ? 'Uploading...'
+                    : 'Upload Photos'}
                 </button>
               </div>
             </div>
