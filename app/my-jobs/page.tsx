@@ -17,11 +17,16 @@ export default async function MyJobsPage() {
     redirect('/login')
   }
 
-  const { data: profile } = await supabaseAdmin
+  const { data: profile, error: profileError } =
+  await supabaseAdmin
     .from('profiles')
     .select('id, display_name, full_name, email')
-    .eq('id', user.id)
+    .eq('email', user.email)
     .maybeSingle()
+
+if (profileError) {
+  console.error('Failed to load profile:', profileError)
+}
 
   const { data: jobs, error } = await supabaseAdmin
     .from('jobs_view')
