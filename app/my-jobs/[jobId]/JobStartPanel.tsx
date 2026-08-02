@@ -158,65 +158,7 @@ function handleBeforePhotosUpload(
     ]
   })
 }
-  const progressDetails = {
-    idle: {
-      step: 1,
-      label: 'Review Job',
-    },
-    'safety-check': {
-      step: 2,
-      label: 'Can Work Start Today?',
-    },
-    'cannot-start': {
-      step: 2,
-      label: 'Cannot Start',
-    },
-    'cannot-start-comments': {
-  step: 3,
-  label: 'Cannot Start Details',
-},
-    dashpivot: {
-      step: 3,
-      label: 'Before Work Begins',
-    },
-    working: {
-      step: 4,
-      label: 'Before Photos',
-    },
-    'cannot-start-photos': {
-  step: 4,
-  label: 'Photos',
-},
-'cannot-start-signature': {
-  step: 5,
-  label: 'Signature',
-},
-'work-in-progress': {
-  step: 5,
-  label: 'Work in Progress',
-},
-'cannot-start-complete': {
-  step: 6,
-  label: 'Complete',
-},
-'after-photos': {
-  step: 6,
-  label: 'After Photos',
-},review: {
-  step: 5,
-  label: 'Review',
-},
-signature: {
-  step: 6,
-  label: 'Signature',
-},
-complete: {
-  step: 7,
-  label: 'Complete',
-},
-  }
-
-  const currentProgress = progressDetails[stage]
+  
 
   async function startJob() {
     setSaving(true)
@@ -507,10 +449,10 @@ if (stage === 'cannot-start-complete') {
   return (
     <MobileCard>
       <WorkflowProgress
-        currentStep={currentProgress.step}
-        totalSteps={6}
-        label={currentProgress.label}
-      />
+  currentStep={5}
+  totalSteps={5}
+  label="Complete"
+/>
 
       <div className="rounded-xl border border-green-200 bg-green-50 p-5 text-center">
         <p className="text-lg font-bold text-green-800">

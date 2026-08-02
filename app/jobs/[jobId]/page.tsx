@@ -142,7 +142,19 @@ const loggedInName =
   .limit(1)
 
 const ticketWorkflow = ticketWorkflowRecords?.[0] || null
+const { data: ticketOperative } = ticketWorkflow?.operative_id
+  ? await supabaseAdmin
+      .from('profiles')
+      .select('display_name, full_name, email')
+      .eq('id', ticketWorkflow.operative_id)
+      .maybeSingle()
+  : { data: null }
 
+const ticketOperativeName =
+  ticketOperative?.display_name ||
+  ticketOperative?.full_name ||
+  ticketOperative?.email ||
+  null
 const { data: scaffoldRecord } = await supabase
   .from('scaffold_records')
   .select('*')
@@ -248,6 +260,8 @@ const showAsbestosWorkflow =
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8 grid gap-6">
+       
+
         <section className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
           <div className="grid gap-5">
 
@@ -438,13 +452,14 @@ const showAsbestosWorkflow =
 
 <div className="border-t border-slate-200 mt-6 pt-6">
   <p className="text-xs uppercase font-bold text-slate-400 mb-2">
-    Ticket Workflow
+    Site Report
   </p>
 
   <TicketWorkflowPanel
-    jobId={jobId}
-    record={ticketWorkflow}
-  />
+  jobId={jobId}
+  record={ticketWorkflow}
+  operativeName={ticketOperativeName}
+/>
 </div>
 
 <div className="border-t border-slate-200 mt-6 pt-6">

@@ -73,7 +73,7 @@ export async function PATCH(request: Request) {
 
     const completedAt = new Date().toISOString()
 
-    const { data: updatedRecords, error: updateError } =
+    const { data: updatedRecords, error: workflowUpdateError } =
       await supabaseAdmin
         .from('job_rams')
         .update({
@@ -90,14 +90,14 @@ export async function PATCH(request: Request) {
         .eq('template_code', 'TICKET')
         .select('*')
 
-    if (updateError) {
+    if (workflowUpdateError) {
       console.error(
         'Completion signature update error:',
-        updateError
+        workflowUpdateError
       )
 
       return NextResponse.json(
-        { error: updateError.message },
+        { error: workflowUpdateError.message },
         { status: 500 }
       )
     }
@@ -111,9 +111,70 @@ export async function PATCH(request: Request) {
       )
     }
 
+    const { data: statusRecord, error: statusError } =
+      await supabaseAdmin
+        .from('job_statuses')
+        .select('id, name')
+        .eq('name', 'Needs Invoicing')
+        .maybeSingle()
+
+    if (statusError || !statusRecord) {
+      console.error(
+        'Needs Invoicing status lookup error:',
+        statusError
+      )
+
+      return NextResponse.json(
+        {
+          error:
+            statusError?.message ||
+            'Needs Invoicing status could not be found.',
+        },
+        { status: 500 }
+      )
+    }
+
+    const { data: updatedJobs, error: jobUpdateError } =
+      await supabaseAdmin
+        .from('jobs')
+        .update({
+          status_id: statusRecord.id,
+          assigned_user_id: null,
+        })
+        .eq('id', jobId)
+        .select('id, status_id, assigned_user_id')
+
+    if (jobUpdateError) {
+      console.error(
+        'Completed job handover error:',
+        jobUpdateError
+      )
+
+      return NextResponse.json(
+        {
+          error:
+            'The workflow was completed, but the job could not be moved to Needs Invoicing.',
+        },
+        { status: 500 }
+      )
+    }
+
+    const updatedJob = updatedJobs?.[0] || null
+
+    if (!updatedJob) {
+      return NextResponse.json(
+        {
+          error:
+            'The workflow was completed, but the job handover could not be confirmed.',
+        },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json({
       success: true,
       record: updatedRecord,
+      job: updatedJob,
       nextStep: 'complete',
     })
   } catch (error) {

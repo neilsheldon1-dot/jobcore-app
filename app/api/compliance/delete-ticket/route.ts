@@ -19,9 +19,10 @@ export async function DELETE(request: Request) {
       error: lookupError,
     } = await supabaseAdmin
       .from('job_rams')
-      .select('id')
+      .select('id, operative_id, created_at')
       .eq('job_id', jobId)
       .eq('template_code', 'TICKET')
+      .order('created_at', { ascending: false })
 
     if (lookupError) {
       console.error(
@@ -41,6 +42,9 @@ export async function DELETE(request: Request) {
         deletedCount: 0,
       })
     }
+
+    const latestRecord = existingRecords[0]
+    const operativeId = latestRecord?.operative_id || null
 
     const {
       data: deletedRecords,
@@ -76,9 +80,74 @@ export async function DELETE(request: Request) {
       )
     }
 
+    const {
+      data: allocatedStatus,
+      error: statusError,
+    } = await supabaseAdmin
+      .from('job_statuses')
+      .select('id, name')
+      .eq('name', 'Allocated')
+      .maybeSingle()
+
+    if (statusError || !allocatedStatus) {
+      console.error(
+        'Allocated status lookup error:',
+        statusError
+      )
+
+      return NextResponse.json(
+        {
+          error:
+            statusError?.message ||
+            'The workflow was deleted, but the Allocated status could not be found.',
+        },
+        { status: 500 }
+      )
+    }
+
+    const {
+      data: updatedJobs,
+      error: jobUpdateError,
+    } = await supabaseAdmin
+      .from('jobs')
+      .update({
+        status_id: allocatedStatus.id,
+        assigned_user_id: operativeId,
+      })
+      .eq('id', jobId)
+      .select('id, status_id, assigned_user_id')
+
+    if (jobUpdateError) {
+      console.error(
+        'Ticket workflow reset error:',
+        jobUpdateError
+      )
+
+      return NextResponse.json(
+        {
+          error:
+            'The workflow was deleted, but the job could not be returned to Allocated.',
+        },
+        { status: 500 }
+      )
+    }
+
+    const updatedJob = updatedJobs?.[0] || null
+
+    if (!updatedJob) {
+      return NextResponse.json(
+        {
+          error:
+            'The workflow was deleted, but the job reset could not be confirmed.',
+        },
+        { status: 500 }
+      )
+    }
+
     return NextResponse.json({
       success: true,
       deletedCount,
+      job: updatedJob,
     })
   } catch (error) {
     console.error(

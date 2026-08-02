@@ -15,7 +15,7 @@ export default function WorkInProgressStep({
     <MobileCard>
       <WorkflowProgress
         currentStep={3}
-        totalSteps={6}
+        totalSteps={7}
         label="Work in Progress"
       />
 

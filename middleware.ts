@@ -14,6 +14,7 @@ export async function middleware(request: NextRequest) {
         getAll() {
           return request.cookies.getAll()
         },
+
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
@@ -23,8 +24,9 @@ export async function middleware(request: NextRequest) {
             request,
           })
 
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+          cookiesToSet.forEach(
+            ({ name, value, options }) =>
+              response.cookies.set(name, value, options)
           )
         },
       },
@@ -35,18 +37,50 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  const publicRoutes = ['/login']
+  const pathname = request.nextUrl.pathname
+  const isLoginPage = pathname === '/login'
+  const isApiRoute = pathname.startsWith('/api')
 
-  const isPublicRoute = publicRoutes.includes(
-    request.nextUrl.pathname
-  )
-
-  if (!user && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  if (!user && !isLoginPage) {
+    return NextResponse.redirect(
+      new URL('/login', request.url)
+    )
   }
 
-  if (user && request.nextUrl.pathname === '/login') {
-    return NextResponse.redirect(new URL('/', request.url))
+  if (!user) {
+    return response
+  }
+
+  const { data: profile, error: profileError } =
+    await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+
+  if (profileError) {
+    console.error(
+      'Middleware profile lookup error:',
+      profileError
+    )
+  }
+
+  const isFitter = profile?.role === 'fitter'
+
+  if (isLoginPage) {
+    return NextResponse.redirect(
+      new URL(isFitter ? '/my-jobs' : '/', request.url)
+    )
+  }
+
+  if (
+    isFitter &&
+    !isApiRoute &&
+    !pathname.startsWith('/my-jobs')
+  ) {
+    return NextResponse.redirect(
+      new URL('/my-jobs', request.url)
+    )
   }
 
   return response
@@ -54,6 +88,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

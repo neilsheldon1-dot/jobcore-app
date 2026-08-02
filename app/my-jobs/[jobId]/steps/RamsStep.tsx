@@ -19,7 +19,7 @@ export default function RamsStep({
     <MobileCard>
       <WorkflowProgress
         currentStep={1}
-        totalSteps={6}
+        totalSteps={7}
         label="Before Work Begins"
       />
 

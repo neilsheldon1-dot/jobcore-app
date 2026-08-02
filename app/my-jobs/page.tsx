@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import AppHeader from '../../components/AppHeader'
+import FitterHeader from '../../components/FitterHeader'
 import { createClient } from '../utils/supabase/server'
 import { supabaseAdmin } from '../../lib/supabaseAdmin'
 
@@ -56,7 +56,7 @@ if (profileError) {
 
   return (
     <main className="min-h-screen bg-slate-100">
-      <AppHeader active="my-jobs" />
+      <FitterHeader name={name} />
 
       <div className="max-w-md mx-auto p-4">
         <div className="mb-6">
@@ -79,14 +79,20 @@ if (profileError) {
                 className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-orange-300 hover:shadow-md"
               >
                 <p className="font-bold text-slate-900">
-                  {[
-                    job.address_line_1,
-                    job.town,
-                    job.postcode,
-                  ]
-                    .filter(Boolean)
-                    .join(', ')}
-                </p>
+  {[
+    job.address_line_1,
+    job.address_line_2,
+    job.town,
+    job.postcode,
+  ]
+    .map((part) =>
+      typeof part === 'string'
+        ? part.trim().replace(/^,+|,+$/g, '').trim()
+        : part
+    )
+    .filter(Boolean)
+    .join(', ')}
+</p>
 
                 <p className="mt-2 text-sm text-slate-600">
                   {job.description || 'No work description added'}

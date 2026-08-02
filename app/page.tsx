@@ -201,6 +201,8 @@ allocated_jobs:
 
     needs_invoicing:
       jobs?.filter((job) => job.status === 'Needs Invoicing').length ?? 0,
+      needs_review:
+  jobs?.filter((job) => job.status === 'Needs Review').length ?? 0,
   }
 
   function WidgetRow({
@@ -263,6 +265,38 @@ allocated_jobs:
       <div className="max-w-7xl mx-auto px-6 pt-6">
         <DashboardSearch jobs={jobs || []} />
       </div>
+
+{stats.needs_review > 0 && (
+  <div className="max-w-7xl mx-auto px-6 pt-4">
+    <Link
+      href="/jobs/review"
+      className="block rounded-2xl border-2 border-amber-400 bg-amber-50 px-6 py-5 shadow-sm transition hover:bg-amber-100"
+    >
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-xs font-black uppercase tracking-widest text-amber-700">
+            Jobs Needing Review
+          </p>
+
+          <h2 className="mt-1 text-2xl font-black text-slate-900">
+            ⚠️ {stats.needs_review}{' '}
+            {stats.needs_review === 1
+              ? 'Job Needs Review'
+              : 'Jobs Need Review'}
+          </h2>
+
+          <p className="mt-2 text-sm text-slate-600">
+            Work returned from site awaiting an office decision.
+          </p>
+        </div>
+
+        <span className="text-3xl font-black text-amber-600">
+          →
+        </span>
+      </div>
+    </Link>
+  </div>
+)}
 
      <div className="max-w-7xl mx-auto px-6 pt-1 pb-8">
   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

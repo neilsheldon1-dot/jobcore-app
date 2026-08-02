@@ -34,7 +34,7 @@ export default function AfterPhotosStep({
   return (
     <MobileCard>
       <WorkflowProgress
-        currentStep={6}
+        currentStep={4}
         totalSteps={7}
         label="After Photos"
       />

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '../../../../lib/supabase'
+import { createClient } from '../../../utils/supabase/server'
+import { supabaseAdmin } from '../../../../lib/supabaseAdmin'
 
 export async function POST(request: Request) {
   try {
@@ -13,10 +14,57 @@ export async function POST(request: Request) {
       )
     }
 
-    // Look for the newest existing Ticket workflow.
-    // Return an array rather than coercing the result into one object.
+    const supabase = await createClient()
+
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
+
+    if (userError || !user) {
+      return NextResponse.json(
+        { error: 'You must be signed in to start this job.' },
+        { status: 401 }
+      )
+    }
+
+    const { data: profile, error: profileError } =
+      await supabaseAdmin
+        .from('profiles')
+        .select('id, display_name, full_name, email')
+        .eq('email', user.email)
+        .maybeSingle()
+
+    if (profileError) {
+      console.error(
+        'Ticket operative profile lookup error:',
+        profileError
+      )
+
+      return NextResponse.json(
+        { error: profileError.message },
+        { status: 500 }
+      )
+    }
+
+    if (!profile) {
+      return NextResponse.json(
+        {
+          error:
+            'Your JobCore operative profile could not be found.',
+        },
+        { status: 404 }
+      )
+    }
+
+    const operativeName =
+      profile.display_name ||
+      profile.full_name ||
+      profile.email ||
+      'Operative'
+
     const { data: existingRecords, error: existingError } =
-      await supabase
+      await supabaseAdmin
         .from('job_rams')
         .select('*')
         .eq('job_id', jobId)
@@ -32,7 +80,10 @@ export async function POST(request: Request) {
         .limit(1)
 
     if (existingError) {
-      console.error('Existing Ticket workflow lookup error:', existingError)
+      console.error(
+        'Existing Ticket workflow lookup error:',
+        existingError
+      )
 
       return NextResponse.json(
         { error: existingError.message },
@@ -43,15 +94,39 @@ export async function POST(request: Request) {
     const existingRecord = existingRecords?.[0] || null
 
     if (existingRecord) {
+      const { data: repairedRecords, error: repairError } =
+        await supabaseAdmin
+          .from('job_rams')
+          .update({
+            operative_id:
+              existingRecord.operative_id || profile.id,
+            signed_by:
+              existingRecord.signed_by || operativeName,
+          })
+          .eq('id', existingRecord.id)
+          .eq('job_id', jobId)
+          .select('*')
+
+      if (repairError) {
+        console.error(
+          'Existing Ticket workflow operative update error:',
+          repairError
+        )
+
+        return NextResponse.json(
+          { error: repairError.message },
+          { status: 500 }
+        )
+      }
+
       return NextResponse.json({
-        record: existingRecord,
+        record: repairedRecords?.[0] || existingRecord,
         reused: true,
       })
     }
 
-    // Load the latest active Ticket template.
     const { data: templates, error: templateError } =
-      await supabase
+      await supabaseAdmin
         .from('rams_templates')
         .select('*')
         .eq('code', 'TICKET')
@@ -60,7 +135,10 @@ export async function POST(request: Request) {
         .limit(1)
 
     if (templateError) {
-      console.error('Ticket template lookup error:', templateError)
+      console.error(
+        'Ticket template lookup error:',
+        templateError
+      )
 
       return NextResponse.json(
         { error: templateError.message },
@@ -80,7 +158,7 @@ export async function POST(request: Request) {
     const now = new Date().toISOString()
 
     const { data: insertedRecords, error: insertError } =
-      await supabase
+      await supabaseAdmin
         .from('job_rams')
         .insert({
           job_id: jobId,
@@ -92,11 +170,16 @@ export async function POST(request: Request) {
           template_snapshot: template.definition,
           answers: {},
           started_at: now,
+          operative_id: profile.id,
+          signed_by: operativeName,
         })
         .select('*')
 
     if (insertError) {
-      console.error('Ticket workflow insert error:', insertError)
+      console.error(
+        'Ticket workflow insert error:',
+        insertError
+      )
 
       return NextResponse.json(
         { error: insertError.message },
@@ -108,7 +191,10 @@ export async function POST(request: Request) {
 
     if (!record) {
       return NextResponse.json(
-        { error: 'Ticket workflow was created but could not be returned' },
+        {
+          error:
+            'Ticket workflow was created but could not be returned',
+        },
         { status: 500 }
       )
     }

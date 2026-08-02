@@ -1,5 +1,4 @@
 'use client'
-
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -7,17 +6,15 @@ type WorkflowAnswers = {
   cannotStartReasons?: string[]
   cannotStartComments?: string
   cannotStartSignature?: string
-  cannotStartPhotos?: unknown[]
   completionNotes?: string
-completionSignature?: string
-ramsConfirmed?: boolean
-  photoIds?: unknown[]
-  photos?: unknown[]
+  completionSignature?: string
+  ramsConfirmed?: boolean
   [key: string]: unknown
 }
 
 type TicketWorkflowPanelProps = {
   jobId: string
+  operativeName: string | null
   record: {
     id: string
     status: string
@@ -57,129 +54,21 @@ function formatReason(reason: string) {
     .replace(/\b\w/g, character => character.toUpperCase())
 }
 
-function getPhotoCount(answers: WorkflowAnswers) {
-  const possiblePhotoCollections = [
-    answers.cannotStartPhotos,
-    answers.photoIds,
-    answers.photos,
-  ]
-
-  for (const collection of possiblePhotoCollections) {
-    if (Array.isArray(collection)) {
-      return collection.length
-    }
-  }
-
-  return 0
-}
-
 export default function TicketWorkflowPanel({
   jobId,
+  operativeName,
   record,
 }: TicketWorkflowPanelProps) {
-  const router = useRouter()
 
-  const [loading, setLoading] = useState(false)
-  const [deleting, setDeleting] = useState(false)
-  const [error, setError] = useState('')
+    const router = useRouter()
+const [deleting, setDeleting] = useState(false)
+const [error, setError] = useState('')
 
-  async function startWorkflow() {
-    setLoading(true)
-    setError('')
-
-    try {
-      const response = await fetch('/api/compliance/start-ticket', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ jobId }),
-      })
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(
-          result?.error || 'Unable to start Ticket workflow.'
-        )
-      }
-
-      router.push(
-        `/jobs/${jobId}/compliance/${result.record.id}`
-      )
-
-      router.refresh()
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to start Ticket workflow.'
-      )
-    } finally {
-      setLoading(false)
-    }
+  if (!record) {
+    return null
   }
 
-  function continueWorkflow() {
-    if (!record) {
-      return
-    }
-
-    router.push(`/jobs/${jobId}/compliance/${record.id}`)
-  }
-
-  async function deleteWorkflow() {
-    if (!record) {
-      return
-    }
-
-    const confirmed = window.confirm(
-      'Delete this Ticket Workflow record and start again?\n\nThis will delete the workflow answers and signature. It will not delete the job.'
-    )
-
-    if (!confirmed) {
-      return
-    }
-
-    setDeleting(true)
-    setError('')
-
-    try {
-      const response = await fetch(
-        '/api/compliance/delete-ticket',
-        {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            jobId,
-            recordId: record.id,
-          }),
-        }
-      )
-
-      const result = await response.json()
-
-      if (!response.ok) {
-        throw new Error(
-          result?.error || 'Unable to delete Ticket workflow.'
-        )
-      }
-
-      router.refresh()
-    } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : 'Unable to delete Ticket workflow.'
-      )
-    } finally {
-      setDeleting(false)
-    }
-  }
-
-  const status = record?.status || 'draft'
+  const status = record.status || 'draft'
 
   const badgeStyle =
     statusStyles[status] || statusStyles.draft
@@ -187,13 +76,8 @@ export default function TicketWorkflowPanel({
   const statusLabel =
     statusLabels[status] || status
 
-  const hasCompleted =
-    status === 'completed' ||
-    status === 'not_started' ||
-    Boolean(record?.completed_at)
-
   const answers =
-    record?.answers &&
+    record.answers &&
     typeof record.answers === 'object' &&
     !Array.isArray(record.answers)
       ? record.answers
@@ -204,7 +88,8 @@ export default function TicketWorkflowPanel({
   )
     ? answers.cannotStartReasons.filter(
         (reason): reason is string =>
-          typeof reason === 'string' && reason.trim().length > 0
+          typeof reason === 'string' &&
+          reason.trim().length > 0
       )
     : []
 
@@ -213,104 +98,143 @@ export default function TicketWorkflowPanel({
       ? answers.cannotStartComments.trim()
       : ''
 
-  const hasSignature =
+  const hasCannotStartSignature =
     typeof answers.cannotStartSignature === 'string' &&
     answers.cannotStartSignature.length > 0
 
-    const completionNotes =
-  typeof answers.completionNotes === 'string'
-    ? answers.completionNotes.trim()
-    : ''
+  const completionNotes =
+    typeof answers.completionNotes === 'string'
+      ? answers.completionNotes.trim()
+      : ''
 
-const hasCompletionSignature =
-  typeof answers.completionSignature === 'string' &&
-  answers.completionSignature.length > 0
+  const hasCompletionSignature =
+    typeof answers.completionSignature === 'string' &&
+    answers.completionSignature.length > 0
 
-const ramsConfirmed =
-  answers.ramsConfirmed === true
+  const ramsConfirmed =
+    answers.ramsConfirmed === true
 
-  const photoCount = getPhotoCount(answers)
+  const reportTitle =
+    status === 'completed'
+      ? 'Work Completed'
+      : status === 'not_started'
+        ? 'Work Could Not Be Started'
+        : status === 'started_not_completed'
+          ? 'Work Started But Not Completed'
+          : 'Site Visit'
+
+          async function deleteWorkflow() {
+  if (!record) return
+
+  const confirmed = window.confirm(
+    'Delete this Site Report and reset the job?\n\nThis is intended for testing and corrections.'
+  )
+
+  if (!confirmed) return
+
+  setDeleting(true)
+  setError('')
+
+  try {
+    const response = await fetch(
+      '/api/compliance/delete-ticket',
+      {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobId,
+          recordId: record.id,
+        }),
+      }
+    )
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(
+        result?.error || 'Unable to delete the Site Report.'
+      )
+    }
+
+    window.location.reload()
+  } catch (deleteError) {
+    setError(
+      deleteError instanceof Error
+        ? deleteError.message
+        : 'Unable to delete the Site Report.'
+    )
+  } finally {
+    setDeleting(false)
+  }
+}
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="font-bold text-slate-900">
-            Reactive Roofing Ticket
-          </p>
-
-          <p className="mt-1 text-sm text-slate-500">
-            Site workflow, RAMS, work record and completion
-          </p>
-        </div>
+        <p className="font-bold text-slate-900">
+          {reportTitle}
+        </p>
 
         <span
           className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${badgeStyle}`}
         >
           <span className="mr-2 h-2 w-2 rounded-full bg-current" />
-
           {statusLabel}
         </span>
       </div>
 
-      {record && (
-        <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
-              Started
-            </p>
-
-            <p className="font-semibold text-slate-700">
-              {record.started_at
-                ? new Date(
-                    record.started_at
-                  ).toLocaleString('en-GB')
-                : 'Not recorded'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
-              RAMS Accepted
-            </p>
-
-            <p className="font-semibold text-slate-700">
-              {record.accepted_at
-                ? new Date(
-                    record.accepted_at
-                  ).toLocaleString('en-GB')
-                : 'Not applicable'}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
-              Completed
-            </p>
-
-            <p className="font-semibold text-slate-700">
-              {record.completed_at
-                ? new Date(
-                    record.completed_at
-                  ).toLocaleString('en-GB')
-                : hasCompleted
-                  ? 'Submitted'
-                  : 'Not yet'}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {record && status === 'not_started' && (
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
-          <p className="font-bold text-red-800">
-            Work could not be started
+      <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+            Job Accepted
           </p>
 
+          <p className="font-semibold text-slate-700">
+            {record.started_at
+              ? new Date(record.started_at).toLocaleString(
+                  'en-GB'
+                )
+              : 'Not recorded'}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+            RAMS Completed
+          </p>
+
+          <p className="font-semibold text-slate-700">
+            {record.accepted_at
+              ? new Date(record.accepted_at).toLocaleString(
+                  'en-GB'
+                )
+              : 'Not applicable'}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
+            Submitted
+          </p>
+
+          <p className="font-semibold text-slate-700">
+            {record.completed_at
+              ? new Date(record.completed_at).toLocaleString(
+                  'en-GB'
+                )
+              : 'Not yet'}
+          </p>
+        </div>
+      </div>
+
+      {status === 'not_started' && (
+        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
           {cannotStartReasons.length > 0 && (
-            <div className="mt-4">
+            <div>
               <p className="text-[11px] font-bold uppercase tracking-wide text-red-500">
-                Reasons
+                Reasons Reported
               </p>
 
               <ul className="mt-2 space-y-1 text-sm font-semibold text-red-800">
@@ -320,7 +244,6 @@ const ramsConfirmed =
                     className="flex items-start gap-2"
                   >
                     <span className="mt-[2px]">•</span>
-
                     <span>{formatReason(reason)}</span>
                   </li>
                 ))}
@@ -340,112 +263,100 @@ const ramsConfirmed =
             </div>
           )}
 
-          <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 border-t border-red-200 pt-3 text-sm font-semibold text-red-800">
-            <span>
-              {hasSignature
-                ? '✓ Signature captured'
-                : 'Signature not captured'}
-            </span>
+          {hasCannotStartSignature && (
+            <div className="mt-4 border-t border-red-200 pt-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-red-500">
+                Signed By
+              </p>
 
-            <span>
-              {photoCount === 0
-                ? 'No photos attached'
-                : `${photoCount} ${
-                    photoCount === 1 ? 'photo' : 'photos'
-                  } attached`}
-            </span>
-          </div>
+              <p className="mb-3 mt-1 font-semibold text-slate-800">
+                {operativeName || 'Operative'}
+              </p>
+
+              <img
+                src={
+                  answers.cannotStartSignature as string
+                }
+                alt={`Signature of ${
+                  operativeName || 'operative'
+                }`}
+                className="h-20 rounded-lg border border-red-200 bg-white p-2"
+              />
+            </div>
+          )}
         </div>
       )}
 
-      {record && status === 'completed' && (
-  <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-4">
-    <p className="font-bold text-green-800">
-      Job completed
-    </p>
+      {status === 'completed' && (
+        <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-green-600">
+                RAMS
+              </p>
 
-    <div className="mt-4 grid gap-4 sm:grid-cols-2">
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-green-600">
-          RAMS
-        </p>
+              <p className="mt-1 text-sm font-semibold text-green-800">
+                {ramsConfirmed
+                  ? '✓ Confirmed in Dashpivot'
+                  : 'Not recorded'}
+              </p>
+            </div>
 
-        <p className="mt-1 text-sm font-semibold text-green-800">
-          {ramsConfirmed
-            ? '✓ Confirmed in Dashpivot'
-            : 'Not recorded'}
-        </p>
-      </div>
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-green-600">
+                Signed By
+              </p>
 
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-green-600">
-          Signature
-        </p>
+              <p className="mb-3 mt-1 font-semibold text-green-900">
+                {operativeName || 'Operative'}
+              </p>
 
-        <p className="mt-1 text-sm font-semibold text-green-800">
-          {hasCompletionSignature
-            ? '✓ Signature captured'
-            : 'Signature not captured'}
-        </p>
-      </div>
-    </div>
+              {hasCompletionSignature ? (
+                <img
+                  src={
+                    answers.completionSignature as string
+                  }
+                  alt={`Signature of ${
+                    operativeName || 'operative'
+                  }`}
+                  className="h-20 rounded-lg border border-green-200 bg-white p-2"
+                />
+              ) : (
+                <p className="text-sm text-green-800">
+                  No signature recorded
+                </p>
+              )}
+            </div>
+          </div>
 
-    <div className="mt-4 border-t border-green-200 pt-4">
-      <p className="text-[11px] font-bold uppercase tracking-wide text-green-600">
-        Work Carried Out
-      </p>
+          <div className="mt-4 border-t border-green-200 pt-4">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-green-600">
+              Work Completed
+            </p>
 
-      <p className="mt-1 whitespace-pre-wrap text-sm text-green-800">
-        {completionNotes || 'No additional information added'}
-      </p>
-    </div>
-  </div>
+            <p className="mt-1 whitespace-pre-wrap text-sm text-green-800">
+              {completionNotes ||
+                'No work summary recorded'}
+            </p>
+          </div>
+        </div>
+      )}
+      {error && (
+  <p className="mt-4 text-sm font-semibold text-red-600">
+    {error}
+  </p>
 )}
 
-      {error && (
-        <p className="mt-3 text-sm font-semibold text-red-600">
-          {error}
-        </p>
-      )}
-
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        {!record ? (
-          <button
-            type="button"
-            onClick={startWorkflow}
-            disabled={loading}
-            className="rounded-xl bg-blue-600 px-5 py-2 text-sm font-bold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {loading
-              ? 'Starting...'
-              : 'Start Ticket Workflow'}
-          </button>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={continueWorkflow}
-              disabled={deleting}
-              className="rounded-xl bg-slate-900 px-5 py-2 text-sm font-bold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {hasCompleted
-                ? 'Open Workflow'
-                : 'Continue Ticket Workflow'}
-            </button>
-
-            <button
-              type="button"
-              onClick={deleteWorkflow}
-              disabled={deleting}
-              className="rounded-xl border border-red-200 bg-white px-5 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {deleting
-                ? 'Deleting...'
-                : 'Delete and Start Again'}
-            </button>
-          </>
-        )}
-      </div>
+<div className="mt-4">
+  <button
+    type="button"
+    onClick={deleteWorkflow}
+    disabled={deleting}
+    className="rounded-xl border border-red-200 bg-white px-5 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+  >
+    {deleting ? 'Deleting...' : 'Delete Test Report'}
+  </button>
+</div>
     </div>
   )
 }
