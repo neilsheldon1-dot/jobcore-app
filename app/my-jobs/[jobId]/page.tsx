@@ -69,7 +69,7 @@ export default async function MyJobPage({
 
   return (
     <main className="min-h-screen bg-slate-100">
-      <FitterHeader name={name} />
+      <FitterHeader />
 
       <div className="mx-auto max-w-md p-4">
 
