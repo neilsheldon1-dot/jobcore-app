@@ -202,6 +202,17 @@ function handleBeforePhotosUpload(
 'after-photos': {
   step: 6,
   label: 'After Photos',
+},review: {
+  step: 5,
+  label: 'Review',
+},
+signature: {
+  step: 6,
+  label: 'Signature',
+},
+complete: {
+  step: 7,
+  label: 'Complete',
 },
   }
 
