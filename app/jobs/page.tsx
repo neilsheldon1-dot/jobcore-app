@@ -292,7 +292,8 @@ const {
 } = await supabaseAdmin
   .from('profiles')
   .select('id, display_name, full_name, email, role')
-  .order('full_name', { ascending: true })
+  .eq('role', 'fitter')
+  .order('display_name', { ascending: true })
 
 
 

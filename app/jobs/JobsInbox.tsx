@@ -170,7 +170,11 @@ export default function JobsInbox({
           },
         ]
       : []),
-
+{
+  value: 'MOVE_TO_ON_HOLD',
+  label: 'Move to On Hold',
+  group: 'Job',
+},
     ...(canCreateApprovalChase
       ? [
           {
@@ -212,6 +216,45 @@ export default function JobsInbox({
   ]
   
 async function applyBulkStatus() {
+  if (bulkStatus === 'MOVE_TO_ON_HOLD') {
+  setBulkUpdating(true)
+
+  try {
+    const response = await fetch('/api/bulk-update-on-hold', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        job_ids: selectedJobs,
+        is_on_hold: true,
+      }),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      alert(
+        result.error ||
+          'Failed to move selected jobs to On Hold'
+      )
+      return
+    }
+
+    setSelectedJobs([])
+    setBulkStatus('')
+    window.location.reload()
+    return
+  } catch (error: any) {
+    alert(
+      error.message ||
+        'Failed to move selected jobs to On Hold'
+    )
+    return
+  } finally {
+    setBulkUpdating(false)
+  }
+}
   if (!bulkStatus) {
     alert('Please choose an action')
     return

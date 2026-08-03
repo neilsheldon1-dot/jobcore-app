@@ -71,9 +71,10 @@ const loggedInName =
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
 
-    const { data: operatives } = await supabaseAdmin
+   const { data: operatives } = await supabaseAdmin
   .from('profiles')
-  .select('id, display_name, full_name, email')
+  .select('id, display_name, full_name, email, role')
+  .eq('role', 'fitter')
   .order('display_name', { ascending: true })
 
   const { data: scaffoldStatuses } = await supabase
