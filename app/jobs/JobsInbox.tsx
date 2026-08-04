@@ -122,6 +122,15 @@ export default function JobsInbox({
       )
     })
   const availableActions: BulkAction[] = [
+    ...(currentStatus !== 'Needs Quoting'
+  ? [
+      {
+        value: 'Needs Quoting',
+        label: 'Move to Needs Quoting',
+        group: 'Change Status',
+      },
+    ]
+  : []),
     ...(currentStatus !== 'Allocated'
       ? [
           {
@@ -140,7 +149,11 @@ export default function JobsInbox({
     'Unnamed',
   group: 'Assign Job',
 })),
-
+{
+  value: 'UNASSIGN_JOBS',
+  label: 'Unassign Jobs',
+  group: 'Assign Job',
+},
     ...(currentStatus !== 'Ready'
       ? [
           {
@@ -294,6 +307,39 @@ if (bulkStatus.startsWith('ASSIGN_TO:')) {
     return
   } catch (error: any) {
     alert(error.message || 'Failed to assign jobs')
+    return
+  } finally {
+    setBulkUpdating(false)
+  }
+}
+if (bulkStatus === 'UNASSIGN_JOBS') {
+  setBulkUpdating(true)
+
+  try {
+    const response = await fetch('/api/bulk-assign-jobs', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        job_ids: selectedJobs,
+        assigned_user_id: null,
+      }),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      alert(result.error || 'Failed to unassign jobs')
+      return
+    }
+
+    setSelectedJobs([])
+    setBulkStatus('')
+    window.location.reload()
+    return
+  } catch (error: any) {
+    alert(error.message || 'Failed to unassign jobs')
     return
   } finally {
     setBulkUpdating(false)
