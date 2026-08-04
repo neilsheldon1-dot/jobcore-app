@@ -13,7 +13,6 @@ import WorkInProgressStep from './steps/WorkInProgressStep'
 import BeforePhotosStep from './steps/BeforePhotosStep'
 import RamsStep from './steps/RamsStep'
 import CanStartStep from './steps/CanStartStep'
-import CanCompleteStep from './steps/CanCompleteStep'
 import ReviewJobStep from './steps/ReviewJobStep'
 import CannotStartReasonStep from './steps/CannotStartReasonStep'
 import CannotStartCommentsStep from './steps/CannotStartCommentsStep'
@@ -21,6 +20,8 @@ import CannotStartPhotosStep from './steps/CannotStartPhotosStep'
 import CannotStartSignatureStep from './steps/CannotStartSignatureStep'
 import ReviewSubmissionStep from './steps/ReviewSubmissionStep'
 import JobSignatureStep from './steps/JobSignatureStep'
+import CompletionLimitationPhotosStep from './steps/CompletionLimitationPhotosStep'
+import CompletionLimitationSignatureStep from './steps/CompletionLimitationSignatureStep'
 
 type WorkflowPhoto = {
   id: string
@@ -34,8 +35,10 @@ type WorkflowPhoto = {
 type Stage =
   | 'idle'
   | 'safety-check'
-  | 'completion-check'
   | 'completion-limitation'
+  | 'completion-limitation-photos'
+  | 'completion-limitation-signature'
+  | 'completion-limitation-complete'
   | 'cannot-start'
   | 'cannot-start-comments'
   | 'dashpivot'
@@ -74,6 +77,8 @@ export default function JobStartPanel({
   const [beforePhotos, setBeforePhotos] =
   useState<WorkflowPhoto[]>([])
   const [afterPhotos, setAfterPhotos] =
+  useState<WorkflowPhoto[]>([])
+  const [completionLimitationPhotos, setCompletionLimitationPhotos] =
   useState<WorkflowPhoto[]>([])
   const [cannotStartComments, setCannotStartComments] =
   useState('')
@@ -135,6 +140,23 @@ function handleAfterPhotosUpload(
   uploadedPhotos: WorkflowPhoto[]
 ) {
   setAfterPhotos((current) => {
+    const existingIds = new Set(
+      current.map((photo) => photo.id)
+    )
+
+    return [
+      ...current,
+      ...uploadedPhotos.filter(
+        (photo) => !existingIds.has(photo.id)
+      ),
+    ]
+  })
+}
+
+function handleCompletionLimitationPhotosUpload(
+  uploadedPhotos: WorkflowPhoto[]
+) {
+  setCompletionLimitationPhotos((current) => {
     const existingIds = new Set(
       current.map((photo) => photo.id)
     )
@@ -247,17 +269,10 @@ function handleBeforePhotosUpload(
     }
   }
 
-  async function saveCompletionAssessment(
-    canComplete: boolean
-  ) {
+  async function saveCompletionAssessment() {
+    const canComplete = true
     if (!workflowRecordId) {
       setError('Workflow record is missing.')
-      return
-    }
-
-    if (!canComplete) {
-      setError('')
-      setStage('completion-limitation')
       return
     }
 
@@ -348,7 +363,7 @@ function handleBeforePhotosUpload(
         )
       }
 
-      setStage('after-photos')
+      setStage('completion-limitation-photos')
     } catch (err) {
       setError(
         err instanceof Error
@@ -515,16 +530,6 @@ async function confirmRams() {
   )
 }
 
-  if (stage === 'completion-check') {
-    return (
-      <CanCompleteStep
-        saving={saving}
-        error={error}
-        onAnswer={saveCompletionAssessment}
-      />
-    )
-  }
-
   if (stage === 'completion-limitation') {
     return (
       <MobileCard>
@@ -565,13 +570,81 @@ async function confirmRams() {
             type="button"
             onClick={() => {
               setError('')
-              setStage('completion-check')
+              setStage('work-in-progress')
             }}
             disabled={saving}
             className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
           >
             Back
           </button>
+        </div>
+      </MobileCard>
+    )
+  }
+
+  if (stage === 'completion-limitation-photos') {
+    return (
+      <CompletionLimitationPhotosStep
+        jobId={jobId}
+        jobAddress={jobAddress}
+        photos={completionLimitationPhotos}
+        onUploadComplete={
+          handleCompletionLimitationPhotosUpload
+        }
+        onContinue={() =>
+          setStage('completion-limitation-signature')
+        }
+      />
+    )
+  }
+
+  if (stage === 'completion-limitation-signature') {
+    if (!workflowRecordId) {
+      return null
+    }
+
+    return (
+      <CompletionLimitationSignatureStep
+        jobId={jobId}
+        recordId={workflowRecordId}
+        onBack={() =>
+          setStage('completion-limitation-photos')
+        }
+        onComplete={() =>
+          setStage('completion-limitation-complete')
+        }
+      />
+    )
+  }
+
+  if (stage === 'completion-limitation-complete') {
+    return (
+      <MobileCard>
+        <WorkflowProgress
+          currentStep={5}
+          totalSteps={5}
+          label="Report Sent"
+        />
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-center">
+          <p className="text-lg font-bold text-amber-900">
+            Office Updated
+          </p>
+
+          <p className="mt-2 text-sm leading-6 text-amber-800">
+            The office has received your incomplete work report
+            and supporting information.
+          </p>
+        </div>
+
+        <div className="mt-6">
+          <PrimaryButton
+            onClick={() => {
+              window.location.href = '/my-jobs'
+            }}
+          >
+            Return to My Jobs
+          </PrimaryButton>
         </div>
       </MobileCard>
     )
@@ -680,7 +753,7 @@ if (stage === 'after-photos') {
 if (stage === 'work-in-progress') {
   return (
     <WorkInProgressStep
-      onComplete={() => setStage('completion-check')}
+      onComplete={() => setStage('work-in-progress')}
       onCannotComplete={() =>
         setStage('completion-limitation')
       }
