@@ -185,6 +185,15 @@ allocated_jobs:
     creating_enterprise:
       jobs?.filter((job) => job.client === 'Creating Enterprise').length ?? 0,
 
+          nwps:
+      jobs?.filter((job) => job.client === 'NWPS').length ?? 0,
+
+    onnen:
+      jobs?.filter((job) => job.client === 'Onnen').length ?? 0,
+
+    sustainable:
+      jobs?.filter((job) => job.client === 'Sustainable').length ?? 0,
+
     private_jobs:
       jobs?.filter((job) => job.client === 'Private').length ?? 0,
 
@@ -464,10 +473,56 @@ allocated_jobs:
       </div>
 
       <div className="divide-y">
-        <WidgetRow href="/jobs?client=Denbighshire" label="Denbighshire" value={stats.denbighshire} accent="border-l-blue-600" />
-        <WidgetRow href="/jobs?client=Cartrefi" label="Cartrefi" value={stats.cartrefi} accent="border-l-emerald-600" />
-        <WidgetRow href="/jobs?client=Creating%20Enterprise" label="Creating Enterprise" value={stats.creating_enterprise} accent="border-l-orange-500" />
-        <WidgetRow href="/jobs?client=Private" label="Private" value={stats.private_jobs} accent="border-l-slate-600" />
+        <div className="divide-y">
+  <WidgetRow
+    href="/jobs?client=Cartrefi"
+    label="Cartrefi"
+    value={stats.cartrefi}
+    accent="border-l-emerald-600"
+  />
+
+  <WidgetRow
+    href="/jobs?client=Creating%20Enterprise"
+    label="Creating Enterprise"
+    value={stats.creating_enterprise}
+    accent="border-l-orange-500"
+  />
+
+  <WidgetRow
+    href="/jobs?client=Denbighshire"
+    label="Denbighshire"
+    value={stats.denbighshire}
+    accent="border-l-blue-600"
+  />
+
+  <WidgetRow
+    href="/jobs?client=NWPS"
+    label="NWPS"
+    value={stats.nwps}
+    accent="border-l-cyan-600"
+  />
+
+  <WidgetRow
+    href="/jobs?client=Onnen"
+    label="Onnen"
+    value={stats.onnen}
+    accent="border-l-lime-600"
+  />
+
+  <WidgetRow
+    href="/jobs?client=Private"
+    label="Private"
+    value={stats.private_jobs}
+    accent="border-l-slate-600"
+  />
+
+  <WidgetRow
+    href="/jobs?client=Sustainable"
+    label="Sustainable"
+    value={stats.sustainable}
+    accent="border-l-green-700"
+  />
+</div>
       </div>
     </section>
 

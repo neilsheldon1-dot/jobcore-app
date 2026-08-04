@@ -112,9 +112,12 @@ export default function EditPropertyForm({
         >
           <option value="">Select Client</option>
           <option value="Cartrefi">Cartrefi</option>
-          <option value="Denbighshire">Denbighshire</option>
-          <option value="Creating Enterprise">Creating Enterprise</option>
-          <option value="Private">Private</option>
+<option value="Creating Enterprise">Creating Enterprise</option>
+<option value="Denbighshire">Denbighshire</option>
+<option value="NWPS">NWPS</option>
+<option value="Onnen">Onnen</option>
+<option value="Private">Private</option>
+<option value="Sustainable">Sustainable</option>
         </select>
       </div>
 

@@ -110,10 +110,13 @@ po_number: formData.get('po_number'),
         <div className="grid md:grid-cols-2 gap-5">
           <select name="client" className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white">
             <option value="">Select Client</option>
-            <option value="Denbighshire">Denbighshire</option>
             <option value="Cartrefi">Cartrefi</option>
-            <option value="Creating Enterprise">Creating Enterprise</option>
-            <option value="Private">Private</option>
+<option value="Creating Enterprise">Creating Enterprise</option>
+<option value="Denbighshire">Denbighshire</option>
+<option value="NWPS">NWPS</option>
+<option value="Onnen">Onnen</option>
+<option value="Private">Private</option>
+<option value="Sustainable">Sustainable</option>
           </select>
 
           <select name="zone" className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white">
