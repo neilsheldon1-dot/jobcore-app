@@ -34,8 +34,8 @@ export default function CompletionLimitationPhotosStep({
   return (
     <MobileCard>
       <WorkflowProgress
-        currentStep={3}
-        totalSteps={5}
+        currentStep={5}
+        totalSteps={7}
         label="Site Photos"
       />
 

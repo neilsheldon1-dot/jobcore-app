@@ -20,8 +20,8 @@ export default function CompletionLimitationSignatureStep({
   return (
     <MobileCard>
       <WorkflowProgress
-        currentStep={4}
-        totalSteps={5}
+        currentStep={6}
+        totalSteps={7}
         label="Confirm Report"
       />
 

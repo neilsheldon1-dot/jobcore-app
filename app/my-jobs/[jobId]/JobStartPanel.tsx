@@ -533,6 +533,12 @@ async function confirmRams() {
   if (stage === 'completion-limitation') {
     return (
       <MobileCard>
+        <WorkflowProgress
+          currentStep={4}
+          totalSteps={7}
+          label="Incomplete Work"
+        />
+
         <p className="text-base font-bold text-slate-700">
           What Cannot Be Completed?
         </p>
@@ -621,8 +627,8 @@ async function confirmRams() {
     return (
       <MobileCard>
         <WorkflowProgress
-          currentStep={5}
-          totalSteps={5}
+          currentStep={7}
+          totalSteps={7}
           label="Report Sent"
         />
 
@@ -753,10 +759,15 @@ if (stage === 'after-photos') {
 if (stage === 'work-in-progress') {
   return (
     <WorkInProgressStep
-      onComplete={() => setStage('work-in-progress')}
-      onCannotComplete={() =>
+      saving={saving}
+      error={error}
+      onComplete={() => {
+        void saveCompletionAssessment()
+      }}
+      onCannotComplete={() => {
+        setError('')
         setStage('completion-limitation')
-      }
+      }}
     />
   )
 }

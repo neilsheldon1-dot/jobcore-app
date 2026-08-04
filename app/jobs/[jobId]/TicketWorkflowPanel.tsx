@@ -1,4 +1,5 @@
 'use client'
+
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -8,6 +9,11 @@ type WorkflowAnswers = {
   cannotStartSignature?: string
   completionNotes?: string
   completionSignature?: string
+  completion_limitation_comments?: string
+  completion_limitation_reasons?: string[]
+  completionLimitationSignature?: string
+  completionLimitationReportedAt?: string
+  can_complete?: 'yes' | 'no'
   ramsConfirmed?: boolean
   [key: string]: unknown
 }
@@ -54,25 +60,28 @@ function formatReason(reason: string) {
     .replace(/\b\w/g, character => character.toUpperCase())
 }
 
+function formatDate(value: string | null | undefined) {
+  if (!value) return 'Not recorded'
+
+  return new Date(value).toLocaleString('en-GB')
+}
+
 export default function TicketWorkflowPanel({
   jobId,
   operativeName,
   record,
 }: TicketWorkflowPanelProps) {
-
-    const router = useRouter()
-const [deleting, setDeleting] = useState(false)
-const [error, setError] = useState('')
+  const router = useRouter()
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
 
   if (!record) {
     return null
   }
-
+const recordId = record.id
   const status = record.status || 'draft'
-
   const badgeStyle =
     statusStyles[status] || statusStyles.draft
-
   const statusLabel =
     statusLabels[status] || status
 
@@ -111,6 +120,30 @@ const [error, setError] = useState('')
     typeof answers.completionSignature === 'string' &&
     answers.completionSignature.length > 0
 
+  const completionLimitationComments =
+    typeof answers.completion_limitation_comments === 'string'
+      ? answers.completion_limitation_comments.trim()
+      : ''
+
+  const completionLimitationReasons = Array.isArray(
+    answers.completion_limitation_reasons
+  )
+    ? answers.completion_limitation_reasons.filter(
+        (reason): reason is string =>
+          typeof reason === 'string' &&
+          reason.trim().length > 0
+      )
+    : []
+
+  const hasCompletionLimitationSignature =
+    typeof answers.completionLimitationSignature === 'string' &&
+    answers.completionLimitationSignature.length > 0
+
+  const completionLimitationReportedAt =
+    typeof answers.completionLimitationReportedAt === 'string'
+      ? answers.completionLimitationReportedAt
+      : record.completed_at
+
   const ramsConfirmed =
     answers.ramsConfirmed === true
 
@@ -123,52 +156,52 @@ const [error, setError] = useState('')
           ? 'Work Started But Not Completed'
           : 'Site Visit'
 
-          async function deleteWorkflow() {
-  if (!record) return
-
-  const confirmed = window.confirm(
-    'Delete this Site Report and reset the job?\n\nThis is intended for testing and corrections.'
-  )
-
-  if (!confirmed) return
-
-  setDeleting(true)
-  setError('')
-
-  try {
-    const response = await fetch(
-      '/api/compliance/delete-ticket',
-      {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jobId,
-          recordId: record.id,
-        }),
-      }
+  async function deleteWorkflow() {
+    const confirmed = window.confirm(
+      'Delete this Site Report and reset the job?\\n\\nThis is intended for testing and corrections.'
     )
 
-    const result = await response.json()
+    if (!confirmed) return
 
-    if (!response.ok) {
-      throw new Error(
-        result?.error || 'Unable to delete the Site Report.'
+    setDeleting(true)
+    setError('')
+
+    try {
+      const response = await fetch(
+        '/api/compliance/delete-ticket',
+        {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jobId,
+            recordId,
+          }),
+        }
       )
-    }
 
-    window.location.reload()
-  } catch (deleteError) {
-    setError(
-      deleteError instanceof Error
-        ? deleteError.message
-        : 'Unable to delete the Site Report.'
-    )
-  } finally {
-    setDeleting(false)
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          result?.error ||
+            'Unable to delete the Site Report.'
+        )
+      }
+
+      router.refresh()
+      window.location.reload()
+    } catch (deleteError) {
+      setError(
+        deleteError instanceof Error
+          ? deleteError.message
+          : 'Unable to delete the Site Report.'
+      )
+    } finally {
+      setDeleting(false)
+    }
   }
-}
 
   return (
     <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
@@ -190,13 +223,8 @@ const [error, setError] = useState('')
           <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
             Job Accepted
           </p>
-
           <p className="font-semibold text-slate-700">
-            {record.started_at
-              ? new Date(record.started_at).toLocaleString(
-                  'en-GB'
-                )
-              : 'Not recorded'}
+            {formatDate(record.started_at)}
           </p>
         </div>
 
@@ -204,12 +232,9 @@ const [error, setError] = useState('')
           <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
             RAMS Completed
           </p>
-
           <p className="font-semibold text-slate-700">
             {record.accepted_at
-              ? new Date(record.accepted_at).toLocaleString(
-                  'en-GB'
-                )
+              ? formatDate(record.accepted_at)
               : 'Not applicable'}
           </p>
         </div>
@@ -218,16 +243,93 @@ const [error, setError] = useState('')
           <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">
             Submitted
           </p>
-
           <p className="font-semibold text-slate-700">
             {record.completed_at
-              ? new Date(record.completed_at).toLocaleString(
-                  'en-GB'
-                )
+              ? formatDate(record.completed_at)
               : 'Not yet'}
           </p>
         </div>
       </div>
+
+      {status === 'started_not_completed' && (
+        <div className="mt-4 rounded-xl border border-orange-200 bg-orange-50 p-4">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wide text-orange-600">
+              What Prevented Completion
+            </p>
+
+            <p className="mt-2 whitespace-pre-wrap text-sm font-semibold leading-6 text-orange-950">
+              {completionLimitationComments ||
+                'No explanation was recorded.'}
+            </p>
+          </div>
+
+          {completionLimitationReasons.length > 0 && (
+            <div className="mt-4 border-t border-orange-200 pt-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-orange-600">
+                Reasons
+              </p>
+
+              <ul className="mt-2 space-y-1 text-sm text-orange-900">
+                {completionLimitationReasons.map(reason => (
+                  <li
+                    key={reason}
+                    className="flex items-start gap-2"
+                  >
+                    <span>•</span>
+                    <span>{formatReason(reason)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="mt-4 grid gap-4 border-t border-orange-200 pt-4 sm:grid-cols-2">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-orange-600">
+                Reported By
+              </p>
+              <p className="mt-1 font-semibold text-slate-900">
+                {operativeName || 'Operative'}
+              </p>
+
+              <p className="mt-1 text-sm text-slate-600">
+                {formatDate(completionLimitationReportedAt)}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-orange-600">
+                Supporting Information
+              </p>
+              <p className="mt-1 text-sm font-semibold text-orange-900">
+                Site photos were requested as part of this report.
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                View the Photos section below for the uploaded site images.
+              </p>
+            </div>
+          </div>
+
+          {hasCompletionLimitationSignature && (
+            <div className="mt-4 border-t border-orange-200 pt-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-orange-600">
+                Report Confirmed
+              </p>
+
+              <img
+                src={
+                  answers.completionLimitationSignature as string
+                }
+                alt={`Confirmation by ${
+                  operativeName || 'operative'
+                }`}
+                className="mt-2 h-20 rounded-lg border border-orange-200 bg-white p-2"
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {status === 'not_started' && (
         <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4">
@@ -341,22 +443,25 @@ const [error, setError] = useState('')
           </div>
         </div>
       )}
-      {error && (
-  <p className="mt-4 text-sm font-semibold text-red-600">
-    {error}
-  </p>
-)}
 
-<div className="mt-4">
-  <button
-    type="button"
-    onClick={deleteWorkflow}
-    disabled={deleting}
-    className="rounded-xl border border-red-200 bg-white px-5 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-  >
-    {deleting ? 'Deleting...' : 'Delete Test Report'}
-  </button>
-</div>
+      {error && (
+        <p className="mt-4 text-sm font-semibold text-red-600">
+          {error}
+        </p>
+      )}
+
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={deleteWorkflow}
+          disabled={deleting}
+          className="rounded-xl border border-red-200 bg-white px-5 py-2 text-sm font-bold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {deleting
+            ? 'Deleting...'
+            : 'Delete Test Report'}
+        </button>
+      </div>
     </div>
   )
 }
