@@ -13,6 +13,7 @@ import WorkInProgressStep from './steps/WorkInProgressStep'
 import BeforePhotosStep from './steps/BeforePhotosStep'
 import RamsStep from './steps/RamsStep'
 import CanStartStep from './steps/CanStartStep'
+import CanCompleteStep from './steps/CanCompleteStep'
 import ReviewJobStep from './steps/ReviewJobStep'
 import CannotStartReasonStep from './steps/CannotStartReasonStep'
 import CannotStartCommentsStep from './steps/CannotStartCommentsStep'
@@ -33,6 +34,8 @@ type WorkflowPhoto = {
 type Stage =
   | 'idle'
   | 'safety-check'
+  | 'completion-check'
+  | 'completion-limitation'
   | 'cannot-start'
   | 'cannot-start-comments'
   | 'dashpivot'
@@ -43,8 +46,8 @@ type Stage =
   | 'work-in-progress'
   | 'after-photos'
   | 'review'
-| 'signature'
-| 'complete'
+  | 'signature'
+  | 'complete'
 
 type JobStartPanelProps = {
   jobId: string
@@ -75,6 +78,8 @@ export default function JobStartPanel({
   const [cannotStartComments, setCannotStartComments] =
   useState('')
   const [completionNotes, setCompletionNotes] =
+  useState('')
+  const [completionLimitationComments, setCompletionLimitationComments] =
   useState('')
 
   async function handleCannotStartUpload(
@@ -230,12 +235,125 @@ function handleBeforePhotosUpload(
         )
       }
 
-      setStage(canStart ? 'dashpivot' : 'cannot-start')
+      setStage(canStart ? 'completion-check' : 'cannot-start')
     } catch (err) {
       setError(
         err instanceof Error
           ? err.message
           : 'Unable to save the site decision.'
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function saveCompletionAssessment(
+    canComplete: boolean
+  ) {
+    if (!workflowRecordId) {
+      setError('Workflow record is missing.')
+      return
+    }
+
+    if (!canComplete) {
+      setError('')
+      setStage('completion-limitation')
+      return
+    }
+
+    setSaving(true)
+    setError('')
+
+    try {
+      const response = await fetch(
+        '/api/compliance/completion-assessment',
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jobId,
+            recordId: workflowRecordId,
+            canComplete: true,
+            reasons: [],
+            comments: '',
+          }),
+        }
+      )
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          result.error ||
+            'Unable to save the completion assessment.'
+        )
+      }
+
+      setStage('dashpivot')
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to save the completion assessment.'
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function saveCompletionLimitation() {
+    if (!workflowRecordId) {
+      setError('Workflow record is missing.')
+      return
+    }
+
+    const comments = completionLimitationComments.trim()
+
+    if (!comments) {
+      setError(
+        'Please tell the office what cannot be completed and why.'
+      )
+      return
+    }
+
+    setSaving(true)
+    setError('')
+
+    try {
+      const response = await fetch(
+        '/api/compliance/completion-assessment',
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jobId,
+            recordId: workflowRecordId,
+            canComplete: false,
+            reasons: [],
+            comments,
+          }),
+        }
+      )
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          result.error ||
+            'Unable to save the completion limitation.'
+        )
+      }
+
+      setStage('dashpivot')
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to save the completion limitation.'
       )
     } finally {
       setSaving(false)
@@ -396,6 +514,68 @@ async function confirmRams() {
     />
   )
 }
+
+  if (stage === 'completion-check') {
+    return (
+      <CanCompleteStep
+        saving={saving}
+        error={error}
+        onAnswer={saveCompletionAssessment}
+      />
+    )
+  }
+
+  if (stage === 'completion-limitation') {
+    return (
+      <MobileCard>
+        <p className="text-base font-bold text-slate-700">
+          What Cannot Be Completed?
+        </p>
+
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Tell the office what is affected and why. You can still
+          continue with any work that can be completed safely.
+        </p>
+
+        <textarea
+          value={completionLimitationComments}
+          onChange={(event) =>
+            setCompletionLimitationComments(event.target.value)
+          }
+          rows={5}
+          placeholder="For example: More rotten decking found and additional materials are required."
+          className="mt-5 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm text-slate-700 outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
+        />
+
+        {error && (
+          <p className="mt-4 text-sm font-semibold text-red-600">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-5 space-y-3">
+          <PrimaryButton
+            onClick={saveCompletionLimitation}
+            disabled={saving}
+          >
+            {saving ? 'Saving...' : 'Save and Continue'}
+          </PrimaryButton>
+
+          <button
+            type="button"
+            onClick={() => {
+              setError('')
+              setStage('completion-check')
+            }}
+            disabled={saving}
+            className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-50"
+          >
+            Back
+          </button>
+        </div>
+      </MobileCard>
+    )
+  }
 
   if (stage === 'cannot-start') {
   return (

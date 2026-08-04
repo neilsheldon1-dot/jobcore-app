@@ -71,6 +71,11 @@ const loggedInName =
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
 
+    const selectableStatuses =
+  (jobStatuses || []).filter(
+    (status) => status.name !== 'Needs Review'
+  )
+
    const { data: operatives } = await supabaseAdmin
   .from('profiles')
   .select('id, display_name, full_name, email, role')
@@ -327,7 +332,7 @@ const showAsbestosWorkflow =
                   <StatusDropdown
                     jobId={jobId}
                     currentStatus={job.status}
-                    jobStatuses={jobStatuses || []}
+                    jobStatuses={selectableStatuses}
                   />
                 </div>
 
