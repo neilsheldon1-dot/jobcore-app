@@ -235,7 +235,7 @@ function handleBeforePhotosUpload(
         )
       }
 
-      setStage(canStart ? 'completion-check' : 'cannot-start')
+      setStage(canStart ? 'dashpivot' : 'cannot-start')
     } catch (err) {
       setError(
         err instanceof Error
@@ -291,7 +291,7 @@ function handleBeforePhotosUpload(
         )
       }
 
-      setStage('dashpivot')
+      setStage('after-photos')
     } catch (err) {
       setError(
         err instanceof Error
@@ -348,7 +348,7 @@ function handleBeforePhotosUpload(
         )
       }
 
-      setStage('dashpivot')
+      setStage('after-photos')
     } catch (err) {
       setError(
         err instanceof Error
@@ -680,8 +680,11 @@ if (stage === 'after-photos') {
 if (stage === 'work-in-progress') {
   return (
     <WorkInProgressStep
-  onComplete={() => setStage('after-photos')}
-/>
+      onComplete={() => setStage('completion-check')}
+      onCannotComplete={() =>
+        setStage('completion-limitation')
+      }
+    />
   )
 }
 if (stage === 'review') {
