@@ -54,7 +54,7 @@ export async function middleware(request: NextRequest) {
   const { data: profile, error: profileError } =
     await supabase
       .from('profiles')
-      .select('role')
+      .select('role, email, display_name')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -67,14 +67,36 @@ export async function middleware(request: NextRequest) {
 
   const isFitter = profile?.role === 'fitter'
 
+  const isUpvcOutlet =
+    profile?.email === 'rubberroofsltd+upvc@gmail.com' ||
+    profile?.display_name === 'UPVCOutlet' ||
+    profile?.display_name === 'UPVC Outlet'
+
+  const defaultDestination = isUpvcOutlet
+    ? '/upvc-jobs'
+    : isFitter
+      ? '/my-jobs'
+      : '/'
+
   if (isLoginPage) {
     return NextResponse.redirect(
-      new URL(isFitter ? '/my-jobs' : '/', request.url)
+      new URL(defaultDestination, request.url)
+    )
+  }
+
+  if (
+    isUpvcOutlet &&
+    !isApiRoute &&
+    !pathname.startsWith('/upvc-jobs')
+  ) {
+    return NextResponse.redirect(
+      new URL('/upvc-jobs', request.url)
     )
   }
 
   if (
     isFitter &&
+    !isUpvcOutlet &&
     !isApiRoute &&
     !pathname.startsWith('/my-jobs')
   ) {
