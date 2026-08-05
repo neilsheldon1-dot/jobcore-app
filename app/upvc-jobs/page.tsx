@@ -127,7 +127,7 @@ export default async function UpvcJobsPage() {
   )
 
   return (
-    <main className="min-h-screen bg-slate-100">
+    <main className="min-h-screen bg-slate-300">
       <AutoRefresh intervalMs={5000} />
 
       <UpvcHeader />
@@ -170,11 +170,11 @@ export default async function UpvcJobsPage() {
                     {showAreaHeading && (
                       <div className="px-1 pt-2">
                         <div className="flex items-center justify-between border-b border-slate-300 pb-2">
-                          <p className="text-xs font-black uppercase tracking-widest text-slate-600">
+                          <p className="text-xs font-black uppercase tracking-widest text-slate-500">
                             {areaName}
                           </p>
 
-                          <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-bold text-slate-600">
+                          <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-bold text-slate-500">
                             {areaCounts[areaName] || 0}
                           </span>
                         </div>
@@ -182,69 +182,64 @@ export default async function UpvcJobsPage() {
                     )}
 
                     <Link
-                      href={`/upvc-jobs/${job.job_id}`}
-                      className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-orange-400 hover:shadow-md"
-                    >
-                      <p className="font-bold text-slate-900">
-                        {[
-                          job.address_line_1,
-                          job.address_line_2,
-                          job.town,
-                          job.postcode,
-                        ]
-                          .map((part) =>
-                            typeof part === 'string'
-                              ? part
-                                  .trim()
-                                  .replace(
-                                    /^,+|,+$/g,
-                                    ''
-                                  )
-                                  .trim()
-                              : part
-                          )
-                          .filter(Boolean)
-                          .join(', ')}
-                      </p>
+  href={`/upvc-jobs/${job.job_id}`}
+  className="block rounded-2xl border border-slate-700 bg-slate-950 p-5 shadow-sm transition hover:border-orange-400 hover:shadow-md"
+>
+  <p className="font-bold text-white">
+    {[
+      job.address_line_1,
+      job.address_line_2,
+      job.town,
+      job.postcode,
+    ]
+      .map((part) =>
+        typeof part === 'string'
+          ? part
+              .trim()
+              .replace(/^,+|,+$/g, '')
+              .trim()
+          : part
+      )
+      .filter(Boolean)
+      .join(', ')}
+  </p>
 
-                      <p className="mt-2 text-sm leading-6 text-slate-600">
-                        {job.description ||
-                          'No work description added'}
-                      </p>
+  <p className="mt-2 text-sm leading-6 text-slate-300">
+    {job.description || 'No work description added'}
+  </p>
 
-                      <div className="mt-4 flex items-center justify-between gap-3">
-                        <div className="flex flex-wrap gap-2">
-                          {job.zone && (
-                            <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">
-                              {job.zone.replace(
-                                /^\d+\s*-\s*/,
-                                ''
-                              )}
-                            </span>
-                          )}
+  <div className="mt-4 flex items-center justify-between gap-3">
+    <div className="flex flex-wrap gap-2">
 
-                          <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-slate-600">
-                            {job.job_type || 'UPVC Job'}
-                          </span>
-                        </div>
+      {job.zone && (
+        <span className="rounded-full border border-orange-500 bg-orange-950/30 px-3 py-1 text-xs font-bold text-orange-300">
+          {job.zone.replace(/^\d+\s*-\s*/, '')}
+        </span>
+      )}
 
-                        <span className="shrink-0 text-sm font-bold text-orange-600">
-                          Open →
-                        </span>
-                      </div>
-                    </Link>
+      <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-slate-600">
+        {job.job_type || 'Job'}
+      </span>
+
+    </div>
+
+    <span className="shrink-0 text-sm font-bold text-orange-400">
+      Open →
+    </span>
+  </div>
+</Link>
                   </Fragment>
                 )
               }
             )}
           </div>
         ) : (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-            <p className="font-bold text-slate-700">
+          <div className="rounded-2xl border border-slate-200 bg-slate-950 p-6 text-center shadow-sm">
+            <p className="font-bold text-white">
               No jobs assigned
             </p>
 
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-300">
               New work will appear here when it is assigned.
             </p>
           </div>
