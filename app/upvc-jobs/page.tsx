@@ -127,7 +127,7 @@ export default async function UpvcJobsPage() {
   )
 
   return (
-    <main className="min-h-screen bg-slate-300">
+    <main className="min-h-screen bg-slate-100">
       <AutoRefresh intervalMs={5000} />
 
       <UpvcHeader />
@@ -185,7 +185,7 @@ export default async function UpvcJobsPage() {
   href={`/upvc-jobs/${job.job_id}`}
   className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-orange-400 hover:shadow-md"
 >
-  <p className="font-bold text-white">
+  <p className="font-bold text-slate-900">
     {[
       job.address_line_1,
       job.address_line_2,
@@ -204,15 +204,14 @@ export default async function UpvcJobsPage() {
       .join(', ')}
   </p>
 
-  <p className="mt-2 text-sm leading-6 text-slate-300">
+  <p className="mt-2 text-sm leading-6 text-slate-600">
     {job.description || 'No work description added'}
   </p>
 
   <div className="mt-4 flex items-center justify-between gap-3">
     <div className="flex flex-wrap gap-2">
-
       {job.zone && (
-       <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">
+        <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">
           {job.zone.replace(/^\d+\s*-\s*/, '')}
         </span>
       )}
@@ -220,7 +219,6 @@ export default async function UpvcJobsPage() {
       <span className="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-bold text-slate-600">
         {job.job_type || 'Job'}
       </span>
-
     </div>
 
     <span className="shrink-0 text-sm font-bold text-orange-600">
