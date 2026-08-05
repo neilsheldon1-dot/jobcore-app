@@ -4,6 +4,7 @@ import JobsInbox from './JobsInbox'
 import { supabaseAdmin } from '../../lib/supabaseAdmin'
 import Link from 'next/link'
 
+
 export const dynamic = 'force-dynamic'
 
 type SearchParams = Promise<{

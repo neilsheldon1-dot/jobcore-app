@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { supabase } from '../../../lib/supabase'
 import DeletePropertyButton from './DeletePropertyButton'
+import PropertyKnowledgeCard from '@/components/PropertyKnowledgeCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -94,6 +95,9 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
 <DeletePropertyButton propertyId={property.id} />
 </div>
  </section>
+ <section className="mt-6">
+  <PropertyKnowledgeCard />
+</section>
         <section className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden mt-6">
           <div className="px-6 py-5 border-b">
             <h2 className="text-lg font-bold text-slate-900">
@@ -145,6 +149,7 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
             )}
           </div>
         </section>
+        
 
       </div>
     </main>
