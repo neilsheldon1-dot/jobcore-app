@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { supabase } from '../lib/supabase'
 import { supabaseAdmin } from '../lib/supabaseAdmin'
 import DashboardSearch from './DashboardSearch'
+import AutoRefresh from '../components/AutoRefresh'
 
 export const dynamic = 'force-dynamic'
 
@@ -249,6 +250,7 @@ allocated_jobs:
 
   return (
     <main className="min-h-screen bg-slate-100">
+      <AutoRefresh intervalMs={15000} />
       <AppHeader active="home" />
 
       <div className="bg-white border-b">

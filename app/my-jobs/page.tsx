@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import FitterHeader from '../../components/FitterHeader'
 import { createClient } from '../utils/supabase/server'
 import { supabaseAdmin } from '../../lib/supabaseAdmin'
+import AutoRefresh from '../../components/AutoRefresh'
 
 export const dynamic = 'force-dynamic'
 
@@ -148,6 +149,7 @@ export default async function MyJobsPage() {
 
   return (
     <main className="min-h-screen bg-slate-100">
+        <AutoRefresh intervalMs={5000} />
       <FitterHeader name={name} />
 
       <div className="mx-auto max-w-md p-4">
