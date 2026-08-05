@@ -135,7 +135,7 @@ export default async function UpvcJobsPage() {
       <div className="mx-auto max-w-md p-4">
         <div className="mb-6">
           <h1 className="text-2xl font-black text-slate-900">
-            UPVC Outlet Jobs
+            Jobs
           </h1>
 
           <p className="mt-1 text-slate-500">
@@ -143,7 +143,7 @@ export default async function UpvcJobsPage() {
             {sortedJobs.length === 1
               ? 'job'
               : 'jobs'}{' '}
-            available
+            assigned
           </p>
         </div>
 
@@ -241,12 +241,11 @@ export default async function UpvcJobsPage() {
         ) : (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
             <p className="font-bold text-slate-700">
-              No jobs available
+              No jobs assigned
             </p>
 
             <p className="mt-1 text-sm text-slate-500">
-              New work will appear here when it is
-              allocated to UPVC Outlet.
+              New work will appear here when it is assigned.
             </p>
           </div>
         )}

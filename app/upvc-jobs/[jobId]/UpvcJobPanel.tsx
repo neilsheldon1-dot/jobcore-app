@@ -56,7 +56,7 @@ export default function UpvcJobPanel({
 
   function completeJob() {
     if (!notes.trim()) {
-      alert('Please describe the work carried out.')
+      alert('Please describe the Work Completed.')
       return
     }
 
@@ -105,7 +105,7 @@ export default function UpvcJobPanel({
             </p>
 
             <p className="mt-4 text-xs font-bold uppercase tracking-wide text-slate-400">
-              Work carried out
+              Work Completed
             </p>
 
             <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
@@ -131,12 +131,11 @@ export default function UpvcJobPanel({
     return (
       <MobileCard>
         <h2 className="text-lg font-bold text-slate-900">
-          Ready to Start
+          Accept Job
         </h2>
 
         <p className="mt-2 text-sm leading-6 text-slate-600">
-          Start the job when you arrive and are ready to
-          begin work.
+          Accept this job when you arrive on site.
         </p>
 
         <button
@@ -144,7 +143,7 @@ export default function UpvcJobPanel({
           onClick={() => setStarted(true)}
           className="mt-6 w-full rounded-xl bg-orange-500 px-4 py-3 font-bold text-white transition hover:bg-orange-600"
         >
-          Start Work
+          Accept Job
         </button>
       </MobileCard>
     )
@@ -154,7 +153,7 @@ export default function UpvcJobPanel({
     <MobileCard>
       <div className="mb-6">
         <h2 className="text-xl font-black text-slate-900">
-          Job in Progress
+          Work in Progress
         </h2>
 
         <p className="mt-1 text-sm text-slate-500">
@@ -205,7 +204,7 @@ export default function UpvcJobPanel({
           htmlFor="work-carried-out"
           className="text-sm font-bold text-slate-900"
         >
-          Work Carried Out
+          Work Completed
         </label>
 
         <p className="mt-1 text-sm text-slate-500">
@@ -273,7 +272,7 @@ export default function UpvcJobPanel({
         </label>
 
         <p className="mt-1 text-sm text-slate-500">
-          Enter the name of the person who carried out the
+          Name of the person who carried out the
           work.
         </p>
 

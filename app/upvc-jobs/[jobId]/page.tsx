@@ -74,7 +74,7 @@ export default async function UpvcJobPage({
           href="/upvc-jobs"
           className="mb-5 inline-flex text-sm font-bold text-slate-600 hover:text-orange-600"
         >
-          ← UPVC Outlet Jobs
+          ← Jobs
         </Link>
 
         <MobileCard>
