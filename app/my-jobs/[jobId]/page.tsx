@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import FitterHeader from '../../../components/FitterHeader'
+import WorkspaceHeader from '../../../components/WorkspaceHeader'
 import { createClient } from '../../utils/supabase/server'
 import { supabaseAdmin } from '../../../lib/supabaseAdmin'
 import JobStartPanel from './JobStartPanel'
@@ -69,7 +69,7 @@ export default async function MyJobPage({
 
   return (
     <main className="min-h-screen bg-slate-100">
-      <FitterHeader />
+      <WorkspaceHeader />
 
       <div className="mx-auto max-w-md p-4">
 

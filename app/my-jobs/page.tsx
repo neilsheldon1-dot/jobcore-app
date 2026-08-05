@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { Fragment } from 'react'
 import { redirect } from 'next/navigation'
-import FitterHeader from '../../components/FitterHeader'
+import WorkspaceHeader from '../../components/WorkspaceHeader'
 import { createClient } from '../utils/supabase/server'
 import { supabaseAdmin } from '../../lib/supabaseAdmin'
 import AutoRefresh from '../../components/AutoRefresh'
@@ -150,7 +150,7 @@ export default async function MyJobsPage() {
   return (
     <main className="min-h-screen bg-slate-100">
         <AutoRefresh intervalMs={5000} />
-      <FitterHeader name={name} />
+      <WorkspaceHeader name={name} />
 
       <div className="mx-auto max-w-md p-4">
         <div className="mb-6">
