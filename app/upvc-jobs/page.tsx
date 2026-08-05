@@ -134,7 +134,7 @@ export default async function UpvcJobsPage() {
 
       <div className="mx-auto max-w-md p-4">
         <div className="mb-6">
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-2xl font-black text-slate-800">
             Jobs
           </h1>
 
@@ -174,7 +174,7 @@ export default async function UpvcJobsPage() {
                             {areaName}
                           </p>
 
-                          <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs font-bold text-slate-500">
+                          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-500">
                             {areaCounts[areaName] || 0}
                           </span>
                         </div>
@@ -183,7 +183,7 @@ export default async function UpvcJobsPage() {
 
                     <Link
   href={`/upvc-jobs/${job.job_id}`}
-  className="block rounded-2xl border border-slate-700 bg-slate-950 p-5 shadow-sm transition hover:border-orange-400 hover:shadow-md"
+  className="block rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-orange-400 hover:shadow-md"
 >
   <p className="font-bold text-white">
     {[
@@ -212,7 +212,7 @@ export default async function UpvcJobsPage() {
     <div className="flex flex-wrap gap-2">
 
       {job.zone && (
-        <span className="rounded-full border border-orange-500 bg-orange-950/30 px-3 py-1 text-xs font-bold text-orange-300">
+       <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-bold text-orange-700">
           {job.zone.replace(/^\d+\s*-\s*/, '')}
         </span>
       )}
@@ -223,7 +223,7 @@ export default async function UpvcJobsPage() {
 
     </div>
 
-    <span className="shrink-0 text-sm font-bold text-orange-400">
+    <span className="shrink-0 text-sm font-bold text-orange-600">
       Open →
     </span>
   </div>
