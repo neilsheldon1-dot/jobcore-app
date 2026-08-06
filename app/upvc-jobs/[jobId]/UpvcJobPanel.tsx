@@ -1,5 +1,6 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import MobileCard from '../../../components/app/MobileCard'
 import PhotoUploadForm from '../../jobs/[jobId]/PhotoUploadForm'
@@ -22,9 +23,12 @@ export default function UpvcJobPanel({
   jobId,
   jobAddress,
 }: Props) {
+  const router = useRouter()
+
   const [started, setStarted] = useState(false)
   const [completed, setCompleted] = useState(false)
-
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const [notes, setNotes] = useState('')
   const [completedBy, setCompletedBy] = useState('')
 
@@ -39,43 +43,97 @@ export default function UpvcJobPanel({
   function addBeforePhotos(
     uploadedPhotos: WorkflowPhoto[]
   ) {
-    setBeforePhotos((current) => [
-      ...current,
-      ...uploadedPhotos,
-    ])
+    setBeforePhotos((current) => {
+      const existingIds = new Set(
+        current.map((photo) => photo.id)
+      )
+
+      return [
+        ...current,
+        ...uploadedPhotos.filter(
+          (photo) => !existingIds.has(photo.id)
+        ),
+      ]
+    })
   }
 
   function addAfterPhotos(
     uploadedPhotos: WorkflowPhoto[]
   ) {
-    setAfterPhotos((current) => [
-      ...current,
-      ...uploadedPhotos,
-    ])
+    setAfterPhotos((current) => {
+      const existingIds = new Set(
+        current.map((photo) => photo.id)
+      )
+
+      return [
+        ...current,
+        ...uploadedPhotos.filter(
+          (photo) => !existingIds.has(photo.id)
+        ),
+      ]
+    })
   }
 
-  function completeJob() {
+  async function completeJob() {
     if (!notes.trim()) {
-      alert('Please describe the Work Completed.')
+      setError('Please describe the work completed.')
       return
     }
 
     if (!completedBy.trim()) {
-      alert('Please enter the name of the person completing the work.')
+      setError(
+        'Please enter the name of the person who completed the work.'
+      )
       return
     }
 
     if (beforePhotos.length === 0) {
-      alert('Please add at least one before photo.')
+      setError('Please add at least one before photo.')
       return
     }
 
     if (afterPhotos.length === 0) {
-      alert('Please add at least one after photo.')
+      setError('Please add at least one after photo.')
       return
     }
 
-    setCompleted(true)
+    setSaving(true)
+    setError('')
+
+    try {
+      const response = await fetch(
+        '/api/partner-job-completion',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            jobId,
+            completedBy,
+            workCompleted: notes,
+          }),
+        }
+      )
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          result.error || 'Unable to complete the job.'
+        )
+      }
+
+      setCompleted(true)
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to complete the job.'
+      )
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (completed) {
@@ -122,6 +180,17 @@ export default function UpvcJobPanel({
               </span>
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              router.push('/upvc-jobs')
+              router.refresh()
+            }}
+            className="mt-6 w-full rounded-xl bg-orange-500 px-4 py-3 font-bold text-white transition hover:bg-orange-600"
+          >
+            Return to Jobs
+          </button>
         </div>
       </MobileCard>
     )
@@ -201,7 +270,7 @@ export default function UpvcJobPanel({
 
       <section>
         <label
-          htmlFor="work-carried-out"
+          htmlFor="work-completed"
           className="text-sm font-bold text-slate-900"
         >
           Work Completed
@@ -212,7 +281,7 @@ export default function UpvcJobPanel({
         </p>
 
         <textarea
-          id="work-carried-out"
+          id="work-completed"
           value={notes}
           onChange={(event) =>
             setNotes(event.target.value)
@@ -272,8 +341,7 @@ export default function UpvcJobPanel({
         </label>
 
         <p className="mt-1 text-sm text-slate-500">
-          Name of the person who carried out the
-          work.
+          Name of the person who completed the work.
         </p>
 
         <input
@@ -288,12 +356,19 @@ export default function UpvcJobPanel({
         />
       </section>
 
+      {error && (
+        <p className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+          {error}
+        </p>
+      )}
+
       <button
         type="button"
         onClick={completeJob}
-        className="mt-8 w-full rounded-xl bg-green-600 px-4 py-3 font-bold text-white transition hover:bg-green-700"
+        disabled={saving}
+        className="mt-8 w-full rounded-xl bg-green-600 px-4 py-3 font-bold text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Complete Job
+        {saving ? 'Completing Job...' : 'Complete Job'}
       </button>
     </MobileCard>
   )

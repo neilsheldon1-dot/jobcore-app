@@ -1,8 +1,4 @@
-<img
-  src="/jobcore-logo.png"
-  alt="JobCore"
-  className="h-6 w-auto"
-/>
+
 import Link from 'next/link'
 import UserMenu from './UserMenu'
 import JobsNavMenu from './JobsNavMenu'
@@ -16,6 +12,7 @@ type AppHeaderProps = {
   | 'jobs'
   | 'my-jobs'
   | 'properties'
+  | 'partners'
   | 'archive'
   | 'rams'
 }
@@ -63,7 +60,12 @@ export default async function AppHeader({ active }: AppHeaderProps) {
             <Link href="/properties" className={navClass('properties')}>
               Properties
             </Link>
-
+<Link
+  href="/partners"
+  className={navClass('partners')}
+>
+  Partners
+</Link>
             <Link href="/archive" className={navClass('archive')}>
               Archive
             </Link>
