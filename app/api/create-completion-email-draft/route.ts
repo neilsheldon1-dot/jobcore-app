@@ -38,26 +38,66 @@ export async function POST(request: Request) {
       )
     }
 
-    const pdfResponse = await fetch(
-      new URL(
-        '/api/create-completion-pdf',
-        request.url
-      ),
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(document),
-      }
+    const cookie =
+      request.headers.get('cookie') || ''
+
+    const pdfUrl = new URL(
+      '/api/create-completion-pdf',
+      request.url
     )
 
+    const pdfResponse = await fetch(pdfUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: cookie,
+      },
+      body: JSON.stringify(document),
+      cache: 'no-store',
+    })
+
     if (!pdfResponse.ok) {
+      const pdfErrorText =
+        await pdfResponse.text()
+
+      console.error(
+        'Completion PDF generation failed:',
+        pdfResponse.status,
+        pdfErrorText
+      )
+
       return NextResponse.json(
         {
           success: false,
           error:
             'Unable to generate the completion PDF.',
+        },
+        { status: 500 }
+      )
+    }
+
+    const pdfContentType =
+      pdfResponse.headers.get('content-type') || ''
+
+    if (
+      !pdfContentType.includes(
+        'application/pdf'
+      )
+    ) {
+      const responseText =
+        await pdfResponse.text()
+
+      console.error(
+        'Completion PDF returned unexpected content:',
+        pdfContentType,
+        responseText.slice(0, 500)
+      )
+
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'Completion PDF returned an unexpected response.',
         },
         { status: 500 }
       )
@@ -89,9 +129,14 @@ export async function POST(request: Request) {
       },
     ]
 
-    const groupCounts: Record<string, number> = {}
+    const groupCounts: Record<
+      string,
+      number
+    > = {}
 
-    for (const photo of document.photos || []) {
+    for (
+      const photo of document.photos || []
+    ) {
       const photoUrl =
         photo.url ||
         photo.file_url ||
@@ -101,11 +146,12 @@ export async function POST(request: Request) {
         continue
       }
 
-      const photoResponse = await fetch(photoUrl)
+      const photoResponse =
+        await fetch(photoUrl)
 
       if (!photoResponse.ok) {
         throw new Error(
-          `Unable to fetch one of the report photographs.`
+          'Unable to fetch one of the report photographs.'
         )
       }
 
@@ -138,9 +184,8 @@ export async function POST(request: Request) {
       attachments.push({
         filename: `${group}-${number}.${extension}`,
         mimeType,
-        base64: photoBuffer.toString(
-          'base64'
-        ),
+        base64:
+          photoBuffer.toString('base64'),
       })
     }
 
@@ -150,9 +195,8 @@ export async function POST(request: Request) {
       address,
     ].filter(Boolean)
 
-    const subject = subjectParts.join(
-      ' - '
-    )
+    const subject =
+      subjectParts.join(' - ')
 
     const message = [
       'Good afternoon,',
@@ -192,7 +236,10 @@ export async function POST(request: Request) {
 
     const result = JSON.parse(text)
 
-    if (!response.ok || !result.success) {
+    if (
+      !response.ok ||
+      !result.success
+    ) {
       return NextResponse.json(
         {
           success: false,
