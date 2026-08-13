@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import sharp from 'sharp'
 
 const GOOGLE_SCRIPT_URL =
   'https://script.google.com/macros/s/AKfycbxBKxnyVmbjxNV7-Oo7Z1EnuFlOhi2aGqawdIKeyiqCfDQFFhMqXXdqa15RF_v5ewwv/exec'
@@ -11,15 +12,68 @@ function safeFilenamePart(value: string) {
     .toLowerCase()
 }
 
-function extensionFromMimeType(
-  mimeType: string
+async function optimisePhoto(
+  photo: any,
+  index: number
 ) {
-  if (mimeType.includes('png')) return 'png'
-  if (mimeType.includes('webp')) return 'webp'
-  if (mimeType.includes('gif')) return 'gif'
-  if (mimeType.includes('heic')) return 'heic'
+  const photoUrl =
+    photo.url ||
+    photo.file_url ||
+    photo.original_file_url
 
-  return 'jpg'
+  if (!photoUrl) {
+    return null
+  }
+
+  const response = await fetch(photoUrl)
+
+  if (!response.ok) {
+    throw new Error(
+      'Unable to fetch one of the report photographs.'
+    )
+  }
+
+  const originalBuffer = Buffer.from(
+    await response.arrayBuffer()
+  )
+
+  const optimisedBuffer = await sharp(
+    originalBuffer,
+    {
+      failOn: 'none',
+    }
+  )
+    .rotate()
+    .resize({
+      width: 1800,
+      height: 1800,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .jpeg({
+      quality: 78,
+      mozjpeg: true,
+    })
+    .toBuffer()
+
+  const rawGroup =
+    photo.photo_group || 'Photo'
+
+  const group =
+    safeFilenamePart(rawGroup) ||
+    'photo'
+
+  const number = String(
+    index + 1
+  ).padStart(2, '0')
+
+  return {
+    filename: `${group}-${number}.jpg`,
+    mimeType: 'image/jpeg',
+    base64:
+      optimisedBuffer.toString('base64'),
+    byteSize: optimisedBuffer.length,
+  }
 }
 
 export async function POST(request: Request) {
@@ -32,7 +86,8 @@ export async function POST(request: Request) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Completion document is required.',
+          error:
+            'Completion document is required.',
         },
         { status: 400 }
       )
@@ -46,15 +101,20 @@ export async function POST(request: Request) {
       request.url
     )
 
-    const pdfResponse = await fetch(pdfUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: cookie,
-      },
-      body: JSON.stringify(document),
-      cache: 'no-store',
-    })
+    const pdfResponse = await fetch(
+      pdfUrl,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':
+            'application/json',
+          Cookie: cookie,
+        },
+        body:
+          JSON.stringify(document),
+        cache: 'no-store',
+      }
+    )
 
     if (!pdfResponse.ok) {
       const pdfErrorText =
@@ -77,7 +137,9 @@ export async function POST(request: Request) {
     }
 
     const pdfContentType =
-      pdfResponse.headers.get('content-type') || ''
+      pdfResponse.headers.get(
+        'content-type'
+      ) || ''
 
     if (
       !pdfContentType.includes(
@@ -90,7 +152,10 @@ export async function POST(request: Request) {
       console.error(
         'Completion PDF returned unexpected content:',
         pdfContentType,
-        responseText.slice(0, 500)
+        responseText.slice(
+          0,
+          500
+        )
       )
 
       return NextResponse.json(
@@ -115,7 +180,33 @@ export async function POST(request: Request) {
       document.property?.jobNumber || ''
 
     const safeAddress =
-      safeFilenamePart(address) || 'job'
+      safeFilenamePart(address) ||
+      'job'
+
+    const photoResults =
+      await Promise.all(
+        (
+          document.photos || []
+        ).map(
+          (
+            photo: any,
+            index: number
+          ) =>
+            optimisePhoto(
+              photo,
+              index
+            )
+        )
+      )
+
+    const optimisedPhotos =
+      photoResults.filter(
+        (
+          photo
+        ): photo is NonNullable<
+          typeof photo
+        > => Boolean(photo)
+      )
 
     const attachments: {
       filename: string
@@ -123,70 +214,53 @@ export async function POST(request: Request) {
       base64: string
     }[] = [
       {
-        filename: `completion-report-${safeAddress}.pdf`,
-        mimeType: 'application/pdf',
-        base64: pdfBuffer.toString('base64'),
+        filename:
+          `completion-report-${safeAddress}.pdf`,
+        mimeType:
+          'application/pdf',
+        base64:
+          pdfBuffer.toString(
+            'base64'
+          ),
       },
+      ...optimisedPhotos.map(
+        (photo) => ({
+          filename:
+            photo.filename,
+          mimeType:
+            photo.mimeType,
+          base64:
+            photo.base64,
+        })
+      ),
     ]
 
-    const groupCounts: Record<
-      string,
-      number
-    > = {}
-
-    for (
-      const photo of document.photos || []
-    ) {
-      const photoUrl =
-        photo.url ||
-        photo.file_url ||
-        photo.original_file_url
-
-      if (!photoUrl) {
-        continue
-      }
-
-      const photoResponse =
-        await fetch(photoUrl)
-
-      if (!photoResponse.ok) {
-        throw new Error(
-          'Unable to fetch one of the report photographs.'
-        )
-      }
-
-      const mimeType =
-        photoResponse.headers.get(
-          'content-type'
-        ) || 'image/jpeg'
-
-      const photoBuffer = Buffer.from(
-        await photoResponse.arrayBuffer()
+    const totalBytes =
+      pdfBuffer.length +
+      optimisedPhotos.reduce(
+        (
+          total,
+          photo
+        ) =>
+          total +
+          photo.byteSize,
+        0
       )
 
-      const rawGroup =
-        photo.photo_group || 'Photo'
+    const totalMegabytes =
+      totalBytes /
+      1024 /
+      1024
 
-      const group =
-        safeFilenamePart(rawGroup) ||
-        'photo'
-
-      groupCounts[group] =
-        (groupCounts[group] || 0) + 1
-
-      const number = String(
-        groupCounts[group]
-      ).padStart(2, '0')
-
-      const extension =
-        extensionFromMimeType(mimeType)
-
-      attachments.push({
-        filename: `${group}-${number}.${extension}`,
-        mimeType,
-        base64:
-          photoBuffer.toString('base64'),
-      })
+    if (totalMegabytes > 20) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            'The completion evidence is still too large for email. Please reduce the number of selected photographs or contact the office.',
+        },
+        { status: 400 }
+      )
     }
 
     const subjectParts = [
@@ -202,6 +276,8 @@ export async function POST(request: Request) {
       'Good afternoon,',
       '',
       'Please find attached the completion report and supporting photographs for the above works.',
+      '',
+      'Please note: attached photographs have been optimised for email delivery. Full-resolution originals are retained in JobCore and are available on request.',
       '',
       'Kind regards,',
       'Rubber Roofs',
@@ -221,7 +297,8 @@ export async function POST(request: Request) {
       }
     )
 
-    const text = await response.text()
+    const text =
+      await response.text()
 
     if (!text) {
       return NextResponse.json(
@@ -234,7 +311,8 @@ export async function POST(request: Request) {
       )
     }
 
-    const result = JSON.parse(text)
+    const result =
+      JSON.parse(text)
 
     if (
       !response.ok ||
@@ -255,6 +333,12 @@ export async function POST(request: Request) {
       success: true,
       attachmentCount:
         attachments.length,
+      totalSizeMb:
+        Number(
+          totalMegabytes.toFixed(
+            2
+          )
+        ),
     })
   } catch (error) {
     console.error(
