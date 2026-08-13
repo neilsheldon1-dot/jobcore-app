@@ -55,6 +55,7 @@ export default function DocumentComposer({
   const [draftingSummary, setDraftingSummary] = useState(false)
   const [showPhotoSelector, setShowPhotoSelector] = useState(false)
   const [showGeneralNoteSelector, setShowGeneralNoteSelector] = useState(false)
+  const [creatingEmailDraft, setCreatingEmailDraft,] = useState(false)
   
 
 const [selectedGeneralNoteIds, setSelectedGeneralNoteIds] = useState(
@@ -219,6 +220,59 @@ link.download = `${
   window.URL.revokeObjectURL(url)
 }
 
+async function createEmailDraft() {
+  setCreatingEmailDraft(true)
+
+  try {
+    const response = await fetch(
+      '/api/create-completion-email-draft',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type':
+            'application/json',
+        },
+        body: JSON.stringify({
+          document:
+            completionDocument,
+
+          // Intentionally blank for V1.
+          // Client-specific recipients
+          // will be connected next.
+          to: [],
+          cc: [],
+        }),
+      }
+    )
+
+    const result =
+      await response.json()
+
+    if (!response.ok) {
+      alert(
+        result.error ||
+          'Failed to create email draft'
+      )
+
+      return
+    }
+
+    alert(
+      `Email draft created with ${
+        result.attachmentCount || 0
+      } attachments.`
+    )
+  } catch (error) {
+    alert(
+      error instanceof Error
+        ? error.message
+        : 'Failed to create email draft'
+    )
+  } finally {
+    setCreatingEmailDraft(false)
+  }
+}
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 bg-white border border-slate-200 rounded-xl p-5">
@@ -380,11 +434,21 @@ link.download = `${
         <PreviewPanel document={completionDocument} />
 
         <ReportActionsPanel
-        reportType={reportType}
+  reportType={reportType}
   draftingSummary={draftingSummary}
-  onDraftSummary={() => draftCompletionSummary(false)}
+  creatingEmailDraft={
+    creatingEmailDraft
+  }
+  onDraftSummary={() =>
+    draftCompletionSummary(false)
+  }
   onCreatePdf={createPdf}
-  hasUnsavedChanges={summary !== savedSummary}
+  onCreateEmailDraft={
+    createEmailDraft
+  }
+  hasUnsavedChanges={
+    summary !== savedSummary
+  }
   report={{
     ...completionReport,
     summary,

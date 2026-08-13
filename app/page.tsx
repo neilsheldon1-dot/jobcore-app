@@ -195,6 +195,10 @@ allocated_jobs:
     sustainable:
       jobs?.filter((job) => job.client === 'Sustainable').length ?? 0,
 
+
+     g_parry:
+      jobs?.filter((job) => job.client === 'G Parry').length ?? 0,
+
     private_jobs:
       jobs?.filter((job) => job.client === 'Private').length ?? 0,
 
@@ -512,18 +516,27 @@ allocated_jobs:
   />
 
   <WidgetRow
+  href="/jobs?client=Sustainable"
+    label="Sustainable"
+    value={stats.sustainable}
+    accent="border-l-green-700"
+  />
+
+<WidgetRow
+    href="/jobs?client=G Parry"
+    label="G Parry"
+    value={stats.g_parry}
+    accent="border-l-green-400"
+  />
+
+  <WidgetRow
     href="/jobs?client=Private"
     label="Private"
     value={stats.private_jobs}
     accent="border-l-slate-600"
   />
 
-  <WidgetRow
-    href="/jobs?client=Sustainable"
-    label="Sustainable"
-    value={stats.sustainable}
-    accent="border-l-green-700"
-  />
+
 </div>
       </div>
     </section>

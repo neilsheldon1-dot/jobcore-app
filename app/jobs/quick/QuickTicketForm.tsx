@@ -115,8 +115,10 @@ po_number: formData.get('po_number'),
 <option value="Denbighshire">Denbighshire</option>
 <option value="NWPS">NWPS</option>
 <option value="Onnen">Onnen</option>
-<option value="Private">Private</option>
 <option value="Sustainable">Sustainable</option>
+<option value="G Paarry">G Parry</option>
+<option value="Private">Private</option>
+
           </select>
 
           <select name="zone" className="w-full border border-gray-300 rounded-xl px-4 py-3 bg-white">

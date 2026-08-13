@@ -1,8 +1,10 @@
 type ReportActionsPanelProps = {
   reportType?: 'completion' | 'inspection'
-    draftingSummary: boolean
+  draftingSummary: boolean
+  creatingEmailDraft: boolean
   onDraftSummary: () => void
   onCreatePdf: () => void
+  onCreateEmailDraft: () => void
   report: any
   hasUnsavedChanges: boolean
 }
@@ -10,14 +12,17 @@ type ReportActionsPanelProps = {
 export default function ReportActionsPanel({
   reportType = 'completion',
   draftingSummary,
+  creatingEmailDraft,
   onDraftSummary,
   onCreatePdf,
+  onCreateEmailDraft,
   report,
   hasUnsavedChanges,
 }: ReportActionsPanelProps) {
-
   const hasReport = !!report?.summary
-    const isInspection = reportType === 'inspection'
+
+  const isInspection =
+    reportType === 'inspection'
 
   const creatingLabel = isInspection
     ? 'Creating inspection report...'
@@ -36,10 +41,10 @@ export default function ReportActionsPanel({
     : 'Create Completion PDF'
 
   const statusLabel = hasUnsavedChanges
-  ? 'Unsaved Changes'
-  : hasReport
-    ? 'Saved'
-    : 'Draft Required'
+    ? 'Unsaved Changes'
+    : hasReport
+      ? 'Saved'
+      : 'Draft Required'
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
@@ -52,10 +57,10 @@ export default function ReportActionsPanel({
           <span
             className={`inline-flex rounded-full px-3 py-1 text-xs font-bold ${
               hasUnsavedChanges
-  ? 'bg-orange-100 text-orange-700'
-  : hasReport
-    ? 'bg-green-100 text-green-700'
-    : 'bg-amber-100 text-amber-700'
+                ? 'bg-orange-100 text-orange-700'
+                : hasReport
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-amber-100 text-amber-700'
             }`}
           >
             {statusLabel}
@@ -64,18 +69,27 @@ export default function ReportActionsPanel({
 
         <p className="text-xs text-slate-500 mt-2">
           {hasReport
-  ? `This ${isInspection ? 'inspection' : 'completion'} report has been saved to the job.`
-  : `Create and save the ${
-      isInspection ? 'inspection' : 'completion'
-    } report before exporting a PDF.`}
+            ? `This ${
+                isInspection
+                  ? 'inspection'
+                  : 'completion'
+              } report has been saved to the job.`
+            : `Create and save the ${
+                isInspection
+                  ? 'inspection'
+                  : 'completion'
+              } report before exporting a PDF.`}
         </p>
-       {hasReport && (
-  <p className="text-xs text-slate-400 mt-2">
-    {report?.updated_at
-      ? `Last updated: ${new Date(report.updated_at).toLocaleString('en-GB')}`
-      : 'Saved this session'}
-  </p>
-)}
+
+        {hasReport && (
+          <p className="text-xs text-slate-400 mt-2">
+            {report?.updated_at
+              ? `Last updated: ${new Date(
+                  report.updated_at
+                ).toLocaleString('en-GB')}`
+              : 'Saved this session'}
+          </p>
+        )}
       </div>
 
       <div className="p-4">
@@ -86,10 +100,10 @@ export default function ReportActionsPanel({
           className="w-full bg-purple-600 text-white px-4 py-3 rounded-xl text-sm font-bold hover:bg-purple-700 transition cursor-pointer disabled:opacity-50"
         >
           {draftingSummary
-  ? creatingLabel
-  : hasReport
-    ? updateLabel
-    : createLabel}
+            ? creatingLabel
+            : hasReport
+              ? updateLabel
+              : createLabel}
         </button>
 
         <button
@@ -101,13 +115,23 @@ export default function ReportActionsPanel({
           {pdfLabel}
         </button>
 
-        <button
-          type="button"
-          disabled
-          className="w-full mt-2 bg-slate-100 text-slate-400 px-4 py-2 rounded-xl text-xs font-bold cursor-not-allowed"
-        >
-          Email Council
-        </button>
+        {!isInspection && (
+          <button
+            type="button"
+            onClick={
+              onCreateEmailDraft
+            }
+            disabled={
+              !hasReport ||
+              creatingEmailDraft
+            }
+            className="w-full mt-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition cursor-pointer disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed"
+          >
+            {creatingEmailDraft
+              ? 'Creating Email Draft...'
+              : 'Create Email Draft'}
+          </button>
+        )}
       </div>
     </div>
   )
