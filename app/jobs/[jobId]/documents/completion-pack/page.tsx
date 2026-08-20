@@ -2,6 +2,7 @@ import Link from 'next/link'
 import JobSummaryCard from '@/components/JobSummaryCard'
 import CompletionPackBuilder from './DocumentComposer'
 import { supabase } from '../../../../../lib/supabase'
+import { supabaseAdmin } from '../../../../../lib/supabaseAdmin'
 
 export const dynamic = 'force-dynamic'
 
@@ -67,6 +68,36 @@ const { data: completionReport } = await supabase
     )
   }
 
+  const { data: ticketWorkflowRecords } = await supabase
+  .from('job_rams')
+  .select(`
+    id,
+    completed_at,
+    signed_by,
+    operative_id,
+    answers
+  `)
+  .eq('job_id', jobId)
+  .eq('template_code', 'TICKET')
+  .order('created_at', { ascending: false })
+  .limit(1)
+
+const ticketWorkflow =
+  ticketWorkflowRecords?.[0] || null
+
+const { data: partnerCompletion } = await supabaseAdmin
+  .from('partner_job_completions')
+  .select(`
+    id,
+    partner_name,
+    completed_by,
+    work_completed,
+    completed_at,
+    signature_data_url
+  `)
+  .eq('job_id', jobId)
+  .maybeSingle()
+
   return (
     <main className="max-w-5xl mx-auto p-6">
       <Link
@@ -105,7 +136,8 @@ const { data: completionReport } = await supabase
   scaffoldRecord={scaffoldRecord}
   asbestosRecord={asbestosRecord}
   completionReport={completionReport}
-  
+  ticketWorkflow={ticketWorkflow}
+  partnerCompletion={partnerCompletion}
 />
     </main>
   )

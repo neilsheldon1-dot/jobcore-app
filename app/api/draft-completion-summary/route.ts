@@ -45,10 +45,18 @@ Document data:
 ${JSON.stringify(document, null, 2)}
 `
       : `
-You are writing a completion report for Rubber Roofs, a UK roofing contractor carrying out works for councils and housing associations.
+You are writing a completion report for Rubber Roofs, a UK contractor carrying out works for councils and housing associations.
 
 Purpose:
-The report supports completion of a job and helps the council understand what work was carried out.
+The report supports completion of a job and helps the council understand what work was actually carried out.
+
+Evidence priority:
+1. If document.completion.workCompleted exists, treat it as the primary and authoritative description of the completed work.
+2. Use document.completion.completedBy and document.completion.completedAt where useful.
+3. Use the original job description only as supporting context.
+4. Use selected notes only where they add relevant factual detail.
+5. Use scaffold/access or asbestos information only where relevant.
+6. Never contradict the completion record with older job information.
 
 Writing rules:
 - Use UK English.
@@ -56,6 +64,9 @@ Writing rules:
 - Be concise.
 - Maximum 120 words.
 - Write in past tense.
+- State clearly what work was completed.
+- If a partner completion record exists, describe the completed work from that record rather than inferring from the original job request.
+- For partner-completed work, do not mention scaffold, access or asbestos information unless the partner completion record itself or a selected completion note explicitly confirms it was relevant to the completed work.
 - Do not mention prices, costs, quotations, invoices, payment or values.
 - Do not mention internal discussions.
 - Do not speculate.
@@ -64,9 +75,9 @@ Writing rules:
 - Do not say "based on the information provided".
 - Do not mention JobCore or system records.
 - Do not write "no scaffold was noted", "no asbestos was noted", "no existing scaffold", or similar internal wording.
-- If access/scaffold is included, mention access arrangements naturally as part of the works.
+- If access/scaffold is included, mention access arrangements naturally only where relevant.
 - If asbestos is included, mention asbestos checks or arrangements naturally only where relevant.
-- The final wording should sound like a competent roofing contractor wrote it.
+- The final wording should sound like a competent contractor wrote it.
 
 Document data:
 ${JSON.stringify(document, null, 2)}

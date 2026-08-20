@@ -121,7 +121,8 @@ const loggedInName =
     partner_name,
     completed_by,
     work_completed,
-    completed_at
+    completed_at,
+    signature_data_url
   `)
   .eq('job_id', jobId)
   .maybeSingle()
@@ -536,6 +537,22 @@ const showAsbestosWorkflow =
               'No completion details recorded'}
           </p>
         </div>
+
+        {partnerCompletion.signature_data_url && (
+          <div className="mt-4">
+            <p className="text-xs font-bold uppercase text-slate-400">
+              Signature
+            </p>
+
+            <div className="mt-2 rounded-xl border border-slate-200 bg-white p-3">
+              <img
+                src={partnerCompletion.signature_data_url}
+                alt="Completion signature"
+                className="max-h-32 w-auto"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   </div>

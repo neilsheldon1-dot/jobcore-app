@@ -17,6 +17,8 @@ type DocumentComposerProps = {
   scaffoldRecord: any
   asbestosRecord: any
   completionReport: any
+  ticketWorkflow?: any
+  partnerCompletion?: any
 }
 
 export default function DocumentComposer({
@@ -27,7 +29,9 @@ export default function DocumentComposer({
   scaffoldRecord,
   asbestosRecord,
   completionReport,
-}: DocumentComposerProps) {
+  ticketWorkflow,
+  partnerCompletion,
+}: DocumentComposerProps) { 
   const isInspection = reportType === 'inspection'
 
   const reportName = isInspection
@@ -72,20 +76,22 @@ const [selectedInternalNoteIds, setSelectedInternalNoteIds] = useState(
   job,
   notes,
   photos,
-    scaffoldRecord,
-    asbestosRecord,
-    options: {
-      includeDescription,
-      includeGeneralNotes,
-      includeInternalNotes,
-      includePhotos: selectedPhotoIds.length > 0,
-      includeScaffold,
-      includeAsbestos,
-      selectedPhotoIds,
-      selectedGeneralNoteIds,
-      selectedInternalNoteIds,
-    },
-  })
+  scaffoldRecord,
+  asbestosRecord,
+  ticketWorkflow,
+  partnerCompletion,
+  options: {
+    includeDescription,
+    includeGeneralNotes,
+    includeInternalNotes,
+    includePhotos: selectedPhotoIds.length > 0,
+    includeScaffold,
+    includeAsbestos,
+    selectedPhotoIds,
+    selectedGeneralNoteIds,
+    selectedInternalNoteIds,
+  },
+})
 
   completionDocument.summary = summary
 

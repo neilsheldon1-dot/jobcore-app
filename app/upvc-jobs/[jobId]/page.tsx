@@ -42,6 +42,34 @@ export default async function UpvcJobPage({
     notFound()
   }
 
+  const { data: existingPhotos } = await supabaseAdmin
+    .from('photos')
+    .select(`
+      id,
+      file_url,
+      category,
+      photo_group,
+      created_at,
+      uploaded_by
+    `)
+    .eq('job_id', jobId)
+    .in('photo_group', ['Before', 'After'])
+    .order('created_at', {
+      ascending: true,
+    })
+
+  const initialBeforePhotos =
+    (existingPhotos || []).filter(
+      (photo) =>
+        photo.photo_group === 'Before'
+    )
+
+  const initialAfterPhotos =
+    (existingPhotos || []).filter(
+      (photo) =>
+        photo.photo_group === 'After'
+    )
+
   const fullAddress = [
     job.address_line_1,
     job.town,
@@ -108,22 +136,30 @@ export default async function UpvcJobPage({
 
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <SectionTitle>Tenant Contact</SectionTitle>
+              <SectionTitle>
+                Tenant Contact
+              </SectionTitle>
 
               <p className="mt-2 whitespace-pre-wrap font-semibold text-slate-800">
-                {job.tenant_contact || 'No contact details added'}
+                {job.tenant_contact ||
+                  'No contact details added'}
               </p>
             </div>
 
-            <CallButton contactText={job.tenant_contact} />
+            <CallButton
+              contactText={job.tenant_contact}
+            />
           </div>
 
           <hr className="my-4 border-slate-200" />
 
-          <SectionTitle>Work Required</SectionTitle>
+          <SectionTitle>
+            Work Required
+          </SectionTitle>
 
           <p className="mt-3 whitespace-pre-wrap leading-7 text-slate-800">
-            {job.description || 'No work description added'}
+            {job.description ||
+              'No work description added'}
           </p>
         </MobileCard>
 
@@ -131,6 +167,12 @@ export default async function UpvcJobPage({
           <UpvcJobPanel
             jobId={jobId}
             jobAddress={fullAddress}
+            initialBeforePhotos={
+              initialBeforePhotos
+            }
+            initialAfterPhotos={
+              initialAfterPhotos
+            }
           />
         </div>
       </div>

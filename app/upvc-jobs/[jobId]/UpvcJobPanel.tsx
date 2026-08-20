@@ -13,6 +13,8 @@ import PhotoUploadForm from '../../jobs/[jobId]/PhotoUploadForm'
 type Props = {
   jobId: string
   jobAddress: string
+  initialBeforePhotos?: WorkflowPhoto[]
+  initialAfterPhotos?: WorkflowPhoto[]
 }
 
 type WorkflowPhoto = {
@@ -27,16 +29,19 @@ type WorkflowPhoto = {
 export default function UpvcJobPanel({
   jobId,
   jobAddress,
+  initialBeforePhotos = [],
+  initialAfterPhotos = [],
 }: Props) {
   const router = useRouter()
 
   const signatureCanvasRef =
-    useRef<HTMLCanvasElement | null>(
-      null
-    )
+    useRef<HTMLCanvasElement | null>(null)
 
   const [started, setStarted] =
-    useState(false)
+    useState(
+      initialBeforePhotos.length > 0 ||
+      initialAfterPhotos.length > 0
+    )
 
   const [completed, setCompleted] =
     useState(false)
@@ -66,14 +71,18 @@ export default function UpvcJobPanel({
   ] = useState(false)
 
   const [
-    beforePhotos,
-    setBeforePhotos,
-  ] = useState<WorkflowPhoto[]>([])
+  beforePhotos,
+  setBeforePhotos,
+] = useState<WorkflowPhoto[]>(
+  initialBeforePhotos
+)
 
-  const [
-    afterPhotos,
-    setAfterPhotos,
-  ] = useState<WorkflowPhoto[]>([])
+const [
+  afterPhotos,
+  setAfterPhotos,
+] = useState<WorkflowPhoto[]>(
+  initialAfterPhotos
+)
 
   useEffect(() => {
     if (!started) return
