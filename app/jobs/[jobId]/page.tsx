@@ -12,6 +12,7 @@ import BlockerDropdown from './BlockerDropdown'
 import DeleteJobButton from './DeleteJobButton'
 import ScaffoldStatusDropdown from './ScaffoldStatusDropdown'
 import AsbestosStatusDropdown from './AsbestosStatusDropdown'
+import DeletePartnerCompletionButton from './DeletePartnerCompletionButton'
 import ScaffoldRecordPanel from './ScaffoldRecordPanel'
 import AsbestosRecordPanel from './AsbestosRecordPanel'
 import TicketWorkflowPanel from './TicketWorkflowPanel'
@@ -118,6 +119,7 @@ const loggedInName =
   .from('partner_job_completions')
   .select(`
     id,
+    partner_profile_id,
     partner_name,
     completed_by,
     work_completed,
@@ -494,11 +496,16 @@ const showAsbestosWorkflow =
 {partnerCompletion && (
   <div className="border-t border-slate-200 mt-6 pt-6">
     <div className="rounded-xl border border-green-200 bg-green-50 overflow-hidden">
-      <div className="border-b border-green-200 bg-green-100 px-4 py-3">
-        <p className="text-xs font-black uppercase tracking-wide text-green-800">
-          {partnerCompletion.partner_name || 'Partner'} Completion
-        </p>
-      </div>
+      <div className="flex items-center justify-between border-b border-green-200 bg-green-100 px-4 py-3">
+  <p className="text-xs font-black uppercase tracking-wide text-green-800">
+    {partnerCompletion.partner_name || 'Partner'} Completion
+  </p>
+
+  <DeletePartnerCompletionButton
+  jobId={jobId}
+  partnerProfileId={partnerCompletion.partner_profile_id}
+/>
+</div>
 
       <div className="p-4">
         <div className="grid gap-4 sm:grid-cols-2">
