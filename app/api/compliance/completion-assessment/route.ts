@@ -113,7 +113,7 @@ export async function PATCH(request: Request) {
     const { data: profile, error: profileError } =
       await supabaseAdmin
         .from('profiles')
-        .select('id, email')
+        .select('id, email, full_name')
         .eq('email', user.email)
         .maybeSingle()
 
@@ -246,6 +246,57 @@ export async function PATCH(request: Request) {
         { error: assessmentError.message },
         { status: 500 }
       )
+    }
+
+    if (!canComplete) {
+      const reasonText =
+        reasons.length > 0
+          ? reasons
+              .map((reason) =>
+                reason
+                  .replace(/[_-]+/g, ' ')
+                  .replace(
+                    /\b\w/g,
+                    (character) =>
+                      character.toUpperCase()
+                  )
+              )
+              .join(', ')
+          : ''
+
+      const noteParts = [
+        comments,
+        reasonText
+          ? `Reason: ${reasonText}`
+          : '',
+      ].filter(Boolean)
+
+      const sharedNote = noteParts.join('\n')
+
+      if (sharedNote) {
+        const { error: noteError } =
+          await supabaseAdmin
+            .from('job_notes')
+            .insert([
+              {
+                job_id: jobId,
+                content: sharedNote,
+                note_type: 'General',
+                internal_only: false,
+                created_by:
+                  profile.full_name ||
+                  profile.email ||
+                  user.email,
+              },
+            ])
+
+        if (noteError) {
+          console.error(
+            'Could not create shared site information note:',
+            noteError
+          )
+        }
+      }
     }
 
     return NextResponse.json({
