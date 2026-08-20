@@ -3,6 +3,7 @@ import JobSummaryCard from '@/components/JobSummaryCard'
 import CompletionPackBuilder from './DocumentComposer'
 import { supabase } from '../../../../../lib/supabase'
 import { supabaseAdmin } from '../../../../../lib/supabaseAdmin'
+import AppHeader from '../../../../../components/AppHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,9 +50,12 @@ const { data: completionReport } = await supabase
   .eq('job_id', jobId)
   .maybeSingle()
 
-  if (!job) {
-    return (
-      <main className="max-w-5xl mx-auto p-6">
+ if (!job) {
+  return (
+    <main className="min-h-screen bg-slate-100">
+      <AppHeader active="jobs" />
+
+      <div className="max-w-5xl mx-auto p-6">
         <Link
           href="/jobs"
           className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline transition cursor-pointer"
@@ -64,9 +68,10 @@ const { data: completionReport } = await supabase
             Job not found
           </h1>
         </div>
-      </main>
-    )
-  }
+      </div>
+    </main>
+  )
+}
 
   const { data: ticketWorkflowRecords } = await supabase
   .from('job_rams')
@@ -99,7 +104,10 @@ const { data: partnerCompletion } = await supabaseAdmin
   .maybeSingle()
 
   return (
-    <main className="max-w-5xl mx-auto p-6">
+  <main className="min-h-screen bg-slate-100">
+    <AppHeader active="jobs" />
+
+    <div className="max-w-5xl mx-auto p-6">
       <Link
         href={`/jobs/${jobId}/documents`}
         className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline transition cursor-pointer"
@@ -123,22 +131,23 @@ const { data: partnerCompletion } = await supabaseAdmin
 
       <div className="mb-8">
         <JobSummaryCard
-  job={job}
-  showClient={false}
-  showStatus={false}
-/>
+          job={job}
+          showClient={false}
+          showStatus={false}
+        />
       </div>
 
       <CompletionPackBuilder
-  job={job}
-  notes={notes || []}
-  photos={photos || []}
-  scaffoldRecord={scaffoldRecord}
-  asbestosRecord={asbestosRecord}
-  completionReport={completionReport}
-  ticketWorkflow={ticketWorkflow}
-  partnerCompletion={partnerCompletion}
-/>
-    </main>
-  )
+        job={job}
+        notes={notes || []}
+        photos={photos || []}
+        scaffoldRecord={scaffoldRecord}
+        asbestosRecord={asbestosRecord}
+        completionReport={completionReport}
+        ticketWorkflow={ticketWorkflow}
+        partnerCompletion={partnerCompletion}
+      />
+    </div>
+  </main>
+)
 }

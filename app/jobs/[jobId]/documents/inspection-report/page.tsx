@@ -2,6 +2,7 @@ import Link from 'next/link'
 import JobSummaryCard from '@/components/JobSummaryCard'
 import DocumentComposer from '../completion-pack/DocumentComposer'
 import { supabase } from '../../../../../lib/supabase'
+import AppHeader from '../../../../../components/AppHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -49,8 +50,11 @@ const { data: completionReport } = await supabase
   .maybeSingle()
 
   if (!job) {
-    return (
-      <main className="max-w-5xl mx-auto p-6">
+  return (
+    <main className="min-h-screen bg-slate-100">
+      <AppHeader active="jobs" />
+
+      <div className="max-w-5xl mx-auto p-6">
         <Link
           href="/jobs"
           className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline transition cursor-pointer"
@@ -63,12 +67,16 @@ const { data: completionReport } = await supabase
             Job not found
           </h1>
         </div>
-      </main>
-    )
-  }
+      </div>
+    </main>
+  )
+}
 
   return (
-    <main className="max-w-5xl mx-auto p-6">
+  <main className="min-h-screen bg-slate-100">
+    <AppHeader active="jobs" />
+
+    <div className="max-w-5xl mx-auto p-6">
       <Link
         href={`/jobs/${jobId}/documents`}
         className="text-sm font-semibold text-blue-600 hover:text-blue-700 hover:underline transition cursor-pointer"
@@ -82,31 +90,32 @@ const { data: completionReport } = await supabase
         </p>
 
         <h1 className="text-3xl font-bold text-slate-900 mt-1">
-  Inspection Report
-</h1>
+          Inspection Report
+        </h1>
 
-<p className="text-slate-500 mt-2">
-  Create and manage the inspection report for this job.
-</p>
+        <p className="text-slate-500 mt-2">
+          Create and manage the inspection report for this job.
+        </p>
       </div>
 
       <div className="mb-8">
         <JobSummaryCard
-  job={job}
-  showClient={false}
-  showStatus={false}
-/>
+          job={job}
+          showClient={false}
+          showStatus={false}
+        />
       </div>
 
       <DocumentComposer
-  reportType="inspection"
-  job={job}
-  notes={notes || []}
-  photos={photos || []}
-  scaffoldRecord={scaffoldRecord}
-  asbestosRecord={asbestosRecord}
-  completionReport={completionReport}
-/>
-    </main>
-  )
+        reportType="inspection"
+        job={job}
+        notes={notes || []}
+        photos={photos || []}
+        scaffoldRecord={scaffoldRecord}
+        asbestosRecord={asbestosRecord}
+        completionReport={completionReport}
+      />
+    </div>
+  </main>
+)
 }
