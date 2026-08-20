@@ -158,8 +158,8 @@ const recordId = record.id
 
   async function deleteWorkflow() {
     const confirmed = window.confirm(
-      'Delete this Site Report and reset the job?\\n\\nThis is intended for testing and corrections.'
-    )
+  'Delete this Site Report and reset the job?\n\nThis will permanently remove the site report and allow the workflow to be started again.'
+)
 
     if (!confirmed) return
 
@@ -459,7 +459,7 @@ const recordId = record.id
         >
           {deleting
             ? 'Deleting...'
-            : 'Delete Test Report'}
+            : 'Delete Report'}
         </button>
       </div>
     </div>
