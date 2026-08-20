@@ -3,8 +3,10 @@ import { supabaseAdmin } from '../../../../lib/supabaseAdmin'
 
 export async function PATCH(request: Request) {
   try {
+    
     const body = await request.json()
-
+console.log('CANNOT START COMMENTS ROUTE HIT')
+console.log('COMMENTS BODY:', body)
     const recordId = body?.recordId
     const jobId = body?.jobId
 
