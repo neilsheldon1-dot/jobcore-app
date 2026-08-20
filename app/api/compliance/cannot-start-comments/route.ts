@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { supabase } from '../../../../lib/supabase'
+import { supabaseAdmin } from '../../../../lib/supabaseAdmin'
 
 export async function PATCH(request: Request) {
   try {
@@ -7,6 +7,7 @@ export async function PATCH(request: Request) {
 
     const recordId = body?.recordId
     const jobId = body?.jobId
+
     const comments =
       typeof body?.comments === 'string'
         ? body.comments.trim()
@@ -14,19 +15,28 @@ export async function PATCH(request: Request) {
 
     if (!recordId || typeof recordId !== 'string') {
       return NextResponse.json(
-        { error: 'A valid workflow record ID is required' },
+        {
+          error:
+            'A valid workflow record ID is required',
+        },
         { status: 400 }
       )
     }
 
     if (!jobId || typeof jobId !== 'string') {
       return NextResponse.json(
-        { error: 'A valid job ID is required' },
+        {
+          error:
+            'A valid job ID is required',
+        },
         { status: 400 }
       )
     }
 
-    const { data: records, error: lookupError } = await supabase
+    const {
+      data: records,
+      error: lookupError,
+    } = await supabaseAdmin
       .from('job_rams')
       .select('id, answers')
       .eq('id', recordId)
@@ -45,11 +55,15 @@ export async function PATCH(request: Request) {
       )
     }
 
-    const currentRecord = records?.[0] || null
+    const currentRecord =
+      records?.[0] || null
 
     if (!currentRecord) {
       return NextResponse.json(
-        { error: 'Workflow record not found' },
+        {
+          error:
+            'Workflow record not found',
+        },
         { status: 404 }
       )
     }
@@ -61,18 +75,20 @@ export async function PATCH(request: Request) {
         ? currentRecord.answers
         : {}
 
-    const { data: updatedRecords, error: updateError } =
-      await supabase
-        .from('job_rams')
-        .update({
-          answers: {
-            ...existingAnswers,
-            cannotStartComments: comments,
-          },
-        })
-        .eq('id', recordId)
-        .eq('job_id', jobId)
-        .select('*')
+    const {
+      data: updatedRecords,
+      error: updateError,
+    } = await supabaseAdmin
+      .from('job_rams')
+      .update({
+        answers: {
+          ...existingAnswers,
+          cannotStartComments: comments,
+        },
+      })
+      .eq('id', recordId)
+      .eq('job_id', jobId)
+      .select('id, answers')
 
     if (updateError) {
       console.error(
@@ -86,11 +102,15 @@ export async function PATCH(request: Request) {
       )
     }
 
-    const updatedRecord = updatedRecords?.[0] || null
+    const updatedRecord =
+      updatedRecords?.[0] || null
 
     if (!updatedRecord) {
       return NextResponse.json(
-        { error: 'Workflow could not be updated' },
+        {
+          error:
+            'Workflow could not be updated',
+        },
         { status: 500 }
       )
     }
@@ -101,10 +121,16 @@ export async function PATCH(request: Request) {
       nextStep: 'cannot_start_photos',
     })
   } catch (error) {
-    console.error('Cannot Start comments error:', error)
+    console.error(
+      'Cannot Start comments error:',
+      error
+    )
 
     return NextResponse.json(
-      { error: 'Unexpected error saving comments.' },
+      {
+        error:
+          'Unexpected error saving comments.',
+      },
       { status: 500 }
     )
   }
