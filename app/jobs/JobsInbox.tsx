@@ -154,6 +154,11 @@ export default function JobsInbox({
   label: 'Unassign Jobs',
   group: 'Assign Job',
 },
+{
+  value: 'RETURN_TO_TICKETS',
+  label: 'Return to Tickets',
+  group: 'Job',
+},
     ...(currentStatus !== 'Ready'
       ? [
           {
@@ -345,6 +350,57 @@ if (bulkStatus === 'UNASSIGN_JOBS') {
     setBulkUpdating(false)
   }
 }
+
+if (bulkStatus === 'RETURN_TO_TICKETS') {
+  const confirmed = window.confirm(
+    `Return ${selectedJobs.length} selected job${
+      selectedJobs.length === 1 ? '' : 's'
+    } to Tickets?\n\nThis will remove the current assignment and return the selected jobs to the Ticket inbox.`
+  )
+
+  if (!confirmed) return
+
+  setBulkUpdating(true)
+
+  try {
+    const response = await fetch(
+      '/api/bulk-return-to-tickets',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          job_ids: selectedJobs,
+        }),
+      }
+    )
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      alert(
+        result.error ||
+          'Failed to return selected jobs to Tickets'
+      )
+      return
+    }
+
+    setSelectedJobs([])
+    setBulkStatus('')
+    window.location.reload()
+    return
+  } catch (error: any) {
+    alert(
+      error.message ||
+        'Failed to return selected jobs to Tickets'
+    )
+    return
+  } finally {
+    setBulkUpdating(false)
+  }
+}
+
   if (bulkStatus === 'CHASE_APPROVALS') {
     await createApprovalChaseDraft()
     return
