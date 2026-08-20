@@ -68,6 +68,16 @@ export default async function MyJobPage({
         ascending: true,
       })
 
+      const { data: sharedNotes } =
+  await supabaseAdmin
+    .from('job_notes')
+    .select('id, content, created_at, created_by')
+    .eq('job_id', jobId)
+    .eq('internal_only', false)
+    .order('created_at', {
+      ascending: true,
+    })
+
   const fullAddress = [
     job.address_line_1,
     job.town,
@@ -152,13 +162,36 @@ export default async function MyJobPage({
           <hr className="my-4 border-slate-200" />
 
           <SectionTitle>
-            Work Required
+            Original Work Description
           </SectionTitle>
 
           <p className="mt-3 whitespace-pre-wrap leading-7 text-slate-800">
             {job.description ||
               'No work description added'}
           </p>
+
+          {sharedNotes && sharedNotes.length > 0 && (
+  <>
+    <hr className="my-4 border-slate-200" />
+
+    <SectionTitle>
+      Additional Work / Site Information
+    </SectionTitle>
+
+    <div className="mt-3 space-y-3">
+      {sharedNotes.map((note) => (
+        <div
+          key={note.id}
+          className="rounded-xl border border-green-200 bg-green-50 p-3"
+        >
+          <p className="whitespace-pre-wrap text-sm leading-6 text-slate-800">
+            {note.content}
+          </p>
+        </div>
+      ))}
+    </div>
+  </>
+)}
         </MobileCard>
 
         <div className="mt-4">
