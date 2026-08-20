@@ -103,25 +103,48 @@ export async function POST(request: Request) {
       )
     }
 
-    const { error: jobUpdateError } =
-      await supabaseAdmin
-        .from('jobs')
-        .update({
-          status_id: statusRecord.id,
+    const {
+  data: updatedJob,
+  error: jobUpdateError,
+} = await supabaseAdmin
+  .from('jobs')
+  .update({
+    status_id: statusRecord.id,
+    assigned_user_id: null,
+  })
+  .eq('id', jobId)
+  .select('id, status_id, assigned_user_id')
+  .single()
 
-          // Removes the completed job from the partner’s
-          // live queue while retaining the completion record.
-          assigned_user_id: null,
-        })
-        .eq('id', jobId)
+if (jobUpdateError) {
+  return NextResponse.json(
+    { error: jobUpdateError.message },
+    { status: 500 }
+  )
+}
 
-    if (jobUpdateError) {
-      return NextResponse.json(
-        { error: jobUpdateError.message },
-        { status: 500 }
-      )
-    }
+if (!updatedJob) {
+  return NextResponse.json(
+    {
+      error:
+        'Completion was saved but the job could not be moved to Needs Invoicing.',
+    },
+    { status: 500 }
+  )
+}
 
+if (
+  updatedJob.status_id !== statusRecord.id ||
+  updatedJob.assigned_user_id !== null
+) {
+  return NextResponse.json(
+    {
+      error:
+        'The job completion was recorded but the job handover was not completed correctly.',
+    },
+    { status: 500 }
+  )
+}
     return NextResponse.json({
       success: true,
       completion,

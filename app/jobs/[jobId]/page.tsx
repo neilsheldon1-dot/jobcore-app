@@ -114,6 +114,18 @@ const loggedInName =
   .eq('job_id', jobId)
   .maybeSingle()
 
+  const { data: partnerCompletion } = await supabaseAdmin
+  .from('partner_job_completions')
+  .select(`
+    id,
+    partner_name,
+    completed_by,
+    work_completed,
+    completed_at
+  `)
+  .eq('job_id', jobId)
+  .maybeSingle()
+
   const activeJobTypes = (activeJobTypeLinks || [])
   .map((link) => {
     const matchingType = (jobTypes || []).find(
@@ -478,7 +490,56 @@ const showAsbestosWorkflow =
     currentDescription={job.description}
   />
 </div>
+{partnerCompletion && (
+  <div className="border-t border-slate-200 mt-6 pt-6">
+    <div className="rounded-xl border border-green-200 bg-green-50 overflow-hidden">
+      <div className="border-b border-green-200 bg-green-100 px-4 py-3">
+        <p className="text-xs font-black uppercase tracking-wide text-green-800">
+          {partnerCompletion.partner_name || 'Partner'} Completion
+        </p>
+      </div>
 
+      <div className="p-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <p className="text-xs font-bold uppercase text-slate-400">
+              Completed By
+            </p>
+
+            <p className="mt-1 font-bold text-slate-900">
+              {partnerCompletion.completed_by || 'Not recorded'}
+            </p>
+          </div>
+
+          <div>
+            <p className="text-xs font-bold uppercase text-slate-400">
+              Completed
+            </p>
+
+            <p className="mt-1 font-bold text-slate-900">
+              {partnerCompletion.completed_at
+                ? new Date(
+                    partnerCompletion.completed_at
+                  ).toLocaleString('en-GB')
+                : 'Not recorded'}
+            </p>
+          </div>
+        </div>
+
+        <div className="mt-4">
+          <p className="text-xs font-bold uppercase text-slate-400">
+            Work Completed
+          </p>
+
+          <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-slate-700">
+            {partnerCompletion.work_completed ||
+              'No completion details recorded'}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
             <div className="border-t border-slate-200 mt-6 pt-6">
               <div className="flex items-center justify-between mb-4">
