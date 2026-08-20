@@ -526,6 +526,51 @@ function handleBeforePhotosUpload(
       setSaving(false)
     }
   }
+  async function saveCannotStartComments() {
+  if (!workflowRecordId) {
+    setError('Workflow record is missing.')
+    return
+  }
+
+  setSaving(true)
+  setError('')
+
+  try {
+    const response = await fetch(
+      '/api/compliance/cannot-start-comments',
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          jobId,
+          recordId: workflowRecordId,
+          comments: cannotStartComments,
+        }),
+      }
+    )
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(
+        result.error ||
+          'Unable to save comments.'
+      )
+    }
+
+    setStage('cannot-start-photos')
+  } catch (err) {
+    setError(
+      err instanceof Error
+        ? err.message
+        : 'Unable to save comments.'
+    )
+  } finally {
+    setSaving(false)
+  }
+}
 async function saveCompletionNotes() {
   if (!workflowRecordId) {
     setError('Workflow record is missing.')
@@ -766,7 +811,7 @@ if (stage === 'cannot-start-comments') {
     <CannotStartCommentsStep
       comments={cannotStartComments}
       onCommentsChange={setCannotStartComments}
-      onContinue={() => setStage('cannot-start-photos')}
+      onContinue={saveCannotStartComments}
     />
   )
 }
