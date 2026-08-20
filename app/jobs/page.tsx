@@ -292,10 +292,10 @@ const {
   error: operativesError,
 } = await supabaseAdmin
   .from('profiles')
-  .select('id, display_name, full_name, email, role')
+  .select('id, display_name, full_name, email, role, is_active')
   .eq('role', 'fitter')
+  .eq('is_active', true)
   .order('display_name', { ascending: true })
-
 
 
 if (operativesError) {

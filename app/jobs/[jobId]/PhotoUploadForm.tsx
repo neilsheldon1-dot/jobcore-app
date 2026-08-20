@@ -142,99 +142,162 @@ export default function PhotoUploadForm({
   }
 
   async function handleUpload(e: React.FormEvent) {
-    e.preventDefault()
+  e.preventDefault()
 
-    if (files.length === 0) {
-      alert('Please choose at least one photo first')
-      return
-    }
+  if (files.length === 0) {
+    alert('Please choose at least one photo first')
+    return
+  }
 
-    setLoading(true)
+  if (loading) {
+    return
+  }
 
-    const uploadedPhotos: UploadedPhoto[] = []
+  setLoading(true)
 
-    try {
-      for (const file of files) {
-        const watermarkedBlob = await createWatermarkedImage(
+  const uploadedPhotos: UploadedPhoto[] = []
+
+  try {
+    for (const file of files) {
+      const watermarkedBlob =
+        await createWatermarkedImage(
           file,
           jobAddress
         )
 
-        const watermarkedFile = new File(
-          [watermarkedBlob],
-          file.name,
-          {
-            type: 'image/jpeg',
-          }
-        )
-
-        const filePath = `${jobId}/${Date.now()}-${Math.random()
-          .toString(36)
-          .slice(2)}-${file.name}`
-
-        const { error: uploadError } = await supabase.storage
-          .from('job-photos')
-          .upload(filePath, watermarkedFile)
-
-        if (uploadError) {
-          throw new Error(uploadError.message)
+      const watermarkedFile = new File(
+        [watermarkedBlob],
+        file.name,
+        {
+          type: 'image/jpeg',
         }
+      )
 
-        const { data: publicUrlData } = supabase.storage
+      const filePath = `${jobId}/${Date.now()}-${Math.random()
+        .toString(36)
+        .slice(2)}-${file.name}`
+
+      const { error: uploadError } =
+        await supabase.storage
+          .from('job-photos')
+          .upload(
+            filePath,
+            watermarkedFile
+          )
+
+      if (uploadError) {
+        throw new Error(
+          uploadError.message
+        )
+      }
+
+      const { data: publicUrlData } =
+        supabase.storage
           .from('job-photos')
           .getPublicUrl(filePath)
 
-        const response = await fetch('/api/photos', {
+      const response = await fetch(
+        '/api/photos',
+        {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type':
+              'application/json',
           },
           body: JSON.stringify({
             job_id: jobId,
-            file_url: publicUrlData.publicUrl,
-            original_file_url: publicUrlData.publicUrl,
-            category: category.trim(),
-            photo_group: photoGroup,
+            file_url:
+              publicUrlData.publicUrl,
+            original_file_url:
+              publicUrlData.publicUrl,
+            category:
+              category.trim(),
+            photo_group:
+              photoGroup,
           }),
-        })
-
-        const result = await response.json()
-
-        if (!response.ok) {
-          throw new Error(
-            typeof result.error === 'string'
-              ? result.error
-              : result.error?.message || 'Could not save photo'
-          )
         }
+      )
 
-        const insertedPhoto = result.data?.[0]
+      const result =
+        await response.json()
 
-        if (!insertedPhoto?.id) {
-          throw new Error(
-            'The photo was uploaded but no photo record was returned'
-          )
-        }
-
-        uploadedPhotos.push(insertedPhoto)
+      if (!response.ok) {
+        throw new Error(
+          typeof result.error ===
+            'string'
+            ? result.error
+            : result.error?.message ||
+                'Could not save photo'
+        )
       }
 
-      if (onUploadComplete) {
-        await onUploadComplete(uploadedPhotos)
+      const insertedPhoto =
+        result.data?.[0]
+
+      if (!insertedPhoto?.id) {
+        throw new Error(
+          'The photo was uploaded but no photo record was returned'
+        )
       }
 
-      resetForm()
-      setIsOpen(false)
-
-      if (reloadOnComplete) {
-        window.location.reload()
-      }
-    } catch (error: any) {
-      alert(error.message || 'Could not upload photo')
-    } finally {
-      setLoading(false)
+      uploadedPhotos.push(
+        insertedPhoto
+      )
     }
+
+    /*
+     * At this point the photographs are safely
+     * uploaded and recorded in JobCore.
+     *
+     * Clear the form NOW so the fitter cannot
+     * accidentally submit the same files again
+     * if a later UI callback has a problem.
+     */
+    resetForm()
+    setIsOpen(false)
+
+    /*
+     * Anything below here is post-upload UI /
+     * workflow behaviour. A failure here must
+     * NOT tell the fitter that the photographs
+     * failed to upload.
+     */
+    if (onUploadComplete) {
+      try {
+        await onUploadComplete(
+          uploadedPhotos
+        )
+      } catch (callbackError) {
+        console.error(
+          'Photos uploaded successfully, but post-upload handling failed:',
+          callbackError
+        )
+
+        alert(
+          'Photos uploaded successfully. JobCore could not refresh the workflow automatically, so please reopen the job if needed.'
+        )
+
+        return
+      }
+    }
+
+    if (reloadOnComplete) {
+      window.location.reload()
+    }
+  } catch (error: any) {
+    console.error(
+      'Photo upload failed:',
+      error
+    )
+
+    alert(
+      error.message ||
+        'Could not upload photo'
+    )
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <>

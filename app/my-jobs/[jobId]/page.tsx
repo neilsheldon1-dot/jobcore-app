@@ -42,6 +42,32 @@ export default async function MyJobPage({
     notFound()
   }
 
+  const { data: workflowRecord } =
+    await supabaseAdmin
+      .from('job_rams')
+      .select(
+        'id, job_id, status, can_start, accepted_at, answers, created_at'
+      )
+      .eq('job_id', jobId)
+      .eq('template_code', 'TICKET')
+      .order('created_at', {
+        ascending: false,
+      })
+      .limit(1)
+      .maybeSingle()
+
+  const { data: existingBeforePhotos } =
+    await supabaseAdmin
+      .from('photos')
+      .select(
+        'id, file_url, category, photo_group, created_at, uploaded_by'
+      )
+      .eq('job_id', jobId)
+      .eq('photo_group', 'Before')
+      .order('created_at', {
+        ascending: true,
+      })
+
   const fullAddress = [
     job.address_line_1,
     job.town,
@@ -65,14 +91,11 @@ export default async function MyJobPage({
       fullAddress
     )}&navigate=yes`
 
- 
-
   return (
     <main className="min-h-screen bg-slate-100">
       <WorkspaceHeader />
 
       <div className="mx-auto max-w-md p-4">
-
         <Link
           href="/my-jobs"
           className="mb-5 inline-flex text-sm font-bold text-slate-600 hover:text-orange-600"
@@ -81,67 +104,75 @@ export default async function MyJobPage({
         </Link>
 
         <MobileCard>
-  <h1 className="text-2xl font-black text-slate-900">
-    {job.address_line_1}
-  </h1>
+          <h1 className="text-2xl font-black text-slate-900">
+            {job.address_line_1}
+          </h1>
 
-  <div className="mt-2 flex items-start justify-between gap-4">
-    <div>
-      <p className="text-slate-600">
-        {[job.town, job.postcode]
-          .filter(Boolean)
-          .join(' ')}
-      </p>
+          <div className="mt-2 flex items-start justify-between gap-4">
+            <div>
+              <p className="text-slate-600">
+                {[job.town, job.postcode]
+                  .filter(Boolean)
+                  .join(' ')}
+              </p>
 
-      {job.job_type && (
-        <span className="mt-4 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600">
-          {job.job_type}
-        </span>
-      )}
-    </div>
+              {job.job_type && (
+                <span className="mt-4 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-bold text-slate-600">
+                  {job.job_type}
+                </span>
+              )}
+            </div>
 
-    <NavigationButton
-      googleMapsUrl={googleMapsUrl}
-      appleMapsUrl={appleMapsUrl}
-      wazeUrl={wazeUrl}
-    />
-  </div>
+            <NavigationButton
+              googleMapsUrl={googleMapsUrl}
+              appleMapsUrl={appleMapsUrl}
+              wazeUrl={wazeUrl}
+            />
+          </div>
 
-  <hr className="my-4 border-slate-200" />
+          <hr className="my-4 border-slate-200" />
 
-  <div className="flex items-start justify-between gap-4">
-    <div className="flex-1">
-      <SectionTitle>
-        Tenant Contact
-      </SectionTitle>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <SectionTitle>
+                Tenant Contact
+              </SectionTitle>
 
-      <p className="mt-2 whitespace-pre-wrap font-semibold text-slate-800">
-        {job.tenant_contact || 'No contact details added'}
-      </p>
-    </div>
+              <p className="mt-2 whitespace-pre-wrap font-semibold text-slate-800">
+                {job.tenant_contact ||
+                  'No contact details added'}
+              </p>
+            </div>
 
-    <CallButton contactText={job.tenant_contact} />
-  </div>
+            <CallButton
+              contactText={job.tenant_contact}
+            />
+          </div>
 
-  <hr className="my-4 border-slate-200" />
+          <hr className="my-4 border-slate-200" />
 
-  <SectionTitle>
-    Work Required
-  </SectionTitle>
+          <SectionTitle>
+            Work Required
+          </SectionTitle>
 
-  <p className="mt-3 whitespace-pre-wrap leading-7 text-slate-800">
-    {job.description || 'No work description added'}
-  </p>
-</MobileCard>
+          <p className="mt-3 whitespace-pre-wrap leading-7 text-slate-800">
+            {job.description ||
+              'No work description added'}
+          </p>
+        </MobileCard>
 
-<div className="mt-4">
-  
-
-        <JobStartPanel
-  jobId={jobId}
-  jobAddress={fullAddress}
-/>
-</div>
+        <div className="mt-4">
+          <JobStartPanel
+            jobId={jobId}
+            jobAddress={fullAddress}
+            initialWorkflowRecord={
+              workflowRecord || null
+            }
+            initialBeforePhotos={
+              existingBeforePhotos || []
+            }
+          />
+        </div>
       </div>
     </main>
   )

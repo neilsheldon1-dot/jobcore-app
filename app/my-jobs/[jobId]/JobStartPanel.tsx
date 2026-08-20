@@ -55,37 +55,131 @@ type Stage =
 type JobStartPanelProps = {
   jobId: string
   jobAddress: string
+  initialWorkflowRecord?: any | null
+  initialBeforePhotos?: WorkflowPhoto[]
+}
+
+function getInitialStage(
+  workflowRecord: any | null,
+  beforePhotos: WorkflowPhoto[]
+): Stage {
+  if (!workflowRecord) {
+    return 'idle'
+  }
+
+  const answers =
+    workflowRecord.answers &&
+    typeof workflowRecord.answers === 'object' &&
+    !Array.isArray(workflowRecord.answers)
+      ? workflowRecord.answers
+      : {}
+
+  const ramsConfirmed =
+    answers.ramsConfirmed === true ||
+    Boolean(workflowRecord.accepted_at)
+
+  if (ramsConfirmed) {
+    return beforePhotos.length > 0
+      ? 'work-in-progress'
+      : 'working'
+  }
+
+  if (workflowRecord.can_start === true) {
+    return 'dashpivot'
+  }
+
+  if (workflowRecord.can_start === false) {
+    return 'cannot-start'
+  }
+
+  return 'safety-check'
 }
 
 export default function JobStartPanel({
   jobId,
   jobAddress,
+  initialWorkflowRecord = null,
+  initialBeforePhotos = [],
 }: JobStartPanelProps) {
   const router = useRouter()
 
-  const [stage, setStage] = useState<Stage>('idle')
-  const [workflowRecordId, setWorkflowRecordId] =
-    useState<string | null>(null)
+  const initialAnswers =
+    initialWorkflowRecord?.answers &&
+    typeof initialWorkflowRecord.answers ===
+      'object' &&
+    !Array.isArray(
+      initialWorkflowRecord.answers
+    )
+      ? initialWorkflowRecord.answers
+      : {}
+
+  const [stage, setStage] = useState<Stage>(
+    getInitialStage(
+      initialWorkflowRecord,
+      initialBeforePhotos
+    )
+  )
+
+  const [
+    workflowRecordId,
+    setWorkflowRecordId,
+  ] = useState<string | null>(
+    initialWorkflowRecord?.id || null
+  )
+
   const [selectedReasons, setSelectedReasons] =
     useState<string[]>([])
+
   const [ramsConfirmed, setRamsConfirmed] =
+    useState(
+      initialAnswers.ramsConfirmed === true ||
+        Boolean(
+          initialWorkflowRecord?.accepted_at
+        )
+    )
+
+  const [saving, setSaving] =
     useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState('')
-  const [cannotStartPhotos, setCannotStartPhotos] =
-  useState<WorkflowPhoto[]>([])
-  const [beforePhotos, setBeforePhotos] =
-  useState<WorkflowPhoto[]>([])
-  const [afterPhotos, setAfterPhotos] =
-  useState<WorkflowPhoto[]>([])
-  const [completionLimitationPhotos, setCompletionLimitationPhotos] =
-  useState<WorkflowPhoto[]>([])
-  const [cannotStartComments, setCannotStartComments] =
-  useState('')
-  const [completionNotes, setCompletionNotes] =
-  useState('')
-  const [completionLimitationComments, setCompletionLimitationComments] =
-  useState('')
+
+  const [error, setError] =
+    useState('')
+
+  const [
+    cannotStartPhotos,
+    setCannotStartPhotos,
+  ] = useState<WorkflowPhoto[]>([])
+
+  const [
+    beforePhotos,
+    setBeforePhotos,
+  ] = useState<WorkflowPhoto[]>(
+    initialBeforePhotos
+  )
+
+  const [
+    afterPhotos,
+    setAfterPhotos,
+  ] = useState<WorkflowPhoto[]>([])
+
+  const [
+    completionLimitationPhotos,
+    setCompletionLimitationPhotos,
+  ] = useState<WorkflowPhoto[]>([])
+
+  const [
+    cannotStartComments,
+    setCannotStartComments,
+  ] = useState('')
+
+  const [
+    completionNotes,
+    setCompletionNotes,
+  ] = useState('')
+
+  const [
+    completionLimitationComments,
+    setCompletionLimitationComments,
+  ] = useState('')
 
   async function handleCannotStartUpload(
   uploadedPhotos: WorkflowPhoto[]
