@@ -14,13 +14,15 @@ export async function POST(request: Request) {
     po_number,
   } = body
 
+  const parsedJobTypeId = Number(job_type_id)
+
   const { data, error } = await supabase
     .from('jobs')
     .insert([
       {
         property_id,
         description,
-        job_type_id: Number(job_type_id),
+        job_type_id: parsedJobTypeId,
         urgent,
         job_number,
         po_number,
@@ -31,7 +33,29 @@ export async function POST(request: Request) {
     .single()
 
   if (error) {
-    return NextResponse.json({ error }, { status: 500 })
+    return NextResponse.json(
+      { error },
+      { status: 500 }
+    )
+  }
+
+  if (parsedJobTypeId) {
+    const { error: jobTypeLinkError } =
+      await supabase
+        .from('job_type_links')
+        .insert([
+          {
+            job_id: data.id,
+            job_type_id: parsedJobTypeId,
+          },
+        ])
+
+    if (jobTypeLinkError) {
+      return NextResponse.json(
+        { error: jobTypeLinkError },
+        { status: 500 }
+      )
+    }
   }
 
   return NextResponse.json(data)

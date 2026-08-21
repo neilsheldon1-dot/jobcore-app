@@ -42,7 +42,7 @@ export default async function NewJobPage({
     .from('job_types')
     .select('*')
     .eq('is_active', true)
-    .order('id', { ascending: true })
+    .order('name', { ascending: true })
 
   const selectedProperty = properties?.find(
     (property) => property.id === params.property_id
