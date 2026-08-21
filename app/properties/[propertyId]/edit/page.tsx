@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import EditPropertyForm from './EditPropertyForm'
 import { supabase } from '../../../../lib/supabase'
+import AppHeader from '../../../../components/AppHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,18 +33,24 @@ export default async function EditPropertyPage({
     .order('sort_order', { ascending: true })
 
   if (!property) {
-    return (
-      <main className="min-h-screen bg-slate-100 p-8">
+  return (
+    <main className="min-h-screen bg-slate-100">
+      <AppHeader active="properties" />
+
+      <div className="max-w-4xl mx-auto px-6 py-8">
         <h1 className="text-2xl font-bold">
           Property not found
         </h1>
-      </main>
-    )
-  }
+      </div>
+    </main>
+  )
+}
 
-  return (
-    <main className="min-h-screen bg-slate-100">
-      <div className="max-w-4xl mx-auto px-6 py-8">
+ return (
+  <main className="min-h-screen bg-slate-100">
+    <AppHeader active="properties" />
+
+    <div className="max-w-4xl mx-auto px-6 py-8">
 
         <Link
           href={`/properties/${property.id}`}

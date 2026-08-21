@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { supabase } from '../../../lib/supabase'
 import DeletePropertyButton from './DeletePropertyButton'
 import PropertyKnowledgeCard from '@/components/PropertyKnowledgeCard'
+import AppHeader from '../../../components/AppHeader'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,16 +28,25 @@ export default async function PropertyPage({ params }: PropertyPageProps) {
     .order('created_at', { ascending: false })
 
   if (!property) {
-    return (
-      <main className="min-h-screen bg-slate-100 p-8">
-        <h1 className="text-2xl font-bold">Property not found</h1>
-      </main>
-    )
-  }
-
   return (
     <main className="min-h-screen bg-slate-100">
+      <AppHeader active="properties" />
+
       <div className="max-w-7xl mx-auto px-6 py-8">
+        <h1 className="text-2xl font-bold">
+          Property not found
+        </h1>
+      </div>
+    </main>
+  )
+}
+
+
+    return (
+  <main className="min-h-screen bg-slate-100">
+    <AppHeader active="properties" />
+
+    <div className="max-w-7xl mx-auto px-6 py-8">
 
         <Link href="/properties" className="text-blue-600 font-bold">
           ← Back to Properties
