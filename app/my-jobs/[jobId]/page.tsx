@@ -68,6 +68,17 @@ export default async function MyJobPage({
         ascending: true,
       })
 
+      const { data: existingJobPhotos } =
+  await supabaseAdmin
+    .from('photos')
+    .select(
+      'id, file_url, category, photo_group, created_at, uploaded_by'
+    )
+    .eq('job_id', jobId)
+    .order('created_at', {
+      ascending: true,
+    })
+
       const { data: sharedNotes } =
   await supabaseAdmin
     .from('job_notes')
@@ -188,6 +199,53 @@ export default async function MyJobPage({
             {note.content}
           </p>
         </div>
+      ))}
+    </div>
+  </>
+)}
+{existingJobPhotos && existingJobPhotos.length > 0 && (
+  <>
+    <hr className="my-4 border-slate-200" />
+
+    <SectionTitle>
+      Existing Job Photos
+    </SectionTitle>
+
+    <div className="mt-3 grid grid-cols-2 gap-3">
+      {existingJobPhotos.map((photo) => (
+        <a
+          key={photo.id}
+          href={photo.file_url}
+          target="_blank"
+          rel="noreferrer"
+          className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+        >
+          <img
+            src={photo.file_url}
+            alt={
+              photo.category ||
+              photo.photo_group ||
+              'Job photo'
+            }
+            className="h-32 w-full object-cover"
+          />
+
+          {(photo.photo_group || photo.category) && (
+            <div className="p-2">
+              {photo.photo_group && (
+                <p className="text-[10px] font-bold uppercase text-slate-400">
+                  {photo.photo_group}
+                </p>
+              )}
+
+              {photo.category && (
+                <p className="mt-1 text-xs text-slate-600">
+                  {photo.category}
+                </p>
+              )}
+            </div>
+          )}
+        </a>
       ))}
     </div>
   </>
