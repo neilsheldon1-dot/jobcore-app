@@ -8,6 +8,7 @@ import MobileCard from '../../../components/app/MobileCard'
 import SectionTitle from '../../../components/app/SectionTitle'
 import NavigationButton from '../../../components/app/NavigationButton'
 import CallButton from '../../../components/app/CallButton'
+import ExistingJobPhotos from './ExistingJobPhotos'
 
 export const dynamic = 'force-dynamic'
 
@@ -203,53 +204,9 @@ export default async function MyJobPage({
     </div>
   </>
 )}
-{existingJobPhotos && existingJobPhotos.length > 0 && (
-  <>
-    <hr className="my-4 border-slate-200" />
-
-    <SectionTitle>
-      Existing Job Photos
-    </SectionTitle>
-
-    <div className="mt-3 grid grid-cols-2 gap-3">
-      {existingJobPhotos.map((photo) => (
-        <a
-          key={photo.id}
-          href={photo.file_url}
-          target="_blank"
-          rel="noreferrer"
-          className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
-        >
-          <img
-            src={photo.file_url}
-            alt={
-              photo.category ||
-              photo.photo_group ||
-              'Job photo'
-            }
-            className="h-32 w-full object-cover"
-          />
-
-          {(photo.photo_group || photo.category) && (
-            <div className="p-2">
-              {photo.photo_group && (
-                <p className="text-[10px] font-bold uppercase text-slate-400">
-                  {photo.photo_group}
-                </p>
-              )}
-
-              {photo.category && (
-                <p className="mt-1 text-xs text-slate-600">
-                  {photo.category}
-                </p>
-              )}
-            </div>
-          )}
-        </a>
-      ))}
-    </div>
-  </>
-)}
+<ExistingJobPhotos
+  photos={existingJobPhotos || []}
+/>
         </MobileCard>
 
         <div className="mt-4">
