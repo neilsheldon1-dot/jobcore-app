@@ -485,7 +485,7 @@ const showAsbestosWorkflow =
 
 <div className="border-t border-slate-200 mt-6 pt-6">
   <p className="text-xs uppercase font-bold text-slate-400 mb-2">
-    Work Description
+    Current Scope / Work Required
   </p>
 
   <EditDescriptionForm
@@ -568,7 +568,7 @@ const showAsbestosWorkflow =
             <div className="border-t border-slate-200 mt-6 pt-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-slate-900">
-                  Job Notes
+                  Job Updates
                 </h2>
 
                 <AddNoteForm jobId={jobId} />
@@ -588,7 +588,7 @@ const showAsbestosWorkflow =
         : 'bg-green-100 text-green-800 border border-green-200'
     }`}
   >
-    {note.internal_only ? 'Internal only' : 'Everyone'}
+    {note.internal_only ? 'Internal only' : 'Site Team'}
   </span>
 
   <span className="text-xs text-slate-400 uppercase font-bold">
