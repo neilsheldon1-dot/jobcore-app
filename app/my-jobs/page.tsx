@@ -149,7 +149,7 @@ export default async function MyJobsPage() {
 
   return (
     <main className="min-h-screen bg-slate-100">
-        <AutoRefresh intervalMs={5000} />
+        <AutoRefresh intervalMs={60000} />
       <WorkspaceHeader name={name} />
 
       <div className="mx-auto max-w-md p-4">
