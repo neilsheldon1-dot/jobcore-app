@@ -8,7 +8,7 @@ type AutoRefreshProps = {
 }
 
 export default function AutoRefresh({
-  intervalMs = 15000,
+  intervalMs = 60000,
 }: AutoRefreshProps) {
   const router = useRouter()
   const [, startTransition] = useTransition()
