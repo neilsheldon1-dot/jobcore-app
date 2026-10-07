@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import PhotoUploadForm from './PhotoUploadForm'
+import PhotoViewer from '../../../components/PhotoViewer'
 
 export default function PhotoGallery({
   photos,
@@ -12,8 +13,8 @@ export default function PhotoGallery({
   jobId: string
   jobAddress: string
 }) {
-  const [selectedPhoto, setSelectedPhoto] =
-    useState<any | null>(null)
+  const [selectedPhotoId, setSelectedPhotoId] =
+    useState<string | null>(null)
 
   const [selectionMode, setSelectionMode] =
     useState(false)
@@ -201,13 +202,25 @@ export default function PhotoGallery({
               return (
                 <div
                   key={photo.id}
-                  onClick={() => {
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`View photo: ${photo.category || photo.photo_group || 'Job photo'}`}
+                  onKeyDown={(event) => {
+                    if (event.target !== event.currentTarget) return
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      if (selectionMode) togglePhoto(photo.id)
+                      else setSelectedPhotoId(photo.id)
+                    }
+                  }}
+                  onClick={(event) => {
                     if (selectionMode) {
                       togglePhoto(photo.id)
                       return
                     }
 
-                    setSelectedPhoto(photo)
+                    event.currentTarget.focus()
+                    setSelectedPhotoId(photo.id)
                   }}
                   className={`group relative cursor-pointer overflow-hidden rounded-2xl border bg-slate-50 text-left transition hover:shadow-md ${
                     isSelected
@@ -288,41 +301,12 @@ export default function PhotoGallery({
         )}
       </div>
 
-      {selectedPhoto && (
-        <div
-          onClick={() => setSelectedPhoto(null)}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
-        >
-          <div
-            onClick={(event) =>
-              event.stopPropagation()
-            }
-            className="w-full max-w-5xl rounded-3xl bg-white p-4"
-          >
-            <img
-              src={selectedPhoto.file_url}
-              alt={
-                selectedPhoto.category ||
-                selectedPhoto.photo_group ||
-                'Expanded Job Photo'
-              }
-              className="max-h-[80vh] w-full rounded-2xl object-contain"
-            />
-
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                onClick={() =>
-                  setSelectedPhoto(null)
-                }
-                className="rounded-xl bg-slate-900 px-6 py-3 font-bold text-white"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PhotoViewer
+        photos={photos}
+        selectedPhotoId={selectedPhotoId}
+        onSelect={setSelectedPhotoId}
+        onClose={() => setSelectedPhotoId(null)}
+      />
     </>
   )
 }
