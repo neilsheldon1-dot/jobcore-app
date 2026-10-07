@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 import { supabaseAdmin } from '../lib/supabaseAdmin'
 import DashboardSearch from './DashboardSearch'
 import AutoRefresh from '../components/AutoRefresh'
+import { scaffoldDestinations, asbestosDestination } from '../lib/jobDestinations'
 
 export const dynamic = 'force-dynamic'
 
@@ -353,13 +354,7 @@ allocated_jobs:
 
   <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x">
     <div className="divide-y">
-      {[
-        { stage: 'Awaiting Quote', label: 'Awaiting Scaffold Quote', accent: 'border-l-orange-500' },
-        { stage: 'Quote Received', label: 'Scaffold Quote Received', accent: 'border-l-green-600' },
-        { stage: 'Awaiting Erection', label: 'Awaiting Scaffold Erection', accent: 'border-l-orange-600' },
-        { stage: 'Scaffold Up', label: 'Scaffold Up', accent: 'border-l-green-600' },
-        { stage: 'Awaiting Dismantle', label: 'Awaiting Scaffold Dismantle', accent: 'border-l-purple-600' },
-      ].map((item) => {
+      {scaffoldDestinations.map((item) => {
         const count = getScaffoldPipelineCount(item.stage)
 
         if (count === 0) return null
@@ -367,7 +362,7 @@ allocated_jobs:
         return (
           <WidgetRow
             key={item.stage}
-            href={`/jobs?scaffoldPipeline=${encodeURIComponent(item.stage)}`}
+            href={item.href}
             label={item.label}
             value={count}
             accent={item.accent}
@@ -382,16 +377,13 @@ allocated_jobs:
 
         if (count === 0) return null
 
-        const label =
-          status.name.toLowerCase().includes('asbestos')
-            ? status.name
-            : `Asbestos ${status.name}`
+        const destination = asbestosDestination(status)
 
         return (
           <WidgetRow
             key={status.id}
-            href={`/jobs?asbestosStatus=${status.id}`}
-            label={label}
+            href={destination.href}
+            label={destination.label}
             value={count}
             accent="border-l-red-500"
           />

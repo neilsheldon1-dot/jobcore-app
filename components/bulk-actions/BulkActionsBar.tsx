@@ -63,19 +63,21 @@ export default function BulkActionsBar({
     (requiresAssignee && !selectedAssignee)
 
   return (
-    <div className="mb-4 flex flex-col gap-4 rounded-2xl border border-white bg-blue-600 px-5 py-4 shadow-lg transition-all duration-300 lg:flex-row lg:items-center lg:justify-between">
-      <p className="text-sm font-bold text-white">
+    <div role="region" aria-label="Bulk job actions" className="sticky top-[var(--app-header-height)] z-30 mb-4 flex flex-col gap-2 rounded-2xl border border-white bg-blue-600 px-3 py-3 shadow-lg sm:gap-4 sm:px-5 sm:py-4 lg:flex-row lg:items-center lg:justify-between">
+      <p aria-live="polite" className="text-sm font-bold text-white">
         ✓ {selectedCount}{' '}
         {selectedCount === 1 ? 'job' : 'jobs'} Selected
       </p>
 
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-2 sm:gap-3">
         <select
           value={selectedAction}
+          aria-label="Bulk action"
+          disabled={updating}
           onChange={(event) =>
             onActionChange(event.target.value)
           }
-          className="w-64 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold shadow-sm"
+          className="w-full min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold shadow-sm sm:w-64"
         >
           <option value="">Choose Action...</option>
 
@@ -101,10 +103,12 @@ export default function BulkActionsBar({
         {requiresAssignee && (
           <select
             value={selectedAssignee}
+            aria-label="Assignee"
+            disabled={updating}
             onChange={(event) =>
               onAssigneeChange(event.target.value)
             }
-            className="w-64 rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold shadow-sm"
+            className="w-full min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-semibold shadow-sm sm:w-64"
           >
             <option value="">
               Choose Assignee...

@@ -1018,7 +1018,7 @@ Neil Sheldon`,
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap justify-end gap-2 shrink-0">
+                      <div className="flex max-w-[45%] flex-wrap justify-end gap-2 shrink-0">
                        {job.assigned_to_name && (
   <span className="bg-orange-500 text-white border border-transparent px-2.5 py-0.5 rounded-full text-xs font-bold">
     👤 {job.assigned_to_name}

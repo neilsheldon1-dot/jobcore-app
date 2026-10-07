@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import JobsInbox from './JobsInbox'
 import { supabaseAdmin } from '../../lib/supabaseAdmin'
 import Link from 'next/link'
+import { scaffoldDestinations, asbestosDestination } from '../../lib/jobDestinations'
 
 
 export const dynamic = 'force-dynamic'
@@ -305,6 +306,22 @@ if (operativesError) {
   )
 }
 
+  let asbestosHeading = ''
+  if (params.asbestosStatus) {
+    const { data: asbestosStatus } = await supabase
+      .from('asbestos_statuses')
+      .select('id, name')
+      .eq('id', Number(params.asbestosStatus))
+      .maybeSingle()
+    asbestosHeading = asbestosStatus
+      ? asbestosDestination(asbestosStatus).label
+      : 'Asbestos Workflow'
+  }
+
+  const scaffoldHeading = params.scaffoldPipeline
+    ? scaffoldDestinations.find((item) => item.stage === params.scaffoldPipeline)?.label || 'Scaffold Workflow'
+    : ''
+
   const isOnHoldInbox = params.onHold === 'true'
   const isSearchResults = Boolean(params.search)
 
@@ -326,7 +343,9 @@ if (operativesError) {
     params.blocked === 'true' ||
     params.ready === 'true' ||
     params.blocker ||
-    params.onHold === 'true'
+    params.onHold === 'true' ||
+    params.scaffoldPipeline ||
+    params.asbestosStatus
 
   return (
     <main className="min-h-screen bg-slate-100">
@@ -350,7 +369,9 @@ if (operativesError) {
             <h2 className="text-lg font-bold text-slate-900">
               {params.onHold === 'true'
                 ? 'Jobs On Hold'
-                : params.status ||
+                : scaffoldHeading ||
+                  asbestosHeading ||
+                  params.status ||
                   (params.type
                     ? `Job Type: ${params.type}`
                     : '') ||

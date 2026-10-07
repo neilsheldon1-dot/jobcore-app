@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import SectionTitle from '../../../components/app/SectionTitle'
+import PhotoViewer from '../../../components/PhotoViewer'
 
 type Photo = {
   id: string
@@ -17,8 +18,8 @@ export default function ExistingJobPhotos({
 }: {
   photos: Photo[]
 }) {
-  const [selectedPhoto, setSelectedPhoto] =
-    useState<Photo | null>(null)
+  const [selectedPhotoId, setSelectedPhotoId] =
+    useState<string | null>(null)
 
   if (!photos || photos.length === 0) {
     return null
@@ -37,7 +38,10 @@ export default function ExistingJobPhotos({
           <button
             key={photo.id}
             type="button"
-            onClick={() => setSelectedPhoto(photo)}
+            onClick={(event) => {
+              event.currentTarget.focus()
+              setSelectedPhotoId(photo.id)
+            }}
             className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 text-left"
           >
             <img
@@ -69,37 +73,12 @@ export default function ExistingJobPhotos({
         ))}
       </div>
 
-      {selectedPhoto && (
-        <div
-          onClick={() => setSelectedPhoto(null)}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4"
-        >
-          <div
-            onClick={(event) =>
-              event.stopPropagation()
-            }
-            className="w-full max-w-3xl"
-          >
-            <img
-              src={selectedPhoto.file_url}
-              alt={
-                selectedPhoto.category ||
-                selectedPhoto.photo_group ||
-                'Expanded job photo'
-              }
-              className="max-h-[80vh] w-full rounded-2xl object-contain"
-            />
-
-            <button
-              type="button"
-              onClick={() => setSelectedPhoto(null)}
-              className="mt-4 w-full rounded-xl bg-white px-5 py-3 font-bold text-slate-900"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <PhotoViewer
+        photos={photos}
+        selectedPhotoId={selectedPhotoId}
+        onSelect={setSelectedPhotoId}
+        onClose={() => setSelectedPhotoId(null)}
+      />
     </>
   )
 }
