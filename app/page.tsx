@@ -255,7 +255,7 @@ allocated_jobs:
 
   return (
     <main className="min-h-screen bg-slate-100">
-      <AutoRefresh intervalMs={15000} />
+      <AutoRefresh intervalMs={60000} />
       <AppHeader active="home" />
 
       <div className="bg-white border-b">
